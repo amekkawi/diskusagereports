@@ -23,7 +23,7 @@ if (!(function_exists("date_default_timezone_set") ? @(date_default_timezone_set
 	echo "'timezone' config was set to an invalid identifier."; exit;
 }
 
-$totalGroups = array(
+$sizeGroups = array(
 	array('label' => '1 GB or More', 'size' => 1024 * 1024 * 1024),
 	array('label' => '500 MB - 1 GB', 'size' => 1024 * 1024 * 500),
 	array('label' => '250 MB - 500 MB', 'size' => 1024 * 1024 * 250),
@@ -78,7 +78,7 @@ if (($fh = fopen($filesList, 'r')) === FALSE) {
 
 if (file_put_contents(ConcatPath(DS, $reportDir, 'settings'), json_encode(array(
 		'root' => md5('coas'),
-		'sizes' => $totalGroups,
+		'sizes' => $sizeGroups,
 		'modified' => $modifiedGroups,
 		'ds' => DS
 	))) === FALSE) {
@@ -97,12 +97,7 @@ while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
 		$pop = array_pop($paths);
 		echo 'Exit Dir: ' . $pop['path'] . "\n";
 		
-		ob_start();
-		var_dump($pop);
-		$dump = ob_get_contents();
-		ob_end_clean();
-		
-		if (file_put_contents(ConcatPath(DS, $reportDir, md5($pop['path'])), $dump/*json_encode($pop)*/) === FALSE) {
+		if (file_put_contents(ConcatPath(DS, $reportDir, md5($pop['path'])), json_encode($pop)) === FALSE) {
 			echo 'Failed to write: ' . ConcatPath(DS, $reportDir, md5($pop['path'])) . "\n";
 		}
 	}
@@ -133,26 +128,35 @@ while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
 	}
 }
 
+while (count($paths) > 0) {
+	$pop = array_pop($paths);
+	echo 'Exit Dir: ' . $pop['path'] . "\n";
+	
+	if (file_put_contents(ConcatPath(DS, $reportDir, md5($pop['path'])), json_encode($pop)) === FALSE) {
+		echo 'Failed to write: ' . ConcatPath(DS, $reportDir, md5($pop['path'])) . "\n";
+	}
+}
+
 fclose($fh);
 
 function AddFileData($data) {
-	global $paths, $totalGroups, $modifiedGroups;
+	global $paths, $sizeGroups, $modifiedGroups;
 	
 	for ($i = 0; $i < count($paths) && $i <= MAXDETAILDEPTH; $i++) {
-		for ($g = 0; $g < count($totalGroups); $g++) {
-			if (bccomp($totalGroups[$g]['size'].'', $data[COL_SIZE], 0) <= 0) {
+		for ($g = 0; $g < count($sizeGroups); $g++) {
+			if (bccomp($sizeGroups[$g]['size'].'', $data[COL_SIZE], 0) <= 0) {
 				$paths[$i]['sizes'][$g] = array_key_exists($g, $paths[$i]['sizes'])
-					? bcadd($paths[$i]['sizes'][$g], $data[COL_SIZE])
-					: $data[COL_SIZE];
+					? array(bcadd($paths[$i]['sizes'][$g][0], $data[COL_SIZE]), bcadd($paths[$i]['sizes'][$g][1], '1'))
+					: array($data[COL_SIZE], '1');
 				break;
 			}
 		}
 	
 		for ($g = 0; $g < count($modifiedGroups); $g++) {
 			if (strcmp($modifiedGroups[$g]['date'], $data[COL_DATE]) <= 0) {
-				$paths[$i]['modified'][$modifiedGroups[$g]['label']] = array_key_exists($modifiedGroups[$g]['label'], $paths[$i]['modified'])
-					? bcadd($paths[$i]['modified'][$modifiedGroups[$g]['label']], $data[COL_SIZE])
-					: $data[COL_SIZE];
+				$paths[$i]['modified'][$g] = array_key_exists($g, $paths[$i]['modified'])
+					? array(bcadd($paths[$i]['modified'][$g][0], $data[COL_SIZE]), bcadd($paths[$i]['modified'][$g][1], '1'))
+					: array($data[COL_SIZE], '1');
 				break;
 			}
 		}
@@ -160,8 +164,8 @@ function AddFileData($data) {
 		$ext = end(explode('.', strtolower($data[COL_NAME])));
 		if ($ext !== FALSE) {
 			$paths[$i]['types'][$ext] = array_key_exists($ext, $paths[$i]['types'])
-					? bcadd($paths[$i]['types'][$ext], $data[COL_SIZE])
-					: $data[COL_SIZE];
+					? array(bcadd($paths[$i]['types'][$ext][0], $data[COL_SIZE]), bcadd($paths[$i]['types'][$ext][1], '1'))
+					: array($data[COL_SIZE], '1');
 		}
 	}
 }
