@@ -10,6 +10,7 @@
 <script type="text/javascript" src="js/external/jquery.ui.widget.js"></script>
 <script type="text/javascript" src="js/external/jquery.ui.mouse.js"></script>
 <script type="text/javascript" src="js/external/jquery.ui.position.js"></script>
+<script type="text/javascript" src="js/external/jquery.sortelements.js"></script>
 <script type="text/javascript" src="js/general.js"></script>
 
 <style type="text/css">
@@ -23,6 +24,9 @@
 	var reportHash = '';
 	var dirHash = '';
 	var dataBaseURL = '/php/diskusage-data/' /*+ reportHash + '/'*/;
+	
+	var sizesSortCol = 4;
+	var sizesSortRev = true;
 	
 	var sizeGroups = [
 		'1 GB or More',
@@ -99,10 +103,27 @@
 						for (var size in data.sizes) {
 							$('<tr>')
 								.append($('<td>').text(sizeGroups[parseInt(size)]).data('sortvalue', parseInt(size)))
+								
 								.append($('<td>').text(FormatBytes(data.sizes[size][0])).data('sortvalue', parseInt(data.sizes[size][0])).css('text-align', 'right'))
-								.append($('<td>').text(data.sizes[size][1]).css('text-align', 'right'))
+								.append($('<td>').text((100 * parseInt(data.sizes[size][0]) / parseInt(data.totalbytes)).toFixed(2) + '%').css('text-align', 'right'))
+								.append($('<td>').css('width', '100px').append($('<div>&nbsp;</div>').css({ 'overflow': 'hidden', 'width': (100 * parseInt(data.sizes[size][0]) / parseInt(data.totalbytes)) + '%', 'background-color': 'red' })))
+								
+								.append($('<td>').text(data.sizes[size][1]).data('sortvalue', parseInt(data.sizes[size][1])).css('text-align', 'right'))
+								.append($('<td>').text((100 * parseInt(data.sizes[size][1]) / parseInt(data.totalnum)).toFixed(2) + '%').css('text-align', 'right'))
+								.append($('<td>').css('width', '100px').append($('<div>&nbsp;</div>').css({ 'overflow': 'hidden', 'width': (100 * parseInt(data.sizes[size][1]) / parseInt(data.totalnum)) + '%', 'background-color': 'red' })))
+								
 								.appendTo(sizesBody);
 						}
+						
+						$('> tr', sizesBody).sortElements(function(a, b){
+							var a = $('td:eq(' + sizesSortCol + ')', a);
+							var b = $('td:eq(' + sizesSortCol + ')', b);
+							
+							var aVal = a.data('sortvalue') != null ? a.data('sortvalue') : a.text();
+							var bVal = b.data('sortvalue') != null ? b.data('sortvalue') : b.text();
+							
+							return (aVal > bVal ? 1 : -1) * (sizesSortRev ? 1 : -1);
+						});
 					}
 				});
 			}
@@ -141,8 +162,8 @@
 	<thead>
 		<tr>
 			<th>Range</th>
-			<th>Total Bytes</th>
-			<th>Count</th>
+			<th colspan="3">Total Bytes</th>
+			<th colspan="3">Count</th>
 		</tr>
 	</thead>
 	<tbody>
