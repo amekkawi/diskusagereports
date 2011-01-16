@@ -1,0 +1,185 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Disk Usage Reporting</title>
+
+<!-- External Scripts -->
+<script type="text/javascript" src="js/external/jquery.min.js"></script>
+<script type="text/javascript" src="js/external/jquery.ui.core.js"></script>
+<script type="text/javascript" src="js/external/jquery.ui.widget.js"></script>
+<script type="text/javascript" src="js/external/jquery.ui.mouse.js"></script>
+<script type="text/javascript" src="js/external/jquery.ui.position.js"></script>
+<script type="text/javascript" src="js/general.js"></script>
+
+<style type="text/css">
+	tbody th {
+		text-align: right;
+	}
+</style>
+
+<!-- Disk Usage Reporting Scripts -->
+<script type="text/javascript">
+	var reportHash = '';
+	var dirHash = '';
+	var dataBaseURL = '/php/diskusage-data/' /*+ reportHash + '/'*/;
+	
+	var sizeGroups = [
+		'1 GB or More',
+		'500 MB - 1 GB',
+		'250 MB - 500 MB',
+		'125 MB - 250 MB',
+		'75 MB - 125 MB',
+		'25 MB - 75 MB',
+		'10 MB - 25 MB',
+		'5 MB - 10 MB',
+		'1 MB - 5 MB',
+		'500 KB - 1 MB',
+		'250 KB - 500 KB',
+		'100 KB - 250 KB',
+		'50 KB - 100 KB',
+		'25 KB - 50 KB',
+		'10 KB - 25 KB',
+		'5 KB - 10 KB',
+		'1 KB - 5 KB',
+		'Less than 1 KB'
+	];
+	
+	$(function(){
+		
+		var filesBody = $('#Files tbody');
+		var typesBody = $('#Types tbody');
+		var sizesBody = $('#Sizes tbody');
+		
+		$.ajax({
+			async: false,
+			cache: false,
+			url: dataBaseURL + 'settings',
+			type: 'GET',
+			dataType: 'json',
+			error: function(xhr, status, err) {
+				alert('Failed to get settings: ' + status);
+			},
+			success: function(settings, status, xhr) {
+				$.ajax({
+					aynsc: false,
+					cache: false,
+					url: dataBaseURL + settings.root,
+					type: 'GET',
+					dataType: 'json',
+					success: function(data, status, xhr) {
+						$('#Path').text(data.path);
+						$('#Bytes').text(FormatBytes(data.bytes) + ' (' + AddCommas(data.bytes) + ')');
+						$('#TotalBytes').text(FormatBytes(data.totalbytes) + ' (' + AddCommas(data.totalbytes) + ')');
+						$('#Num').text(AddCommas(data.num));
+						$('#TotalNum').text(AddCommas(data.totalnum));
+						
+						for (var i = 0; i < data.files.length; i++) {
+							
+							var extData = '', ext = data.files[i].name.split('.');
+							if (ext.length > 1) ext = (extData = ext[ext.length-1]).htmlencode();
+							else ext = "<i>None</i>";
+							
+							$('<tr>')
+								.append($('<td>').text(data.files[i].name))
+								.append($('<td>').html(ext).data('sortvalue', extData).css('text-align', 'center'))
+								.append($('<td>').text(FormatBytes(data.files[i].size)).data('sortvalue', parseInt(data.files[i].size)).css('text-align', 'right'))
+								.append($('<td>').text(data.files[i].date + ' ' + data.files[i].time))
+								.appendTo(filesBody);
+						}
+						
+						for (var type in data.types) {
+							$('<tr>')
+								.append($('<td>').html(type == '' ? '<i>None</i>' : type.htmlencode()).data('sortvalue', type))
+								.append($('<td>').text(FormatBytes(data.types[type][0])).data('sortvalue', parseInt(data.types[type][0])).css('text-align', 'right'))
+								.append($('<td>').text(data.types[type][1]).css('text-align', 'right'))
+								.appendTo(typesBody);
+						}
+						
+						for (var size in data.sizes) {
+							$('<tr>')
+								.append($('<td>').text(sizeGroups[parseInt(size)]).data('sortvalue', parseInt(size)))
+								.append($('<td>').text(FormatBytes(data.sizes[size][0])).data('sortvalue', parseInt(data.sizes[size][0])).css('text-align', 'right'))
+								.append($('<td>').text(data.sizes[size][1]).css('text-align', 'right'))
+								.appendTo(sizesBody);
+						}
+					}
+				});
+			}
+		});
+	});
+</script>
+</head>
+<body>
+	
+<h1 id="Path"></h1>
+
+<table border="1" cellspacing="0" cellpadding="4">
+	<tbody>
+		<tr>
+			<th>Bytes:</th>
+			<td id="Bytes"></td>
+		</tr>
+		<tr>
+			<th>Bytes (w/sub):</th>
+			<td id="TotalBytes"></td>
+		</tr>
+		<tr>
+			<th>Files:</th>
+			<td id="Num"></td>
+		</tr>
+		<tr>
+			<th>Files (w/sub):</th>
+			<td id="TotalNum"></td>
+		</tr>
+	</tbody>
+</table>
+
+<h2>File Sizes:</h2>
+
+<table id="Sizes" border="1" cellspacing="0" cellpadding="4">
+	<thead>
+		<tr>
+			<th>Range</th>
+			<th>Total Bytes</th>
+			<th>Count</th>
+		</tr>
+	</thead>
+	<tbody>
+		
+	</tbody>
+</table>
+
+<h2>File Types:</h2>
+
+<table id="Types" border="1" cellspacing="0" cellpadding="4">
+	<thead>
+		<tr>
+			<th>Type</th>
+			<th>Total Bytes</th>
+			<th>Count</th>
+		</tr>
+	</thead>
+	<tbody>
+		
+	</tbody>
+</table>
+
+<h2>Files:</h2>
+
+<table id="Files" border="1" cellspacing="0" cellpadding="4">
+	<thead>
+		<tr>
+			<th>Name</th>
+			<th>Type</th>
+			<th>Size</th>
+			<th>Modified</th>
+		</tr>
+	</thead>
+	<tbody>
+		
+	</tbody>
+</table>
+
+</body>
+</html>
