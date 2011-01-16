@@ -1,6 +1,5 @@
-/**
- * @author amekkawi
- */
+// TODO: Give credit to original authors.
+
 String.prototype.htmlencode = function() {
 	var div = document.createElement("div");
 	div.appendChild(document.createTextNode(this));
