@@ -1,9 +1,10 @@
 <?php
 
+// find "DIRECTORYNAME" -printf '%y %TY-%Tm-%Td %TT %s %d %h %f\n' > "OUTFILENAME"
+
 if (!isset($_SERVER['argc']) || $_SERVER['argc'] < 3) {
 	echo "Syntax: process.php <fileslist> <reportdir>\n"; exit;
 }
-
 
 define('TIMEZONE', 'America/New_York');
 define('MAXDETAILDEPTH', 399);
@@ -95,7 +96,7 @@ while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
 	
 	while (count($paths) > 0 && $paths[count($paths)-1]['path'] != $split[COL_PARENT]) {
 		$pop = array_pop($paths);
-		echo 'Exit Dir: ' . $pop['path'] . "\n";
+		//echo 'Exit Dir: ' . $pop['path'] . "\n";
 		
 		if (file_put_contents(ConcatPath(DS, $reportDir, md5($pop['path'])), json_encode($pop)) === FALSE) {
 			echo 'Failed to write: ' . ConcatPath(DS, $reportDir, md5($pop['path'])) . "\n";
@@ -103,21 +104,30 @@ while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
 	}
 	
 	if ($split[COL_TYPE] == 'd') {
-		$newPath = array('files' => array(), 'sizes' => array(), 'modified' => array(), 'types' => array());
+		$newPath = array(
+			'bytes' => '0',
+			'totalbytes' => '0',
+			'num' => '0',
+			'totalnum' => '0',
+			'files' => array(),
+			'sizes' => array(),
+			'modified' => array(),
+			'types' => array()
+		);
 		
 		if ($split[COL_DEPTH] == '0') {
-			echo 'Root Dir: ' . $split[COL_NAME] . ' (' . md5($split[COL_NAME]) . ')' . "\n";
+			//echo 'Root Dir: ' . $split[COL_NAME] . ' (' . md5($split[COL_NAME]) . ')' . "\n";
 			$newPath['path'] = $split[COL_NAME];
 		}
 		else {
-			echo 'New Dir:  ' . $split[COL_PARENT] . DS . $split[COL_NAME] . "\n";
+			//echo 'New Dir:  ' . $split[COL_PARENT] . DS . $split[COL_NAME] . "\n";
 			$newPath['path'] = $split[COL_PARENT] . DS . $split[COL_NAME];
 		}
 		
 		array_push($paths, $newPath);
 	}
 	else {
-		echo 'File:     ' . $split[COL_PARENT] . DS . $split[COL_NAME] . "\n";
+		//echo 'File:     ' . $split[COL_PARENT] . DS . $split[COL_NAME] . "\n";
 		AddFileData($split);
 		array_push($paths[count($paths)-1]['files'], array(
 			'name' => $split[COL_NAME],
@@ -130,7 +140,7 @@ while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
 
 while (count($paths) > 0) {
 	$pop = array_pop($paths);
-	echo 'Exit Dir: ' . $pop['path'] . "\n";
+	//echo 'Exit Dir: ' . $pop['path'] . "\n";
 	
 	if (file_put_contents(ConcatPath(DS, $reportDir, md5($pop['path'])), json_encode($pop)) === FALSE) {
 		echo 'Failed to write: ' . ConcatPath(DS, $reportDir, md5($pop['path'])) . "\n";
@@ -142,30 +152,44 @@ fclose($fh);
 function AddFileData($data) {
 	global $paths, $sizeGroups, $modifiedGroups;
 	
-	for ($i = 0; $i < count($paths) && $i <= MAXDETAILDEPTH; $i++) {
-		for ($g = 0; $g < count($sizeGroups); $g++) {
-			if (bccomp($sizeGroups[$g]['size'].'', $data[COL_SIZE], 0) <= 0) {
-				$paths[$i]['sizes'][$g] = array_key_exists($g, $paths[$i]['sizes'])
-					? array(bcadd($paths[$i]['sizes'][$g][0], $data[COL_SIZE]), bcadd($paths[$i]['sizes'][$g][1], '1'))
-					: array($data[COL_SIZE], '1');
-				break;
-			}
-		}
-	
-		for ($g = 0; $g < count($modifiedGroups); $g++) {
-			if (strcmp($modifiedGroups[$g]['date'], $data[COL_DATE]) <= 0) {
-				$paths[$i]['modified'][$g] = array_key_exists($g, $paths[$i]['modified'])
-					? array(bcadd($paths[$i]['modified'][$g][0], $data[COL_SIZE]), bcadd($paths[$i]['modified'][$g][1], '1'))
-					: array($data[COL_SIZE], '1');
-				break;
-			}
+	for ($i = 0; $i < count($paths); $i++) {
+		
+		$paths[$i]['totalbytes'] = bcadd($paths[$i]['totalbytes'], $data[COL_SIZE]);
+		$paths[$i]['totalnum'] = bcadd($paths[$i]['totalnum'], '1');
+		
+		if ($i == count($paths) - 1) {
+			$paths[$i]['bytes'] = bcadd($paths[$i]['bytes'], $data[COL_SIZE]);
+			$paths[$i]['num'] = bcadd($paths[$i]['num'], '1');
 		}
 		
-		$ext = end(explode('.', strtolower($data[COL_NAME])));
-		if ($ext !== FALSE) {
-			$paths[$i]['types'][$ext] = array_key_exists($ext, $paths[$i]['types'])
-					? array(bcadd($paths[$i]['types'][$ext][0], $data[COL_SIZE]), bcadd($paths[$i]['types'][$ext][1], '1'))
-					: array($data[COL_SIZE], '1');
+		if ($i <= MAXDETAILDEPTH) {
+			for ($g = 0; $g < count($sizeGroups); $g++) {
+				if (bccomp($sizeGroups[$g]['size'].'', $data[COL_SIZE], 0) <= 0) {
+					$paths[$i]['sizes'][$g] = array_key_exists($g, $paths[$i]['sizes'])
+						? array(bcadd($paths[$i]['sizes'][$g][0], $data[COL_SIZE]), bcadd($paths[$i]['sizes'][$g][1], '1'))
+						: array($data[COL_SIZE], '1');
+					break;
+				}
+			}
+		
+			for ($g = 0; $g < count($modifiedGroups); $g++) {
+				if (strcmp($modifiedGroups[$g]['date'], $data[COL_DATE]) <= 0) {
+					$paths[$i]['modified'][$g] = array_key_exists($g, $paths[$i]['modified'])
+						? array(bcadd($paths[$i]['modified'][$g][0], $data[COL_SIZE]), bcadd($paths[$i]['modified'][$g][1], '1'))
+						: array($data[COL_SIZE], '1');
+					break;
+				}
+			}
+			
+			$ext = explode('.', strtolower($data[COL_NAME]));
+			if ($ext !== FALSE) {
+				if (count($ext) > 1) $ext = $ext[count($ext) - 1];
+				else $ext = '';
+				
+				$paths[$i]['types'][$ext] = array_key_exists($ext, $paths[$i]['types'])
+						? array(bcadd($paths[$i]['types'][$ext][0], $data[COL_SIZE]), bcadd($paths[$i]['types'][$ext][1], '1'))
+						: array($data[COL_SIZE], '1');
+			}
 		}
 	}
 }
