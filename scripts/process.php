@@ -89,6 +89,7 @@ if (file_put_contents(ConcatPath(DS, $reportDir, 'settings'), json_encode(array(
 
 $paths = array();
 
+// Read in all lines.
 while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
 	
 	// Trim line separator and split line.
@@ -109,6 +110,7 @@ while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
 			'totalbytes' => '0',
 			'num' => '0',
 			'totalnum' => '0',
+			'subdirs' => array(),
 			'files' => array(),
 			'sizes' => array(),
 			'modified' => array(),
@@ -122,6 +124,15 @@ while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
 		else {
 			//echo 'New Dir:  ' . $split[COL_PARENT] . DS . $split[COL_NAME] . "\n";
 			$newPath['path'] = $split[COL_PARENT] . DS . $split[COL_NAME];
+		}
+		
+		if (count($paths) > 0) {
+			array_push($paths[count($paths)-1]['subdirs'], array(
+				'name' => $split[COL_NAME],
+				'totalbytes' => &$newPath['totalbytes'],
+				'totalnum' => &$newPath['totalnum'],
+				'hash' => md5($newPath['path'])
+			));
 		}
 		
 		array_push($paths, $newPath);
@@ -173,7 +184,8 @@ function AddFileData($data) {
 			}
 		
 			for ($g = 0; $g < count($modifiedGroups); $g++) {
-				if (strcmp($modifiedGroups[$g]['date'], $data[COL_DATE]) <= 0) {
+				if (strcmp($modifiedGroups[$g]['date'], $data[COL_DATE]) >= 0) {
+					//echo $modifiedGroups[$g]['date'] . ' <= ' . $data[COL_DATE] . "\n"; exit;
 					$paths[$i]['modified'][$g] = array_key_exists($g, $paths[$i]['modified'])
 						? array(bcadd($paths[$i]['modified'][$g][0], $data[COL_SIZE]), bcadd($paths[$i]['modified'][$g][1], '1'))
 						: array($data[COL_SIZE], '1');
