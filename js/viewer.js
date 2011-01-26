@@ -14,12 +14,6 @@ var Viewer = function(opts) {
 	this._sizesSection = $('#Section_Sizes');
 	this._modifiedSection = $('#Section_Modified');
 	this._subdirsSection = $('#Section_SubDirs');
-	
-	this._filesBody = $('#Files tbody');
-	this._typesBody = $('#Types tbody');
-	this._sizesBody = $('#Sizes tbody');
-	this._modifiedBody = $('#Modified tbody');
-	this._subdirsBody = $('#SubDirs tbody');
 };
 
 $.extend(Viewer.prototype, {
@@ -163,7 +157,7 @@ $.extend(Viewer.prototype, {
 				case 'num':
 					return data[1];
 			}
-		}, true);
+		});
 		
 		//$('> div', this._sections).hide();
 		//this._subdirsSection.show();
@@ -174,6 +168,7 @@ $.extend(Viewer.prototype, {
 		this._displayTotalsTable($('#Types'), this._data.types, function(data, field, key) {
 			switch (field) {
 				case 'label':
+					return key == '' ? '<i>None</i>' : key.htmlencode();
 				case 'sortlabel':
 					return key;
 				case 'bytes':
@@ -200,7 +195,7 @@ $.extend(Viewer.prototype, {
 				case 'num':
 					return data[1];
 			}
-		}, true);
+		});
 		
 		//$('> div', this._sections).hide();
 		//this._subdirsSection.show();
