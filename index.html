@@ -4,6 +4,12 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Disk Usage Reporting</title>
 
+<script type="text/javascript">
+	// Path to the directory that contains the reports.
+	// Example: document.reportsBaseURL = '/path/to/me/';
+	document.reportsBaseURL = '/php/diskusage-data/';
+</script>
+
 <!-- External Scripts -->
 <script type="text/javascript" src="js/external/jquery.min.js"></script>
 <script type="text/javascript" src="js/external/jquery.ui.core.js"></script>
@@ -25,10 +31,7 @@
 <!-- Disk Usage Reporting Scripts -->
 <script type="text/javascript">
 	
-	document.parseLocation = function(location) {
-		var parsed = location.parseQS();
-	};
-	
+	// Override the JSON methods in RSH.
 	window.dhtmlHistory.create({
 		toJSON: function(o) {
 			return $.toJSON(o);
@@ -38,6 +41,7 @@
 		}
 	});
 	
+	// Initialize RSH once the page loads.
 	window.onload = function() {
 		dhtmlHistory.initialize();
 		dhtmlHistory.addListener(function(newLocation, historyData) {
@@ -51,8 +55,7 @@
 	});
 	
 	$(function() {
-		document.reportsBaseURL = '/php/diskusage-data/';
-		
+		// Load the settings file.
 		$.ajax({
 			cache: false,
 			url: document.reportsBaseURL + window.location.search.substring(1) + '/settings',
@@ -76,7 +79,7 @@
 	
 		// Load the location on first load.
 		if (dhtmlHistory.isFirstLoad()) {
-			//document.parseLocation(dhtmlHistory.getCurrentLocation());
+			
 		}
 	});
 </script>
