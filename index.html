@@ -11,7 +11,10 @@
 <script type="text/javascript" src="js/external/jquery.ui.mouse.js"></script>
 <script type="text/javascript" src="js/external/jquery.ui.position.js"></script>
 <script type="text/javascript" src="js/external/jquery.sortelements.js"></script>
+<script type="text/javascript" src="js/external/jquery.json.js"></script>
+<script type="text/javascript" src="js/external/rsh.js"></script>
 <script type="text/javascript" src="js/general.js"></script>
+<script type="text/javascript" src="js/viewer.js"></script>
 
 <style type="text/css">
 	tbody th {
@@ -21,9 +24,65 @@
 
 <!-- Disk Usage Reporting Scripts -->
 <script type="text/javascript">
+	
+	document.parseLocation = function(location) {
+		var parsed = location.parseQS();
+	};
+	
+	window.dhtmlHistory.create({
+		toJSON: function(o) {
+			return $.toJSON(o);
+		},
+		fromJSON: function(s) {
+			return $.evalJSON(s);
+		}
+	});
+	
+	window.onload = function() {
+		dhtmlHistory.initialize();
+		dhtmlHistory.addListener(function(newLocation, historyData) {
+			$(document).trigger('dhtmlhistory', [ newLocation, historyData ]);
+		});
+	};
+	
+	// Set up history handling.
+	$(document).bind('dhtmlhistory', function(e, location, data) {
+		if (document.viewer) document.viewer.display(location);
+	});
+	
+	$(function() {
+		document.reportsBaseURL = '/php/diskusage-data/';
+		
+		$.ajax({
+			cache: false,
+			url: document.reportsBaseURL + window.location.search.substring(1) + '/settings',
+			type: 'GET',
+			dataType: 'json',
+			error: function(xhr, status, err){
+				alert('Failed to get settings: ' + status);
+			},
+			success: function(settings, status, xhr){
+				document.viewer = new Viewer({
+					settings: settings,
+					report: window.location.search.substring(1)
+				});
+				
+				document.viewer.display(dhtmlHistory.getCurrentLocation(), function(){
+					$('#Loading').hide();
+					$('#Report').show();
+				});
+			}
+		});
+	
+		// Load the location on first load.
+		if (dhtmlHistory.isFirstLoad()) {
+			//document.parseLocation(dhtmlHistory.getCurrentLocation());
+		}
+	});
+	
 	var reportHash = '';
 	var dirHash = '';
-	var dataBaseURL = '/php/diskusage-data/' /*+ reportHash + '/'*/;
+	var dataBaseURL = '/php/diskusage-data/';
 	
 	var sizesSortCol = 4;
 	var sizesSortRev = true;
@@ -95,6 +154,8 @@
 			$('#TotalNum').text(AddCommas(currentData.totalnum));
 		};
 		
+		return;
+		
 		$.ajax({
 			async: false,
 			cache: false,
@@ -108,14 +169,18 @@
 				$.ajax({
 					aynsc: false,
 					cache: false,
-					url: dataBaseURL + settings.root,
+					url: dataBaseURL + '0e6d8801df6344ab4b60c959f76dda2d', //settings.root,
 					type: 'GET',
 					dataType: 'json',
 					success: function(data, status, xhr) {
 						
 						currentData = data;
 						
-						$('#Path').text(data.path);
+						for (var i = 0; i < data.parents.length; i++) {
+							$('#Path').append($('<a>').attr('href', data.parents[i].hash).text(data.parents[i].name)).append(settings.ds.htmlencode());
+						}
+						$('#Path').append(data.name.htmlencode());
+						
 						$('#Bytes').text(FormatBytes(data.bytes) + ' (' + AddCommas(data.bytes) + ')');
 						$('#TotalBytes').text(FormatBytes(data.totalbytes) + ' (' + AddCommas(data.totalbytes) + ')');
 						$('#Num').text(AddCommas(data.num));
@@ -234,130 +299,145 @@
 </head>
 <body>
 	
-<h1 id="Path"></h1>
+<div id="Loading">Loading...</div>
 
-<table border="1" cellspacing="0" cellpadding="4">
-	<tbody>
-		<tr>
-			<td colspan="2" align="center"><b>This Directory</b></td>
-		</tr>
-		<tr>
-			<th>Files:</th>
-			<td id="Num"></td>
-		</tr>
-		<tr>
-			<th>Bytes:</th>
-			<td id="Bytes"></td>
-		</tr>
-		<tr>
-			<td colspan="2" align="center"><b>Including Sub Directories</b></td>
-		</tr>
-		<tr>
-			<th>Files:</th>
-			<td id="TotalNum"></td>
-		</tr>
-		<tr>
-			<th>Bytes:</th>
-			<td id="TotalBytes"></td>
-		</tr>
-	</tbody>
-</table>
-
-<h2>Sub Directories:</h2>
-
-<table id="SubDirs" border="1" cellspacing="0" cellpadding="4">
-	<thead>
-		<tr>
-			<th>Name</th>
-			<th colspan="3">Total Bytes</th>
-			<th colspan="3">Count</th>
-		</tr>
-	</thead>
-	<tfoot>
-		<td>Totals</td>
-		<td colspan="3"></td>
-		<td colspan="3"></td>
-	</tfoot>
-	<tbody>
+<div id="Report" style="display: none;">
+	
+	<h1 id="Path"></h1>
+	
+	<table border="1" cellspacing="0" cellpadding="4">
+		<tbody>
+			<tr>
+				<td colspan="2" align="center"><b>This Directory</b></td>
+			</tr>
+			<tr>
+				<th>Files:</th>
+				<td id="Num"></td>
+			</tr>
+			<tr>
+				<th>Bytes:</th>
+				<td id="Bytes"></td>
+			</tr>
+			<tr>
+				<td colspan="2" align="center"><b>Including Sub Directories</b></td>
+			</tr>
+			<tr>
+				<th>Files:</th>
+				<td id="TotalNum"></td>
+			</tr>
+			<tr>
+				<th>Bytes:</th>
+				<td id="TotalBytes"></td>
+			</tr>
+		</tbody>
+	</table>
+	
+	<div id="Sections">
+	
+		<div id="Section_SubDirs">
+			<h2>Sub Directories:</h2>
+			<table id="SubDirs" border="1" cellspacing="0" cellpadding="4">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th colspan="3">Total Bytes</th>
+						<th colspan="3">Count</th>
+					</tr>
+				</thead>
+				<tfoot>
+					<td>Totals</td>
+					<td colspan="3"></td>
+					<td colspan="3"></td>
+				</tfoot>
+				<tbody>
+					
+				</tbody>
+			</table>
+		</div>
 		
-	</tbody>
-</table>
-
-<h2>Last Modified:</h2>
-
-<table id="Modified" border="1" cellspacing="0" cellpadding="4">
-	<thead>
-		<tr>
-			<th>Age</th>
-			<th colspan="3">Total Bytes</th>
-			<th colspan="3">Count</th>
-		</tr>
-	</thead>
-	<tfoot>
-		<td>Totals</td>
-		<td colspan="3"></td>
-		<td colspan="3"></td>
-	</tfoot>
-	<tbody>
+		<div id="Section_Modified">
+			<h2>Last Modified:</h2>
+			<table id="Modified" border="1" cellspacing="0" cellpadding="4">
+				<thead>
+					<tr>
+						<th>Age</th>
+						<th colspan="3">Total Bytes</th>
+						<th colspan="3">Count</th>
+					</tr>
+				</thead>
+				<tfoot>
+					<td>Totals</td>
+					<td colspan="3"></td>
+					<td colspan="3"></td>
+				</tfoot>
+				<tbody>
+					
+				</tbody>
+			</table>
+		</div>
 		
-	</tbody>
-</table>
-
-<h2>File Sizes:</h2>
-
-<table id="Sizes" border="1" cellspacing="0" cellpadding="4">
-	<thead>
-		<tr>
-			<th>Range</th>
-			<th colspan="3">Total Bytes</th>
-			<th colspan="3">Count</th>
-		</tr>
-	</thead>
-	<tfoot>
-		<td>Totals</td>
-		<td colspan="3"></td>
-		<td colspan="3"></td>
-	</tfoot>
-	<tbody>
+		<div id="Section_Sizes">
+			<h2>File Sizes:</h2>
+			<table id="Sizes" border="1" cellspacing="0" cellpadding="4">
+				<thead>
+					<tr>
+						<th>Range</th>
+						<th colspan="3">Total Bytes</th>
+						<th colspan="3">Count</th>
+					</tr>
+				</thead>
+				<tfoot>
+					<td>Totals</td>
+					<td colspan="3"></td>
+					<td colspan="3"></td>
+				</tfoot>
+				<tbody>
+					
+				</tbody>
+			</table>
+		</div>
 		
-	</tbody>
-</table>
-
-<h2>File Types:</h2>
-
-<table id="Types" border="1" cellspacing="0" cellpadding="4">
-	<thead>
-		<tr>
-			<th>Type</th>
-			<th colspan="3">Total Bytes</th>
-			<th colspan="3">Count</th>
-		</tr>
-	</thead>
-	<tfoot>
-		<td>Totals</td>
-		<td colspan="3"></td>
-		<td colspan="3"></td>
-	</tfoot>
-	<tbody>
+		<div id="Section_Types">
+			<h2>File Types:</h2>
+			<table id="Types" border="1" cellspacing="0" cellpadding="4">
+				<thead>
+					<tr>
+						<th>Type</th>
+						<th colspan="3">Total Bytes</th>
+						<th colspan="3">Count</th>
+					</tr>
+				</thead>
+				<tfoot>
+					<td>Totals</td>
+					<td colspan="3"></td>
+					<td colspan="3"></td>
+				</tfoot>
+				<tbody>
+					
+				</tbody>
+			</table>
+		</div>
 		
-	</tbody>
-</table>
+		<div id="Section_Files">
+			<h2>Files:</h2>
+			<table id="Files" border="1" cellspacing="0" cellpadding="4">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Type</th>
+						<th>Size</th>
+						<th>Modified</th>
+					</tr>
+				</thead>
+				<tbody>
+					
+				</tbody>
+			</table>
+		</div>
+	
+	</div>
 
-<h2>Files:</h2>
-
-<table id="Files" border="1" cellspacing="0" cellpadding="4">
-	<thead>
-		<tr>
-			<th>Name</th>
-			<th>Type</th>
-			<th>Size</th>
-			<th>Modified</th>
-		</tr>
-	</thead>
-	<tbody>
-		
-	</tbody>
-</table>
+</div>
 
 </body>
 </html>
