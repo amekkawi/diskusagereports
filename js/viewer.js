@@ -56,14 +56,14 @@ $.extend(Viewer.prototype, {
 		if (location.s && location.s.match(/^(subdirs|files|modified|types|sizes)$/i)) {
 			this._options.section = location.s.toLowerCase();
 		}
-		if (location.tsb && location.tsb.match(/^[label|byte|num]$/)) {
-			this._options.totalsSortBy = parseInt(location.tsb);
+		if (location.tsb && location.tsb.match(/^(label|byte|num)$/)) {
+			this._options.totalsSortBy = location.tsb;
 		}
 		if (location.tsr && location.tsr.match(/^[01]$/)) {
 			this._options.totalsSortRev = location.tsr == '1';
 		}
-		if (location.fsb && location.fsb.match(/^[name|type|size|modified]$/)) {
-			this._options.filesSortBy = parseInt(location.fsb);
+		if (location.fsb && location.fsb.match(/^(name|type|size|modified)$/)) {
+			this._options.filesSortBy = location.fsb;
 		}
 		if (location.fsr && location.fsr.match(/^[01]$/)) {
 			this._options.filesSortRev = location.fsr == '1';
@@ -128,6 +128,7 @@ $.extend(Viewer.prototype, {
 		this._displayModified();
 		this._displayTypes();
 		this._displaySizes();
+		this._displayFiles();
 	},
 	
 	_displaySubDirs: function() {
@@ -207,6 +208,7 @@ $.extend(Viewer.prototype, {
 	
 	_displayTotalsTable: function(table, data, getValue, htmlLabel) {
 		
+		var self = this;
 		var tbody = $('> tbody', table);
 		var tfoot = $('> tfoot', table);
 		
@@ -228,10 +230,10 @@ $.extend(Viewer.prototype, {
 			
 			switch (this._options.totalsSortBy) {
 				case 'byte':
-					sortValue = bytes;
+					sortValue = parseInt(bytes);
 					break;
 				case 'num':
-					sortValue = num;
+					sortValue = parseInt(num);
 					break;
 			}
 			
@@ -252,11 +254,15 @@ $.extend(Viewer.prototype, {
 			html += '</tr>';
 			
 			var index = BinarySearch(rows, [ sortValue, sortLabel ], function(needle, item, index) {
-				if (needle[0] < item[0]) return -1;
-				if (needle[0] > item[0]) return 1;
+				var modifier = self._options.totalsSortRev ? -1 : 1;
 				
-				if (needle[1] < item[1]) return -1;
-				if (needle[1] > item[1]) return 1;
+				if (self._options.totalsSortBy != 'label') modifier *= -1;
+				
+				if (needle[0] < item[0]) return -1 * modifier;
+				if (needle[0] > item[0]) return 1 * modifier;
+				
+				if (needle[1] < item[1]) return -1 * modifier;
+				if (needle[1] > item[1]) return 1 * modifier;
 				
 				return 0;
 			});
@@ -281,32 +287,31 @@ $.extend(Viewer.prototype, {
 	},
 	
 	_displayFiles: function() {
-		
-		var tbody = $('#Files > tbody');
-		var tfoot = $('#Files > tfoot');
-		
-		tbody.empty();
+		var self = this;
+		var tbody = $('#Files > tbody').empty();
 		
 		var totalBytes = 0;
 		var totalNum = 0;
+		var data = this._data.files;
 		
 		var rows = [];
 		
 		for (var key in data) {
-			var label = getValue(data[key], 'label', key);
-			var sortValue = sortLabel = getValue(data[key], 'sortlabel', key)
-			var bytes = getValue(data[key], 'bytes', key);
-			var num = getValue(data[key], 'num', key);
 			
-			totalBytes += parseInt(data[key].bytes);
-			totalNum += parseInt(num);
+			var extData = '', ext = data[key].name.split('.');
+			if (ext.length > 1) ext = (extData = ext[ext.length-1]).htmlencode();
+			else ext = "<i>None</i>";
 			
-			switch (this._options.totalsSortBy) {
-				case 'byte':
-					sortValue = bytes;
+			var sortValue = data[key].name;
+			switch (this._options.filesSortBy) {
+				case 'type':
+					sortValue = extData;
 					break;
-				case 'num':
-					sortValue = num;
+				case 'size':
+					sortValue = parseInt(data[key].size);
+					break;
+				case 'modified':
+					sortValue = data[key].date + ' ' + data[key].time;
 					break;
 			}
 			
@@ -314,33 +319,32 @@ $.extend(Viewer.prototype, {
 			
 			html += '<tr>';
 			
-			html += '<td>' + (htmlLabel ? label : label.htmlencode()) + '</td>';
-			
-			html += '<td align="right">' + FormatBytes(bytes) + '</td>';
-			html += '<td align="right">' + (100 * parseInt(bytes) / parseInt(this._data.totalbytes)).toFixed(2) + '%' + '</td>';
-			html += '<td style="width: 100px;"><div style="overflow: hidden; width: '+ (100 * parseInt(bytes) / parseInt(this._data.totalbytes)) +'%; background-color: #0CF;">&nbsp;</div></td>';
-			
-			html += '<td align="right">' + AddCommas(num) + '</td>';
-			html += '<td align="right">' + (100 * parseInt(num) / parseInt(this._data.totalnum)).toFixed(2) + '%' + '</td>';
-			html += '<td style="width: 100px;"><div style="overflow: hidden; width: '+ (100 * parseInt(num) / parseInt(this._data.totalnum)) +'%; background-color: #0CF;">&nbsp;</div></td>';
+			html += '<td>' + data[key].name.htmlencode() + '</td>';
+			html += '<td align="center">' + ext + '</td>';
+			html += '<td align="right">' + FormatBytes(data[key].size) + '</td>';
+			html += '<td>' + data[key].date + ' ' + data[key].time + '</td>';
 			
 			html += '</tr>';
 			
-			var index = BinarySearch(rows, [ sortValue, sortLabel ], function(needle, item, index) {
-				if (needle[0] < item[0]) return -1;
-				if (needle[0] > item[0]) return 1;
+			var index = BinarySearch(rows, [ sortValue, data[key].name ], function(needle, item, index) {
+				var modifier = self._options.filesSortRev ? -1 : 1;
 				
-				if (needle[1] < item[1]) return -1;
-				if (needle[1] > item[1]) return 1;
+				if (self._options.totalsSortBy == 'size') modifier *= -1;
+				
+				if (needle[0] < item[0]) return -1 * modifier;
+				if (needle[0] > item[0]) return 1 * modifier;
+				
+				if (needle[1] < item[1]) return -1 * modifier;
+				if (needle[1] > item[1]) return 1 * modifier;
 				
 				return 0;
 			});
 			
 			if (index < 0) {
-				rows.splice(Math.abs(index)-1, 0, [sortValue, sortLabel, html]);
+				rows.splice(Math.abs(index)-1, 0, [sortValue, data[key].name, html]);
 			}
 			else {
-				rows.splice(index, 0, [sortValue, sortLabel, html]);
+				rows.splice(index, 0, [sortValue, data[key].name, html]);
 			}
 		}
 		
@@ -350,9 +354,6 @@ $.extend(Viewer.prototype, {
 		}
 		
 		tbody.html(finalHTML);
-		
-		$('td:eq(1)', tfoot).text(FormatBytes(totalBytes) + ' (' + AddCommas(totalBytes) + ')');
-		$('td:eq(2)', tfoot).text(AddCommas(totalNum));
 	},
 	
 	_createLocation: function(options) {
