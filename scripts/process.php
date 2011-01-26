@@ -99,6 +99,14 @@ while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
 		$pop = array_pop($paths);
 		//echo 'Exit Dir: ' . $pop['path'] . "\n";
 		
+		$pop['parents'] = array();
+		foreach ($paths as $parent) {
+			array_push($pop['parents'], array(
+				'name' => $parent['name'],
+				'hash' => md5($parent['path'])
+			));
+		}
+		
 		if (file_put_contents(ConcatPath(DS, $reportDir, md5($pop['path'])), json_encode($pop)) === FALSE) {
 			echo 'Failed to write: ' . ConcatPath(DS, $reportDir, md5($pop['path'])) . "\n";
 		}
@@ -106,6 +114,7 @@ while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
 	
 	if ($split[COL_TYPE] == 'd') {
 		$newPath = array(
+			'name' => $split[COL_NAME],
 			'bytes' => '0',
 			'totalbytes' => '0',
 			'num' => '0',
@@ -152,6 +161,14 @@ while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
 while (count($paths) > 0) {
 	$pop = array_pop($paths);
 	//echo 'Exit Dir: ' . $pop['path'] . "\n";
+	
+	$pop['parents'] = array();
+	foreach ($paths as $parent) {
+		array_push($pop['parents'], array(
+			'name' => $parent['name'],
+			'hash' => md5($parent['path'])
+		));
+	}
 	
 	if (file_put_contents(ConcatPath(DS, $reportDir, md5($pop['path'])), json_encode($pop)) === FALSE) {
 		echo 'Failed to write: ' . ConcatPath(DS, $reportDir, md5($pop['path'])) . "\n";
