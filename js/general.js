@@ -113,6 +113,36 @@ function GetProportionalSize(cWidth, cHeight, iWidth, iHeight, expand) {
 	}
 }
 
+function BinarySearch(haystack, needle, comparator) {
+	var low = 0, high = haystack.length - 1, comp = -1, mid = 0;
+
+	if (typeof comparator != 'function') {
+		comparator = function(needle, item, index) {
+			if (needle < item) return -1;
+			if (needle > item) return 1;
+			else return 0;
+		};
+	}
+	
+	while (low <= high) {
+		var mid = Math.floor((low + high) / 2);
+		var comp = comparator(needle, haystack[mid], mid);
+		
+		if (comp < 0) {
+			high = mid - 1;
+		}
+		else if (comp > 0) {
+			low = mid + 1;
+		}
+		else {
+			return mid;
+		}
+	}
+
+	if (comp < 0) return -1 - mid;
+	if (comp > 0) return -2 - mid;
+}
+
 jQuery.fn.extend({
 	isParentOf: function(elem) {
 		return $(elem).isChildOf(this);
