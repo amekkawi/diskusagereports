@@ -81,6 +81,7 @@ body {
 }
 
 #Tabs li {
+	cursor: pointer;
 	position: relative;
 	top: 1px;
 	float: left;
@@ -95,8 +96,13 @@ body {
 	background-repeat: repeat-x;
 	border-bottom: 1px solid #918E81;
 }
+#Tabs li:hover {
+	text-decoration: underline;
+}
 
 #Tabs li.selected {
+	cursor: default;
+	text-decoration: none !important;
 	background-color: #F7F6F0;
 	border-bottom: 1px solid #F7F6F0;
 	background-image: none;
