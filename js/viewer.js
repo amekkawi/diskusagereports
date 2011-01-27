@@ -322,7 +322,7 @@ $.extend(Viewer.prototype, {
 			
 			var html = '';
 			
-			html += '<tr>';
+			//html += '<tr>';
 			
 			html += '<td>' + (htmlLabel ? label : label.htmlencode()) + '</td>';
 			
@@ -334,7 +334,7 @@ $.extend(Viewer.prototype, {
 			html += '<td align="right">' + (100 * parseInt(num) / parseInt(this._data.totalnum)).toFixed(2) + '%' + '</td>';
 			html += '<td style="width: 100px;"><div style="overflow: hidden; width: '+ (100 * parseInt(num) / parseInt(this._data.totalnum)) +'%; background-color: #0CF;">&nbsp;</div></td>';
 			
-			html += '</tr>';
+			//html += '</tr>';
 			
 			var index = BinarySearch(rows, [ sortValue, sortLabel ], function(needle, item, index) {
 				var modifier = self._options.totalsSortRev ? -1 : 1;
@@ -360,7 +360,7 @@ $.extend(Viewer.prototype, {
 		
 		var finalHTML = '';
 		for (var i = 0; i < rows.length; i++) {
-			finalHTML += rows[i][2];
+			finalHTML += '<tr class="' + (i % 2 == 0 ? 'odd' : 'even') + '">' + rows[i][2] + '</tr>';
 		}
 		
 		tbody.html(finalHTML);
@@ -407,14 +407,14 @@ $.extend(Viewer.prototype, {
 				
 				var html = '';
 				
-				html += '<tr>';
+				//html += '<tr>';
 				
 				html += '<td>' + data[key].name.htmlencode() + '</td>';
 				html += '<td align="center">' + ext + '</td>';
 				html += '<td align="right">' + FormatBytes(data[key].size) + '</td>';
 				html += '<td>' + data[key].date + ' ' + data[key].time + '</td>';
 				
-				html += '</tr>';
+				//html += '</tr>';
 				
 				var index = BinarySearch(rows, [ sortValue, data[key].name ], function(needle, item, index) {
 					var modifier = self._options.filesSortRev ? -1 : 1;
@@ -440,7 +440,7 @@ $.extend(Viewer.prototype, {
 			
 			var finalHTML = '';
 			for (var i = 0; i < rows.length; i++) {
-				finalHTML += rows[i][2];
+				finalHTML += '<tr class="' + (i % 2 == 0 ? 'odd' : 'even') + '">' + rows[i][2] + '</tr>';
 			}
 			
 			tbody.html(finalHTML);
