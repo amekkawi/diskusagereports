@@ -3,6 +3,8 @@
  */
 
 var Viewer = function(opts) {
+	var self = this;
+	
 	// Set the inital options.
 	this._options = $.extend({}, this.defaults, opts);
 	
@@ -16,8 +18,42 @@ var Viewer = function(opts) {
 		throw "You must pass the report hash to Viewer.";
 	}
 	
+	$('#Tabs li').disableTextSelection();
+	
+	$('#Tab_SubDirs').click(function(){
+		self.changeOptions({ 'section': 'subdirs' });
+	});
+	$('#Tab_Modified').click(function(){
+		self.changeOptions({ 'section': 'modified' });
+	});
+	$('#Tab_Types').click(function(){
+		self.changeOptions({ 'section': 'types' });
+	});
+	$('#Tab_Sizes').click(function(){
+		self.changeOptions({ 'section': 'sizes' });
+	});
+	$('#Tab_Files').click(function(){
+		self.changeOptions({ 'section': 'files' });
+	});
+	
+	$('#Sections .totals-sortby-label').click(function() {
+		self.changeOptions({ totalsSortBy: 'label' });
+	});
+	$('#Sections .totals-sortby-byte').click(function() {
+		self.changeOptions({ totalsSortBy: 'byte' });
+	});
+	$('#Sections .totals-sortby-num').click(function() {
+		self.changeOptions({ totalsSortBy: 'num' });
+	});
+	
 	// Setup the directory tree.
-	$('#DirectoryTree').tree({ data: this._options.directories, root: this._options.settings.root });
+	$('#DirectoryTree').tree({
+		data: this._options.directories,
+		root: this._options.settings.root,
+		selection: function(e, hash) {
+			self.changeOptions({ hash: hash });
+		}
+	});
 	
 	this._lastHash = null;
 	
@@ -42,6 +78,17 @@ $.extend(Viewer.prototype, {
 		filesSortRev: false
 	},
 	
+	changeOptions: function(opts, skipHistory) {
+		
+		$.extend(this._options, opts);
+		
+		if (!skipHistory) {
+			dhtmlHistory.add(this._createLocation(opts), null);
+		}
+		
+		this.display();
+	},
+	
 	display: function(location, completeFn) {
 		var self = this;
 		
@@ -50,33 +97,8 @@ $.extend(Viewer.prototype, {
 			location = null;
 		}
 		
-		if ($.isString(location)) {
-			location = location.parseQS();
-		}
-		
 		if (location) {
-			// Reset options to defaults.
-			$.extend(this._options, this.defaults);
-		
-			// Validate and set options.
-			if (location.h && location.h.match(/^[a-f0-9]{32}$/i)) {
-				this._options.hash = location.h.toLowerCase();
-			}
-			if (location.s && location.s.match(/^(subdirs|files|modified|types|sizes)$/i)) {
-				this._options.section = location.s.toLowerCase();
-			}
-			if (location.tsb && location.tsb.match(/^(label|byte|num)$/)) {
-				this._options.totalsSortBy = location.tsb;
-			}
-			if (location.tsr && location.tsr.match(/^[01]$/)) {
-				this._options.totalsSortRev = location.tsr == '1';
-			}
-			if (location.fsb && location.fsb.match(/^(name|type|size|modified)$/)) {
-				this._options.filesSortBy = location.fsb;
-			}
-			if (location.fsr && location.fsr.match(/^[01]$/)) {
-				this._options.filesSortRev = location.fsr == '1';
-			}
+			this._processLocation(location);
 		}
 		
 		// View the root hash if hash is not set.
@@ -105,7 +127,6 @@ $.extend(Viewer.prototype, {
 		}
 		else {
 			this._display();
-			
 			if ($.isFunction(completeFn)) {
 				completeFn();
 			}
@@ -350,77 +371,115 @@ $.extend(Viewer.prototype, {
 	
 	_displayFiles: function() {
 		var self = this;
-		var tbody = $('#Files > tbody').empty();
 		
-		var totalBytes = 0;
-		var totalNum = 0;
-		var data = this._data.files;
-		
-		var rows = [];
-		
-		for (var key in data) {
-			
-			var extData = '', ext = data[key].name.split('.');
-			if (ext.length > 1) ext = (extData = ext[ext.length-1]).htmlencode();
-			else ext = "<i>None</i>";
-			
-			var sortValue = data[key].name;
-			switch (this._options.filesSortBy) {
-				case 'type':
-					sortValue = extData;
-					break;
-				case 'size':
-					sortValue = parseInt(data[key].size);
-					break;
-				case 'modified':
-					sortValue = data[key].date + ' ' + data[key].time;
-					break;
-			}
-			
-			var html = '';
-			
-			html += '<tr>';
-			
-			html += '<td>' + data[key].name.htmlencode() + '</td>';
-			html += '<td align="center">' + ext + '</td>';
-			html += '<td align="right">' + FormatBytes(data[key].size) + '</td>';
-			html += '<td>' + data[key].date + ' ' + data[key].time + '</td>';
-			
-			html += '</tr>';
-			
-			var index = BinarySearch(rows, [ sortValue, data[key].name ], function(needle, item, index) {
-				var modifier = self._options.filesSortRev ? -1 : 1;
-				
-				if (self._options.totalsSortBy == 'size') modifier *= -1;
-				
-				if (needle[0] < item[0]) return -1 * modifier;
-				if (needle[0] > item[0]) return 1 * modifier;
-				
-				if (needle[1] < item[1]) return -1 * modifier;
-				if (needle[1] > item[1]) return 1 * modifier;
-				
-				return 0;
-			});
-			
-			if (index < 0) {
-				rows.splice(Math.abs(index)-1, 0, [sortValue, data[key].name, html]);
-			}
-			else {
-				rows.splice(index, 0, [sortValue, data[key].name, html]);
-			}
-		}
-		
-		var finalHTML = '';
-		for (var i = 0; i < rows.length; i++) {
-			finalHTML += rows[i][2];
-		}
-		
-		tbody.html(finalHTML);
-
 		$('> div', this._sections).hide();
-		this._filesSection.show();
+		
+		if (this._data.files.length == 0) {
+			$('#Section_Message').text('This directory does not contain files.').show();
+		}
+		else {
+			var tbody = $('#Files > tbody').empty();
+			
+			var totalBytes = 0;
+			var totalNum = 0;
+			var data = this._data.files;
+			
+			var rows = [];
+			
+			for (var key in data) {
+				
+				var extData = '', ext = data[key].name.split('.');
+				if (ext.length > 1) ext = (extData = ext[ext.length-1]).htmlencode();
+				else ext = "<i>None</i>";
+				
+				var sortValue = data[key].name;
+				switch (this._options.filesSortBy) {
+					case 'type':
+						sortValue = extData;
+						break;
+					case 'size':
+						sortValue = parseInt(data[key].size);
+						break;
+					case 'modified':
+						sortValue = data[key].date + ' ' + data[key].time;
+						break;
+				}
+				
+				var html = '';
+				
+				html += '<tr>';
+				
+				html += '<td>' + data[key].name.htmlencode() + '</td>';
+				html += '<td align="center">' + ext + '</td>';
+				html += '<td align="right">' + FormatBytes(data[key].size) + '</td>';
+				html += '<td>' + data[key].date + ' ' + data[key].time + '</td>';
+				
+				html += '</tr>';
+				
+				var index = BinarySearch(rows, [ sortValue, data[key].name ], function(needle, item, index) {
+					var modifier = self._options.filesSortRev ? -1 : 1;
+					
+					if (self._options.totalsSortBy == 'size') modifier *= -1;
+					
+					if (needle[0] < item[0]) return -1 * modifier;
+					if (needle[0] > item[0]) return 1 * modifier;
+					
+					if (needle[1] < item[1]) return -1 * modifier;
+					if (needle[1] > item[1]) return 1 * modifier;
+					
+					return 0;
+				});
+				
+				if (index < 0) {
+					rows.splice(Math.abs(index)-1, 0, [sortValue, data[key].name, html]);
+				}
+				else {
+					rows.splice(index, 0, [sortValue, data[key].name, html]);
+				}
+			}
+			
+			var finalHTML = '';
+			for (var i = 0; i < rows.length; i++) {
+				finalHTML += rows[i][2];
+			}
+			
+			tbody.html(finalHTML);
+			
+			this._filesSection.show();
+		}
+		
 		$('#Tabs li').removeClass('selected');
 		$('#Tab_Files').addClass('selected');
+	},
+	
+	_processLocation: function(location) {
+		// Make sure the location is an array.
+		if ($.isString(location)) {
+			location = location.parseQS();
+		}
+		
+		// Reset options to defaults.
+		$.extend(this._options, this.defaults);
+	
+		// Validate and set options.
+		if (location.h && location.h.match(/^[a-f0-9]{32}$/i)) {
+			this._options.hash = location.h.toLowerCase();
+		}
+		if (location.s && location.s.match(/^(subdirs|files|modified|types|sizes)$/i)) {
+			this._options.section = location.s.toLowerCase();
+		}
+		if (location.tsb && location.tsb.match(/^(label|byte|num)$/)) {
+			this._options.totalsSortBy = location.tsb;
+		}
+		if (location.tsr && location.tsr.match(/^[01]$/)) {
+			this._options.totalsSortRev = location.tsr == '1';
+		}
+		if (location.fsb && location.fsb.match(/^(name|type|size|modified)$/)) {
+			this._options.filesSortBy = location.fsb;
+		}
+		if (location.fsr && location.fsr.match(/^[01]$/)) {
+			this._options.filesSortRev = location.fsr == '1';
+		}
 	},
 	
 	_createLocation: function(options) {
@@ -431,15 +490,6 @@ $.extend(Viewer.prototype, {
 			+ '&tsr=' + escape(opts.totalsSortRev ? '1' : '0')
 			+ '&fsb=' + escape(opts.filesSortBy)
 			+ '&fsr=' + escape(opts.filesSortRev ? '1' : '0');
-	},
-	
-	setLocation: function(location) {
-		// Make sure the location is an array.
-		if ($.isString(location)) location = location.parseQS();
-		
-		if (location.report) {
-			this._report = report;
-		}
 	}
 	
 });
