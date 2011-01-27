@@ -72,6 +72,9 @@
 			},
 			success: function(settings, status, xhr){
 				
+				$('#Title > span').append(' for: ').append($('<b>').text(settings.name));
+				$('#Created').text('Created: ' + settings.created).show();
+				
 				// Load the directory lookup file.
 				$.ajax({
 					cache: false,
@@ -126,7 +129,8 @@
 </head>
 <body>
 	
-<div id="Title">Disk Usage Report for: <span>College of Arts &amp; Sciences</span></div>
+<div id="Title">Disk Usage Report <span></span><div id="Created" style="display: none;"></div>
+</div>
 
 <div id="Loading">Loading...</div>
 
