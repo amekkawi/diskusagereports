@@ -99,7 +99,6 @@ while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
 	
 	while (count($paths) > 0 && $paths[count($paths)-1]['path'] != $split[COL_PARENT]) {
 		$pop = array_pop($paths);
-		array_pop($dirStack);
 		//echo 'Exit Dir: ' . $pop['path'] . "\n";
 		
 		$pop['parents'] = array();
@@ -138,6 +137,7 @@ while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
 			$newPath['path'] = $split[COL_PARENT] . DS . $split[COL_NAME];
 		}
 		
+		// Add the directory to the hash lookup.
 		$dirList[md5($newPath['path'])] = array(
 			'name' => $split[COL_NAME],
 			'totalbytes' => &$newPath['totalbytes'],
