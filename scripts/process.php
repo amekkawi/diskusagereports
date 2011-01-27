@@ -89,6 +89,9 @@ if (file_put_contents(ConcatPath(DS, $reportDir, 'settings'), json_encode(array(
 
 $paths = array();
 
+$dirStructure = array();
+$dirStack = array();
+
 // Read in all lines.
 while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
 	
@@ -97,6 +100,7 @@ while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
 	
 	while (count($paths) > 0 && $paths[count($paths)-1]['path'] != $split[COL_PARENT]) {
 		$pop = array_pop($paths);
+		array_pop($dirStack);
 		//echo 'Exit Dir: ' . $pop['path'] . "\n";
 		
 		$pop['parents'] = array();
@@ -135,6 +139,23 @@ while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
 			$newPath['path'] = $split[COL_PARENT] . DS . $split[COL_NAME];
 		}
 		
+		$newDir = array(
+			'name' => $split[COL_NAME],
+			'totalbytes' => &$newPath['totalbytes'],
+			'totalnum' => &$newPath['totalnum'],
+			'hash' => md5($newPath['path']),
+			'subdirs' => array()
+		);
+		
+		if (count($dirStack) > 0) {
+			array_push($dirStack[count($dirStack)-1], $newDir);
+			array_push($dirStack, &$dirStack[count($dirStack)-1][count($dirStack[count($dirStack)-1])-1]['subdirs']);
+		}
+		else {
+			array_push($dirStructure, $newDir);
+			array_push($dirStack, &$dirStructure[0]['subdirs']);
+		}
+		
 		if (count($paths) > 0) {
 			array_push($paths[count($paths)-1]['subdirs'], array(
 				'name' => $split[COL_NAME],
@@ -143,7 +164,6 @@ while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
 				'hash' => md5($newPath['path'])
 			));
 		}
-		
 		array_push($paths, $newPath);
 	}
 	else {
@@ -173,6 +193,10 @@ while (count($paths) > 0) {
 	if (file_put_contents(ConcatPath(DS, $reportDir, md5($pop['path'])), json_encode($pop)) === FALSE) {
 		echo 'Failed to write: ' . ConcatPath(DS, $reportDir, md5($pop['path'])) . "\n";
 	}
+}
+
+if (file_put_contents(ConcatPath(DS, $reportDir, 'directories'), json_encode($dirStructure)) === FALSE) {
+	echo 'Failed to write: ' . ConcatPath(DS, $reportDir, 'directories') . "\n";
 }
 
 fclose($fh);
