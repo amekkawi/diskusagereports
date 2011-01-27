@@ -65,6 +65,7 @@ $modifiedGroups = array(
 
 $filesList = $argv[1];
 $reportDir = $argv[2];
+$reportName = $argv[3];
 
 if (!is_file($filesList)) {
 	echo "The <fileslist> does not exist or is not a file.\n"; exit;
@@ -78,6 +79,8 @@ if (($fh = fopen($filesList, 'r')) === FALSE) {
 }
 
 if (file_put_contents(ConcatPath(DS, $reportDir, 'settings'), json_encode(array(
+		'name' => $reportName,
+		'created' => date('Y-m-d H:i:s'),
 		'root' => md5('coas'),
 		'sizes' => $sizeGroups,
 		'modified' => $modifiedGroups,
