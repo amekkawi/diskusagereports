@@ -9,6 +9,7 @@ body {
 	background-repeat: repeat-x;
 	margin: 0;
 	padding: 10px;
+	padding-top: 2px;
 	overflow: hidden;
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 14px;
@@ -47,10 +48,20 @@ body {
 	background-image: url(../images/title-icon.png);
 	background-repeat: no-repeat;
 	background-position: left center;
+	position: relative;
 }
 
-#Title span {
+#Title b {
 	color: #dfcd90;
+	font-weight: normal;
+}
+
+#Created {
+    color: #CCCCCC;
+    font-size: 13px;
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
 }
 
 #Container {
