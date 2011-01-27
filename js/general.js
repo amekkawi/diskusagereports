@@ -161,6 +161,18 @@ jQuery.fn.extend({
 	},
 	dimensions: function() {
 		return $.dimensions(this);
+	},
+	disableTextSelection: function() {
+		return this
+			.attr('unselectable', 'on')
+			.css('MozUserSelect', 'none')
+			.bind('selectstart.ui', function() { return false; });
+	},
+	enableTextSelection: function() {
+		return this
+			.attr('unselectable', 'off')
+			.css('MozUserSelect', '')
+			.unbind('selectstart.ui');
 	}
 });
 
