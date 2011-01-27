@@ -80,7 +80,7 @@ if (($fh = fopen($filesList, 'r')) === FALSE) {
 
 if (file_put_contents(ConcatPath(DS, $reportDir, 'settings'), json_encode(array(
 		'name' => $reportName,
-		'created' => date('Y-m-d H:i:s'),
+		'created' => date('M j, Y g:i:s T'),
 		'root' => md5('coas'),
 		'sizes' => $sizeGroups,
 		'modified' => $modifiedGroups,
