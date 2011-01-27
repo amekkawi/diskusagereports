@@ -46,7 +46,7 @@ $.widget("ui.tree", {
 					}
 				}
 				else {
-					
+					self._trigger('selection', {}, [ hash ]);
 				}
 			}
 		});
