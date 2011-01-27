@@ -10,6 +10,9 @@
 	document.reportsBaseURL = '/php/diskusage-data/';
 </script>
 
+<link href="css/jquery.ui.tree.css" type="text/css" rel="stylesheet" />
+<link href="css/layout.css" type="text/css" rel="stylesheet" />
+
 <!-- External Scripts -->
 <script type="text/javascript" src="js/external/jquery.min.js"></script>
 <script type="text/javascript" src="js/external/jquery.ui.core.js"></script>
@@ -19,7 +22,10 @@
 <script type="text/javascript" src="js/external/jquery.sortelements.js"></script>
 <script type="text/javascript" src="js/external/jquery.json.js"></script>
 <script type="text/javascript" src="js/external/rsh.js"></script>
+
+<!-- Disk Usage Reporting Scripts -->
 <script type="text/javascript" src="js/general.js"></script>
+<script type="text/javascript" src="js/jquery.ui.tree.js"></script>
 <script type="text/javascript" src="js/viewer.js"></script>
 
 <style type="text/css">
@@ -65,14 +71,32 @@
 				alert('Failed to get settings: ' + status);
 			},
 			success: function(settings, status, xhr){
-				document.viewer = new Viewer({
-					settings: settings,
-					report: window.location.search.substring(1)
-				});
 				
-				document.viewer.display(dhtmlHistory.getCurrentLocation(), function(){
-					$('#Loading').hide();
-					$('#Report').show();
+				// Load the directory lookup file.
+				$.ajax({
+					cache: false,
+					url: document.reportsBaseURL + window.location.search.substring(1) + '/directories',
+					type: 'GET',
+					dataType: 'json',
+					error: function(xhr, status, err){
+						alert('Failed to get directory lookup: ' + status);
+					},
+					success: function(dirLookup, status, xhr){
+						
+						document.viewer = new Viewer({
+							directories: dirLookup,
+							settings: settings,
+							report: window.location.search.substring(1)
+						});
+						
+						document.viewer.display(dhtmlHistory.getCurrentLocation(), function(){
+							$('#Loading').hide();
+							$('#Container').show();
+							
+							// Force a resize since the viewer is now displayed.
+							document.resizeWindow();
+						});
+					}
 				});
 			}
 		});
@@ -81,150 +105,164 @@
 		if (dhtmlHistory.isFirstLoad()) {
 			
 		}
+		
+		document.resizeWindow = function() {
+			// Set the correct height for the container.
+			var containerHeightDiff = $('#Container').outerHeight(true) - $('#Container').height();
+			$('#Container').height($('body').height() - containerHeightDiff - $('#Container').offset().top - 10);
+			
+			var reportHeightDiff = $('#Report').outerHeight(true) - $('#Report').height();
+			$('#Report').height($('#RightColumn').height() - reportHeightDiff - $('#Report').position().top);
+		};
+		
+		$(window).bind("resize", function() {
+			if (document.resizeTimerID) clearTimeout(document.resizeTimerID);
+			document.resizeTimerID = setTimeout(function() {
+				document.resizeWindow();
+			}, 100);
+		});
 	});
 </script>
 </head>
 <body>
 	
+<div id="Title">Disk Usage Report for: <span>College of Arts &amp; Sciences</span></div>
+
 <div id="Loading">Loading...</div>
 
-<div id="Report" style="display: none;">
-	
-	<h1 id="Path"></h1>
-	
-	<table border="1" cellspacing="0" cellpadding="4">
-		<tbody>
-			<tr>
-				<td colspan="2" align="center"><b>This Directory</b></td>
-			</tr>
-			<tr>
-				<th>Files:</th>
-				<td id="Num"></td>
-			</tr>
-			<tr>
-				<th>Bytes:</th>
-				<td id="Bytes"></td>
-			</tr>
-			<tr>
-				<td colspan="2" align="center"><b>Including Sub Directories</b></td>
-			</tr>
-			<tr>
-				<th>Files:</th>
-				<td id="TotalNum"></td>
-			</tr>
-			<tr>
-				<th>Bytes:</th>
-				<td id="TotalBytes"></td>
-			</tr>
-		</tbody>
-	</table>
-	
-	<div id="Sections">
-	
-		<div id="Section_SubDirs">
-			<h2>Sub Directories:</h2>
-			<table id="SubDirs" border="1" cellspacing="0" cellpadding="4">
-				<thead>
-					<tr>
-						<th>Name</th>
-						<th colspan="3">Total Bytes</th>
-						<th colspan="3">Count</th>
-					</tr>
-				</thead>
-				<tfoot>
-					<td>Totals</td>
-					<td colspan="3"></td>
-					<td colspan="3"></td>
-				</tfoot>
-				<tbody>
-					
-				</tbody>
-			</table>
-		</div>
-		
-		<div id="Section_Modified">
-			<h2>Last Modified:</h2>
-			<table id="Modified" border="1" cellspacing="0" cellpadding="4">
-				<thead>
-					<tr>
-						<th>Age</th>
-						<th colspan="3">Total Bytes</th>
-						<th colspan="3">Count</th>
-					</tr>
-				</thead>
-				<tfoot>
-					<td>Totals</td>
-					<td colspan="3"></td>
-					<td colspan="3"></td>
-				</tfoot>
-				<tbody>
-					
-				</tbody>
-			</table>
-		</div>
-		
-		<div id="Section_Sizes">
-			<h2>File Sizes:</h2>
-			<table id="Sizes" border="1" cellspacing="0" cellpadding="4">
-				<thead>
-					<tr>
-						<th>Range</th>
-						<th colspan="3">Total Bytes</th>
-						<th colspan="3">Count</th>
-					</tr>
-				</thead>
-				<tfoot>
-					<td>Totals</td>
-					<td colspan="3"></td>
-					<td colspan="3"></td>
-				</tfoot>
-				<tbody>
-					
-				</tbody>
-			</table>
-		</div>
-		
-		<div id="Section_Types">
-			<h2>File Types:</h2>
-			<table id="Types" border="1" cellspacing="0" cellpadding="4">
-				<thead>
-					<tr>
-						<th>Type</th>
-						<th colspan="3">Total Bytes</th>
-						<th colspan="3">Count</th>
-					</tr>
-				</thead>
-				<tfoot>
-					<td>Totals</td>
-					<td colspan="3"></td>
-					<td colspan="3"></td>
-				</tfoot>
-				<tbody>
-					
-				</tbody>
-			</table>
-		</div>
-		
-		<div id="Section_Files">
-			<h2>Files:</h2>
-			<table id="Files" border="1" cellspacing="0" cellpadding="4">
-				<thead>
-					<tr>
-						<th>Name</th>
-						<th>Type</th>
-						<th>Size</th>
-						<th>Modified</th>
-					</tr>
-				</thead>
-				<tbody>
-					
-				</tbody>
-			</table>
-		</div>
-	
-	</div>
+<div id="Container" style="display: none;">
 
-</div>
+	<div id="LeftColumn">
+		<div id="DirectoryTree"></div>
+	</div>
+	
+	<div id="RightColumn">
+		
+		<div id="ReportHead">
+			<div id="Path"></div>
+			<div id="DirSummary">Size: <span id="Bytes"></span> (<span id="TotalBytes"></span> incl. sub directories)<br/>
+				Files: <span id="Num"></span> (<span id="TotalNum"></span> incl. sub directories)</div>
+		</div>
+		
+		<div id="Tabs">
+			<ul>
+				<li id="Tab_SubDirs">Sub Directories</li>
+				<li id="Tab_Modified">Last Modified</li>
+				<li id="Tab_Sizes">File Sizes</li>
+				<li id="Tab_Types">File Types</li>
+				<li id="Tab_Files">File List</li>
+			</ul>
+		</div>
+		
+		<div id="Report">
+	
+			<div id="Sections">
+			
+				<div id="Section_SubDirs">
+					<table id="SubDirs" border="1" cellspacing="0" cellpadding="4">
+						<thead>
+							<tr>
+								<th>Name</th>
+								<th colspan="3">Total Size</th>
+								<th colspan="3">File Count</th>
+							</tr>
+						</thead>
+						<tfoot>
+							<td>Total</td>
+							<td colspan="3"></td>
+							<td colspan="3"></td>
+						</tfoot>
+						<tbody>
+							
+						</tbody>
+					</table>
+				</div>
+				
+				<div id="Section_Modified">
+					<table id="Modified" border="1" cellspacing="0" cellpadding="4">
+						<thead>
+							<tr>
+								<th>Age</th>
+								<th colspan="3">Total Size</th>
+								<th colspan="3">File Count</th>
+							</tr>
+						</thead>
+						<tfoot>
+							<td>Total</td>
+							<td colspan="3"></td>
+							<td colspan="3"></td>
+						</tfoot>
+						<tbody>
+							
+						</tbody>
+					</table>
+				</div>
+				
+				<div id="Section_Sizes">
+					<table id="Sizes" border="1" cellspacing="0" cellpadding="4">
+						<thead>
+							<tr>
+								<th>Range</th>
+								<th colspan="3">Total Size</th>
+								<th colspan="3">File Count</th>
+							</tr>
+						</thead>
+						<tfoot>
+							<td>Total</td>
+							<td colspan="3"></td>
+							<td colspan="3"></td>
+						</tfoot>
+						<tbody>
+							
+						</tbody>
+					</table>
+				</div>
+				
+				<div id="Section_Types">
+					<table id="Types" border="1" cellspacing="0" cellpadding="4">
+						<thead>
+							<tr>
+								<th>Extension</th>
+								<th colspan="3">Total Size</th>
+								<th colspan="3">File Count</th>
+							</tr>
+						</thead>
+						<tfoot>
+							<td>Total</td>
+							<td colspan="3"></td>
+							<td colspan="3"></td>
+						</tfoot>
+						<tbody>
+							
+						</tbody>
+					</table>
+				</div>
+				
+				<div id="Section_Files">
+					<table id="Files" border="1" cellspacing="0" cellpadding="4">
+						<thead>
+							<tr>
+								<th>Name</th>
+								<th>Type</th>
+								<th>Size</th>
+								<th>Modified</th>
+							</tr>
+						</thead>
+						<tbody>
+							
+						</tbody>
+					</table>
+				</div>
+				
+				<div id="Section_Message" style="display: none;"></div>
+			
+			</div>
+		
+		</div> <!-- Report -->
+	
+	</div> <!-- Right Column -->
+
+</div> <!-- Container -->
 
 </body>
 </html>

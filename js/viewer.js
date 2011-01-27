@@ -6,6 +6,19 @@ var Viewer = function(opts) {
 	// Set the inital options.
 	this._options = $.extend({}, this.defaults, opts);
 	
+	if ($.isUndefined(this._options.directories)) {
+		throw "You must pass a directory lookup array to Viewer.";
+	}
+	if ($.isUndefined(this._options.settings)) {
+		throw "You must pass the report settings to Viewer.";
+	}
+	if ($.isUndefined(this._options.report)) {
+		throw "You must pass the report hash to Viewer.";
+	}
+	
+	// Setup the directory tree.
+	$('#DirectoryTree').tree({ data: this._options.directories, root: this._options.settings.root });
+	
 	this._lastHash = null;
 	
 	this._sections = $('#Sections');
@@ -21,8 +34,6 @@ $.extend(Viewer.prototype, {
 	_data: null,
 	
 	defaults: {
-		settings: null,
-		report: null,
 		hash: null,
 		section: 'subdirs',
 		totalsSortBy: 'label',
@@ -43,24 +54,29 @@ $.extend(Viewer.prototype, {
 			location = location.parseQS();
 		}
 		
-		// Validate and set options.
-		if (location.h && location.h.match(/^[a-f0-9]{32}$/i)) {
-			this._options.hash = location.h.toLowerCase();
-		}
-		if (location.s && location.s.match(/^(subdirs|files|modified|types|sizes)$/i)) {
-			this._options.section = location.s.toLowerCase();
-		}
-		if (location.tsb && location.tsb.match(/^(label|byte|num)$/)) {
-			this._options.totalsSortBy = location.tsb;
-		}
-		if (location.tsr && location.tsr.match(/^[01]$/)) {
-			this._options.totalsSortRev = location.tsr == '1';
-		}
-		if (location.fsb && location.fsb.match(/^(name|type|size|modified)$/)) {
-			this._options.filesSortBy = location.fsb;
-		}
-		if (location.fsr && location.fsr.match(/^[01]$/)) {
-			this._options.filesSortRev = location.fsr == '1';
+		if (location) {
+			// Reset options to defaults.
+			$.extend(this._options, this.defaults);
+		
+			// Validate and set options.
+			if (location.h && location.h.match(/^[a-f0-9]{32}$/i)) {
+				this._options.hash = location.h.toLowerCase();
+			}
+			if (location.s && location.s.match(/^(subdirs|files|modified|types|sizes)$/i)) {
+				this._options.section = location.s.toLowerCase();
+			}
+			if (location.tsb && location.tsb.match(/^(label|byte|num)$/)) {
+				this._options.totalsSortBy = location.tsb;
+			}
+			if (location.tsr && location.tsr.match(/^[01]$/)) {
+				this._options.totalsSortRev = location.tsr == '1';
+			}
+			if (location.fsb && location.fsb.match(/^(name|type|size|modified)$/)) {
+				this._options.filesSortBy = location.fsb;
+			}
+			if (location.fsr && location.fsr.match(/^[01]$/)) {
+				this._options.filesSortRev = location.fsr == '1';
+			}
 		}
 		
 		// View the root hash if hash is not set.
@@ -78,6 +94,8 @@ $.extend(Viewer.prototype, {
 					self._lastHash = self._options.hash;
 					self._data = data;
 					self._display();
+					
+					scroll(0,0);
 					
 					if ($.isFunction(completeFn)) {
 						completeFn();
@@ -109,96 +127,145 @@ $.extend(Viewer.prototype, {
 	_display: function() {
 		$('#Path').empty();
 		for (var i = 0; i < this._data.parents.length; i++) {
-			$('#Path').append($('<a>').attr('href', '#' + this._createLocation({ hash: this._data.parents[i].hash })).text(this._data.parents[i].name)).append(this._options.settings.ds.htmlencode());
+			$('#Path').append($('<a>').attr('href', '#' + this._createLocation({ hash: this._data.parents[i].hash })).text(this._data.parents[i].name)).append(' ' + this._options.settings.ds.htmlencode() + ' ');
 		}
 		$('#Path').append(this._data.name.htmlencode());
 		
-		$('#Bytes').text(FormatBytes(this._data.bytes) + ' (' + AddCommas(this._data.bytes) + ')');
-		$('#TotalBytes').text(FormatBytes(this._data.totalbytes) + ' (' + AddCommas(this._data.totalbytes) + ')');
+		$('#Bytes').text(FormatBytes(this._data.bytes)); // + ' (' + AddCommas(this._data.bytes) + ')');
+		$('#TotalBytes').text(FormatBytes(this._data.totalbytes)); // + ' (' + AddCommas(this._data.totalbytes) + ')');
 		$('#Num').text(AddCommas(this._data.num));
 		$('#TotalNum').text(AddCommas(this._data.totalnum));
 		
-		this._displaySubDirs();
-		this._displayModified();
-		this._displayTypes();
-		this._displaySizes();
-		this._displayFiles();
+		$('#Section_Message').hide().text('');
+		
+		switch (this._options.section) {
+			case 'modified':
+				this._displayModified();
+				break;
+			case 'types':
+				this._displayTypes();
+				break;
+			case 'sizes':
+				this._displaySizes();
+				break;
+			case 'files':
+				this._displayFiles();
+				break;
+			default:
+				this._displaySubDirs();
+		}
 	},
 	
 	_displaySubDirs: function() {
 		var self = this;
-		this._displayTotalsTable($('#SubDirs'), this._data.subdirs, function(data, field) {
-			switch (field) {
-				case 'label':
-					return '<a href="#' + self._createLocation({ hash: data.hash }).htmlencode() + '">' + data.name.htmlencode() + '</a>';
-				case 'sortlabel':
-					return data.name;
-				case 'bytes':
-					return data.totalbytes;
-				case 'num':
-					return data.totalnum;
-			}
-		}, true);
 		
-		//$('> div', this._sections).hide();
-		//this._subdirsSection.show();
+		$('> div', this._sections).hide();
+		
+		if (this._data.subdirs.length == 0) {
+			$('#Section_Message').text('This directory does not contain any sub directories.').show();
+		}
+		else {
+			this._displayTotalsTable($('#SubDirs'), this._data.subdirs, function(data, field) {
+				switch (field) {
+					case 'label':
+						return '<a href="#' + self._createLocation({ hash: data.hash }).htmlencode() + '">' + data.name.htmlencode() + '</a>';
+					case 'sortlabel':
+						return data.name;
+					case 'bytes':
+						return data.totalbytes;
+					case 'num':
+						return data.totalnum;
+				}
+			}, true);
+			this._subdirsSection.show();
+		}
+		
+		$('#Tabs li').removeClass('selected');
+		$('#Tab_SubDirs').addClass('selected');
 	},
 	
 	_displayModified: function() {
 		var self = this;
-		this._displayTotalsTable($('#Modified'), this._data.modified, function(data, field, key) {
-			switch (field) {
-				case 'label':
-					return self._options.settings.modified[key].label;
-				case 'sortlabel':
-					return parseInt(key);
-				case 'bytes':
-					return data[0];
-				case 'num':
-					return data[1];
-			}
-		});
 		
-		//$('> div', this._sections).hide();
-		//this._subdirsSection.show();
+		$('> div', this._sections).hide();
+		
+		if (this._data.modified.length == 0) {
+			$('#Section_Message').text('Neither this directory nor its sub directories contain files.').show();
+		}
+		else {
+			this._displayTotalsTable($('#Modified'), this._data.modified, function(data, field, key) {
+				switch (field) {
+					case 'label':
+						return self._options.settings.modified[key].label;
+					case 'sortlabel':
+						return parseInt(key);
+					case 'bytes':
+						return data[0];
+					case 'num':
+						return data[1];
+				}
+			});
+			this._modifiedSection.show();
+		}
+		
+		$('#Tabs li').removeClass('selected');
+		$('#Tab_Modified').addClass('selected');
 	},
 	
 	_displayTypes: function() {
 		var self = this;
-		this._displayTotalsTable($('#Types'), this._data.types, function(data, field, key) {
-			switch (field) {
-				case 'label':
-					return key == '' ? '<i>None</i>' : key.htmlencode();
-				case 'sortlabel':
-					return key;
-				case 'bytes':
-					return data[0];
-				case 'num':
-					return data[1];
-			}
-		}, true);
 		
-		//$('> div', this._sections).hide();
-		//this._subdirsSection.show();
+		$('> div', this._sections).hide();
+		
+		if (this._data.types.length == 0) {
+			$('#Section_Message').text('Neither this directory nor its sub directories contain files.').show();
+		}
+		else {
+			this._displayTotalsTable($('#Types'), this._data.types, function(data, field, key) {
+				switch (field) {
+					case 'label':
+						return key == '' ? '<i>None</i>' : key.htmlencode();
+					case 'sortlabel':
+						return key;
+					case 'bytes':
+						return data[0];
+					case 'num':
+						return data[1];
+				}
+			}, true);
+			this._typesSection.show();
+		}
+		
+		$('#Tabs li').removeClass('selected');
+		$('#Tab_Types').addClass('selected');
 	},
 	
 	_displaySizes: function() {
 		var self = this;
-		this._displayTotalsTable($('#Sizes'), this._data.sizes, function(data, field, key) {
-			switch (field) {
-				case 'label':
-					return self._options.settings.sizes[parseInt(key)].label;
-				case 'sortlabel':
-					return key;
-				case 'bytes':
-					return data[0];
-				case 'num':
-					return data[1];
-			}
-		});
 		
-		//$('> div', this._sections).hide();
-		//this._subdirsSection.show();
+		$('> div', this._sections).hide();
+		
+		if (this._data.types.length == 0) {
+			$('#Section_Message').text('Neither this directory nor its sub directories contain files.').show();
+		}
+		else {
+			this._displayTotalsTable($('#Sizes'), this._data.sizes, function(data, field, key) {
+				switch (field) {
+					case 'label':
+						return self._options.settings.sizes[parseInt(key)].label;
+					case 'sortlabel':
+						return key;
+					case 'bytes':
+						return data[0];
+					case 'num':
+						return data[1];
+				}
+			});
+			this._sizesSection.show();
+		}
+		
+		$('#Tabs li').removeClass('selected');
+		$('#Tab_Sizes').addClass('selected');
 	},
 	
 	_displayTotalsTable: function(table, data, getValue, htmlLabel) {
@@ -349,6 +416,11 @@ $.extend(Viewer.prototype, {
 		}
 		
 		tbody.html(finalHTML);
+
+		$('> div', this._sections).hide();
+		this._filesSection.show();
+		$('#Tabs li').removeClass('selected');
+		$('#Tab_Files').addClass('selected');
 	},
 	
 	_createLocation: function(options) {
