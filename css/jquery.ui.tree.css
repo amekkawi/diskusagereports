@@ -1,0 +1,53 @@
+.ui-tree ul, .ui-tree li {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ui-tree li {
+	padding-left: 16px;
+	padding-top: 2px;
+}
+
+.ui-tree li div.ui-tree-expander {
+	background-image: url(../images/jquery.ui.tree/closed.gif);
+	background-repeat: no-repeat;
+	background-position: 0 5px;
+	cursor: pointer;
+	padding-left: 16px;
+}
+
+.ui-tree li.ui-tree-open > div.ui-tree-expander {
+	background-image: url(../images/jquery.ui.tree/open.gif);
+}
+
+.ui-tree li.ui-tree-root {
+	padding-left: 0;
+}
+.ui-tree li.ui-tree-root > div.ui-tree-expander {
+	padding-left: 0;
+	background-image: none !important;
+}
+.ui-tree li.ui-tree-root > ul > li {
+	padding-left: 0;
+}
+
+.ui-tree li.ui-tree-nosubdirs > div.ui-tree-expander {
+	background-image: none !important;
+}
+
+.ui-tree div.ui-tree-icon:hover {
+	text-decoration: underline;
+}
+
+.ui-tree div.ui-tree-icon {
+	background-image: url(../images/folder-closed.png);
+	background-repeat: no-repeat;
+	background-position: 0 0;
+	padding-left: 22px;
+	cursor: pointer;
+}
+
+.ui-tree .ui-tree-open > div > div.ui-tree-icon {
+	background-image: url(../images/folder-open.png);
+}
