@@ -14,6 +14,30 @@ body {
 	font-size: 14px;
 }
 
+.styledtable {
+	border: 1px solid #b5aa88;
+	border-spacing: 1px;
+}
+.styledtable th, .styledtable td {
+	border: 0 none #000;
+}
+.styledtable th {
+	background-image: url(../images/tableheader-background.png);
+	background-position: center top;
+	background-repeat: repeat-x;
+	background-color: #2d6395;
+	color: #FFF;
+}
+.styledtable th a {
+	color: #FFF;
+}
+.styledtable tbody th {
+	text-align: right;
+}
+.styledtable tbody tr.odd td {
+	background-color: #edead9;
+}
+
 #Title {
 	font-size: 25px;
 	padding: 8px;
