@@ -68,19 +68,51 @@
 	});
 	
 	$(function() {
+		$('#Loading').text('Loading Report Settings...');
+		
+		var ajaxErrorHandler = function(xhr, status, err){
+			switch (status) {
+				case 'parsererror':
+					$('#Loading').append($('<div>').text('Error: Data is invalid or could not be parsed.'));
+					break;
+				case 'timeout':
+					$('#Loading').append($('<div>').text('Error: Download took to long and timed out. Reload to try again.'));
+					break;
+				case 'error':
+					switch (xhr.status) {
+						case 404:
+							$('#Loading').append($('<div>').text('Error: It is missing or the report does not exist.'));
+							break;
+						case 401:
+							$('#Loading').append($('<div>').text('Error: A username and password is required. Reload to try again.'));
+							break;
+						default:
+							$('#Loading').append($('<div>').text('Error: An unknown error occurred (' + xhr.status + '). Reload to try again.'));
+							$.dumpWindow(xhr);
+					}
+					break;
+				default:
+					$('#Loading').append($('<div>').text('Error: An unknown error occurred. Reload to try again.'));
+			}
+		};
+		
+		setTimeout(function(){ // Debugging timeout
+		
 		// Load the settings file.
 		$.ajax({
 			cache: false,
 			url: document.reportsBaseURL + window.location.search.substring(1) + '/settings',
 			type: 'GET',
 			dataType: 'json',
-			error: function(xhr, status, err){
-				alert('Failed to get settings: ' + status);
-			},
+			error: ajaxErrorHandler,
 			success: function(settings, status, xhr){
 				
 				$('#Title > span').append(' for: ').append($('<b>').text(settings.name));
-				$('#Created').text('Created: ' + settings.created).show();
+				$('#Created').html('Created:<br/>' + $.implode(settings.created.split(' ').slice(0,3), ' ').htmlencode()).show();
+				
+				$('#Loading').text('Loading Directory List for Report...');
+				
+				setTimeout(function(){ // Debugging timeout
 				
 				// Load the directory lookup file.
 				$.ajax({
@@ -88,10 +120,12 @@
 					url: document.reportsBaseURL + window.location.search.substring(1) + '/directories',
 					type: 'GET',
 					dataType: 'json',
-					error: function(xhr, status, err){
-						alert('Failed to get directory lookup: ' + status);
-					},
+					error: ajaxErrorHandler,
 					success: function(dirLookup, status, xhr){
+						
+						$('#Loading').text('Displaying Report...');
+						
+						setTimeout(function(){ // Debugging timeout
 						
 						document.viewer = new Viewer({
 							directories: dirLookup,
@@ -106,10 +140,16 @@
 							// Force a resize since the viewer is now displayed.
 							document.resizeWindow();
 						});
+						
+						}, 250); // Debugging timeout
 					}
 				});
+				
+				}, 250); // Debugging timeout
 			}
 		});
+		
+		}, 250); // Debugging timeout
 	
 		// Load the location on first load.
 		if (dhtmlHistory.isFirstLoad()) {
@@ -139,7 +179,7 @@
 <div id="Title">Disk Usage Report <span></span><div id="Created" style="display: none;"></div>
 </div>
 
-<div id="Loading">Loading...</div>
+<div id="Loading"></div>
 
 <div id="Container" style="display: none;">
 
