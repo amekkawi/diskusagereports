@@ -47,7 +47,7 @@ var Viewer = function(opts) {
 	});
 	
 	// Setup the directory tree.
-	$('#DirectoryTree').tree({
+	this._tree = $('#DirectoryTree').tree({
 		data: this._options.directories,
 		root: this._options.settings.root,
 		selection: function(e, hash) {
@@ -117,7 +117,16 @@ $.extend(Viewer.prototype, {
 					self._data = data;
 					self._display();
 					
-					scroll(0,0);
+					var hashPath = [];
+					for (var i = 0; i < data.parents.length; i++) {
+						hashPath.push(data.parents[i].hash);
+					}
+					hashPath.push(self._options.hash);
+					
+					self._tree.tree('select', hashPath);
+					
+					// Scroll to the top of the report.
+					$('#Report').get(0).scrollTop = 0;
 					
 					if ($.isFunction(completeFn)) {
 						completeFn();
