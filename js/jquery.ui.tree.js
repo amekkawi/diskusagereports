@@ -10,7 +10,8 @@ $.widget("ui.tree", {
 	},
 	
 	select: function(hash, li) {
-		var self = this, parents = [];
+		var self = this,
+			parents = [];
 		
 		if ($.isArray(hash)) {
 			parents = hash;
@@ -75,7 +76,8 @@ $.widget("ui.tree", {
 	},
 	
 	_create: function() {
-		var self = this, $elem = $(this.element).disableTextSelection().addClass(this.widgetBaseClass);
+		var self = this,
+			$elem = $(this.element).disableTextSelection().addClass(this.widgetBaseClass);
 		
 		if (this.options.data == null || this.options.root == null) {
 			throw "data and root must be specified in the options for ui.tree.";
@@ -115,15 +117,33 @@ $.widget("ui.tree", {
 	},
 	
 	_createUL: function(hash) {
-		var html = '<ul>';
-		var subdirs = this._data[hash].subdirs;
+		var li = [],
+			subdirs = this._data[hash].subdirs;
+		
 		for (var i = 0; i < subdirs.length; i++) {
-			html += this._createLI(subdirs[i].hash, subdirs[i].name, this._data[subdirs[i].hash].subdirs.length > 0 ? '' : this.widgetBaseClass + '-nosubdirs');
+			
+			var html = this._createLI(subdirs[i].hash, subdirs[i].name, this._data[subdirs[i].hash].subdirs.length > 0 ? '' : this.widgetBaseClass + '-nosubdirs');
+			
+			var index = BinarySearch(li, subdirs[i].name.toLowerCase(), function(needle, item, index) {
+				if (needle < item[0]) return -1;
+				if (needle > item[0]) return 1;
+				return 0;
+			});
+			
+			if (index < 0) {
+				li.splice(Math.abs(index)-1, 0, [subdirs[i].name.toLowerCase(), html]);
+			}
+			else {
+				li.splice(index, 0, [subdirs[i].name.toLowerCase(), html]);
+			}
 		}
 		
-		html += '</ul>';
+		var finalHTML = '';
+		for (var i = 0; i < li.length; i++) {
+			finalHTML += li[i][1];
+		}
 		
-		return html;
+		return '<ul>' + finalHTML + '</ul>';
 	},
 	
 	_createLI: function(hash, name, classes) {
