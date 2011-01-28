@@ -225,8 +225,8 @@ $.extend(Viewer.prototype, {
 		var subdirs = this._data.subdirs.slice(0);
 		subdirs.push({ isfiles: true, totalbytes: this._data.bytes, totalnum: this._data.num });
 		
-		if (subdirs.length == 0) {
-			$('#Section_Message').text('This directory does not contain sub directories.').show();
+		if (this._data.totalnum == 0 && this._data.subdirs.length == 0) {
+			$('#Section_Message').text('Neither this directory nor its sub directories contain files.').show();
 		}
 		else {
 			this._displayTotalsTable($('#SubDirs'), subdirs, function(data, field) {
