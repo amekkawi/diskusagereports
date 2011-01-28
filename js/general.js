@@ -144,6 +144,12 @@ function BinarySearch(haystack, needle, comparator) {
 }
 
 jQuery.fn.extend({
+	equals: function(elem) {
+		if (!elem || this.size() == 0 || ($.isJQuery(elem) && elem.size() == 0)) return false;
+		if ($.isJQuery(elem)) elem = elem.get(0);
+		
+		return !(this.get(0) !== elem);
+	},
 	isParentOf: function(elem) {
 		return $(elem).isChildOf(this);
 	},
