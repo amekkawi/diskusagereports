@@ -42,10 +42,23 @@ var Viewer = function(opts) {
 		self.changeOptions({ totalsSortBy: 'label', totalsSortRev: self._options.totalsSortBy == 'label' ? !self._options.totalsSortRev : false });
 	});
 	$('#Sections .totals-sortby-byte').disableTextSelection().click(function() {
-		self.changeOptions({ totalsSortBy: 'byte', totalsSortRev: self._options.totalsSortBy == 'byte' ? !self._options.totalsSortRev : false });
+		self.changeOptions({ totalsSortBy: 'byte', totalsSortRev: self._options.totalsSortBy == 'byte' ? !self._options.totalsSortRev : true });
 	});
 	$('#Sections .totals-sortby-num').disableTextSelection().click(function() {
-		self.changeOptions({ totalsSortBy: 'num', totalsSortRev: self._options.totalsSortBy == 'num' ? !self._options.totalsSortRev : false });
+		self.changeOptions({ totalsSortBy: 'num', totalsSortRev: self._options.totalsSortBy == 'num' ? !self._options.totalsSortRev : true });
+	});
+
+	$('#Files-SortBy-name').disableTextSelection().click(function() {
+		self.changeOptions({ filesSortBy: 'name', filesSortRev: self._options.filesSortBy == 'name' ? !self._options.filesSortRev : false });
+	});
+	$('#Files-SortBy-type').disableTextSelection().click(function() {
+		self.changeOptions({ filesSortBy: 'type', filesSortRev: self._options.filesSortBy == 'type' ? !self._options.filesSortRev : false });
+	});
+	$('#Files-SortBy-size').disableTextSelection().click(function() {
+		self.changeOptions({ filesSortBy: 'size', filesSortRev: self._options.filesSortBy == 'size' ? !self._options.filesSortRev : true });
+	});
+	$('#Files-SortBy-modified').disableTextSelection().click(function() {
+		self.changeOptions({ filesSortBy: 'modified', filesSortRev: self._options.filesSortBy == 'modified' ? !self._options.filesSortRev : false });
 	});
 	
 	// Setup the directory tree.
@@ -370,8 +383,6 @@ $.extend(Viewer.prototype, {
 			var index = BinarySearch(rows, [ sortValue, sortLabel ], function(needle, item, index) {
 				var modifier = self._options.totalsSortRev ? -1 : 1;
 				
-				if (self._options.totalsSortBy != 'label') modifier *= -1;
-				
 				if (needle[0] < item[0]) return -1 * modifier;
 				if (needle[0] > item[0]) return 1 * modifier;
 				
@@ -438,14 +449,10 @@ $.extend(Viewer.prototype, {
 				
 				var html = '';
 				
-				//html += '<tr>';
-				
 				html += '<td>' + data[key].name.htmlencode() + '</td>';
 				html += '<td align="center">' + ext + '</td>';
 				html += '<td align="right">' + FormatBytes(data[key].size) + '</td>';
 				html += '<td>' + data[key].date + ' ' + data[key].time + '</td>';
-				
-				//html += '</tr>';
 				
 				var index = BinarySearch(rows, [ sortValue, data[key].name ], function(needle, item, index) {
 					var modifier = self._options.filesSortRev ? -1 : 1;

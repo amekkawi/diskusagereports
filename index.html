@@ -37,6 +37,13 @@
 <!-- Disk Usage Reporting Scripts -->
 <script type="text/javascript">
 	
+	/*$(fun0ction() {
+		var div = $('<div>').css({ width: '100px', position: 'absolute', top: '100px', left: '100px', 'z-index': '100', 'background-color': '#FFF' }).appendTo($('body'));
+		for (var i = 0; i < document.barColors.length; i++) {
+			$('<div>').css({ height: '2px', 'background-color': '#' + document.barColors[i] }).appendTo(div);
+		}
+	});*/
+	
 	// Override the JSON methods in RSH.
 	window.dhtmlHistory.create({
 		toJSON: function(o) {
@@ -246,10 +253,10 @@
 					<table class="styledtable" id="Files" border="1" cellspacing="0" cellpadding="4">
 						<thead>
 							<tr>
-								<th>Name</th>
-								<th>Type</th>
-								<th>Size</th>
-								<th>Modified</th>
+								<th id="Files-SortBy-name"><span>Name</span></th>
+								<th id="Files-SortBy-type"><span>Type</span></th>
+								<th id="Files-SortBy-size"><span>Size</span></th>
+								<th id="Files-SortBy-modified"><span>Modified</span></th>
 							</tr>
 						</thead>
 						<tbody>
