@@ -156,3 +156,15 @@ body {
 #DirectoryTree {
 	padding: 8px;
 }
+
+#Section_Message {
+	padding: 16px;
+	padding-left: 48px;
+	margin-top: 8px;
+	background-color: #EEE;
+	border: 1px solid #999;
+	font-size: 16px;
+	background-image: url(../images/info.png);
+	background-repeat: no-repeat;
+	background-position: 10px center;
+}
