@@ -7,6 +7,43 @@ $.widget("ui.tree", {
 		root: null
 	},
 	
+	select: function(hash, li) {
+		if (!li) li = $('#' + this.widgetBaseClass + '_' + hash);
+		$('li.selected', this.element).removeClass('selected');
+		li.addClass('selected');
+	},
+	
+	open: function(hash, li) {
+		if (!li) li = $('#' + this.widgetBaseClass + '_' + hash);
+		
+		if ($('> ul', li).size() != 0) {
+			li.addClass(this.widgetBaseClass + '-open');
+			$('> ul', li).show();
+		}
+		else {
+			li.addClass(this.widgetBaseClass + '-open');
+			li.append(this._createUL(hash));
+		}
+	},
+	
+	close: function(hash, li) {
+		if (!li) li = $('#' + this.widgetBaseClass + '_' + hash);
+		
+		li.removeClass(this.widgetBaseClass + '-open');
+		$('> ul', li).hide();
+	},
+	
+	toggle: function(hash, li) {
+		if (!li) li = $('#' + this.widgetBaseClass + '_' + hash);
+		
+		if (li.hasClass(this.widgetBaseClass + '-open')) {
+			this.close(hash, li);
+		}
+		else {
+			this.open(hash, li);
+		}
+	},
+	
 	_create: function() {
 		var self = this, $elem = $(this.element).disableTextSelection().addClass(this.widgetBaseClass);
 		
@@ -23,7 +60,7 @@ $.widget("ui.tree", {
 		$elem.click(function(eo) {
 			var id, li, target = $(eo.target);
 			
-			if (target.hasClass(self.widgetBaseClass + '-icon') || target.hasClass(self.widgetBaseClass + '-expander')) {
+			if (target.closest('div.' + self.widgetBaseClass + '-expander').size() > 0) {
 				li = target.closest('li');
 				id = li.attr('id');
 			}
@@ -32,20 +69,10 @@ $.widget("ui.tree", {
 				var hash = id.substring((self.widgetBaseClass + '_').length);
 				
 				if (target.hasClass(self.widgetBaseClass + '-expander')) {
-					if (li.hasClass(self.widgetBaseClass + '-open')) {
-						li.removeClass(self.widgetBaseClass + '-open');
-						$('> ul', li).hide();
-					}
-					else if ($('> ul', li).size() != 0) {
-						li.addClass(self.widgetBaseClass + '-open');
-						$('> ul', li).show();
-					}
-					else {
-						li.addClass(self.widgetBaseClass + '-open');
-						li.append(self._createUL(hash));
-					}
+					self.toggle(hash, li);
 				}
 				else {
+					self.select(hash, li);
 					self._trigger('selection', {}, [ hash ]);
 				}
 			}
@@ -69,7 +96,7 @@ $.widget("ui.tree", {
 	},
 	
 	_createLI: function(hash, name, classes) {
-		return '<li '+ ($.isString(classes) ? ' class="' + classes + '" ' : '') +' id="' + this.widgetBaseClass + '_' + hash.htmlencode() + '"><div class="' + this.widgetBaseClass + '-expander"><div class="' + this.widgetBaseClass + '-icon">' + name.htmlencode() + '</div></div></li>';
+		return '<li '+ ($.isString(classes) ? ' class="' + classes + '" ' : '') +' id="' + this.widgetBaseClass + '_' + hash.htmlencode() + '"><div class="' + this.widgetBaseClass + '-expander"><div class="' + this.widgetBaseClass + '-icon"><span>' + name.htmlencode() + '</span></div></div></li>';
 	}
 });
 
