@@ -88,10 +88,10 @@ $.extend(Viewer.prototype, {
 	defaults: {
 		hash: null,
 		section: 'subdirs',
-		totalsSortBy: 'label',
-		totalsSortRev: false,
-		filesSortBy: 'name',
-		filesSortRev: false
+		totalsSortBy: 'byte',
+		totalsSortRev: true,
+		filesSortBy: 'size',
+		filesSortRev: true
 	},
 	
 	changeOptions: function(opts, skipHistory) {
@@ -113,7 +113,7 @@ $.extend(Viewer.prototype, {
 			location = null;
 		}
 		
-		if (location) {
+		if ($.isString(location)) {
 			this._processLocation(location);
 		}
 		
