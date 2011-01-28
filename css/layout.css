@@ -19,6 +19,19 @@ a {
 	color: #00F;
 }
 
+#Loading {
+	background-color: #FFFFFF;
+    font-size: 20px;
+    margin: 16px;
+    padding: 16px;
+	
+	text-shadow: rgba(0,0,0,.15) 2px 1px 2px;
+	
+	-webkit-border-radius: 15px;
+	-moz-border-radius: 15px;
+	border-radius: 15px;
+}
+
 .styledtable {
 	border: 1px solid #b5aa88;
 	border-spacing: 1px;
@@ -52,16 +65,20 @@ a {
 	padding: 8px;
 	padding-left: 48px;
 	margin-left: 10px;
+	margin-right: 75px;
 	color: #FFF;
 	background-image: url(../images/title-icon.png);
 	background-repeat: no-repeat;
-	background-position: left center;
+	background-position: 0 6px;
 	position: relative;
+	
+	text-shadow: rgba(0,0,0,0.5) 2px 2px 4px;
 }
 
 #Title b {
 	color: #dfcd90;
 	font-weight: normal;
+	white-space: nowrap;
 }
 
 #Created {
@@ -69,7 +86,8 @@ a {
     font-size: 13px;
     position: absolute;
     bottom: 4px;
-    right: 4px;
+    right: -70px;
+	text-align: right;
 }
 
 #Container {
@@ -138,6 +156,13 @@ a {
 	background-position: center top;
 	background-repeat: repeat-x;
 	border-bottom: 1px solid #918E81;
+	
+	-webkit-border-top-left-radius: 5px;
+	-webkit-border-top-right-radius: 5px;
+	-moz-border-radius-topleft: 5px;
+	-moz-border-radius-topright: 5px;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
 }
 #Tabs li:hover {
 	text-decoration: underline;
