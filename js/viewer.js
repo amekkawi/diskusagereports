@@ -36,14 +36,14 @@ var Viewer = function(opts) {
 		self.changeOptions({ 'section': 'files' });
 	});
 	
-	$('#Sections .totals-sortby-label').click(function() {
-		self.changeOptions({ totalsSortBy: 'label' });
+	$('#Sections .totals-sortby-label').disableTextSelection().click(function() {
+		self.changeOptions({ totalsSortBy: 'label', totalsSortRev: self._options.totalsSortBy == 'label' ? !self._options.totalsSortRev : false });
 	});
-	$('#Sections .totals-sortby-byte').click(function() {
-		self.changeOptions({ totalsSortBy: 'byte' });
+	$('#Sections .totals-sortby-byte').disableTextSelection().click(function() {
+		self.changeOptions({ totalsSortBy: 'byte', totalsSortRev: self._options.totalsSortBy == 'byte' ? !self._options.totalsSortRev : false });
 	});
-	$('#Sections .totals-sortby-num').click(function() {
-		self.changeOptions({ totalsSortBy: 'num' });
+	$('#Sections .totals-sortby-num').disableTextSelection().click(function() {
+		self.changeOptions({ totalsSortBy: 'num', totalsSortRev: self._options.totalsSortBy == 'num' ? !self._options.totalsSortRev : false });
 	});
 	
 	// Setup the directory tree.
@@ -177,6 +177,11 @@ $.extend(Viewer.prototype, {
 		$('#TotalNum').text(AddCommas(this._data.totalnum));
 		
 		$('#Section_Message').hide().text('');
+		
+		$('#Sections')
+			.removeClass('totals-sortedby-label totals-sortedby-byte totals-sortedby-num')
+			.addClass('totals-sortedby-' + this._options.totalsSortBy)
+			[(this._options.totalsSortRev ? 'add' : 'remove') + 'Class']('totals-sortrev');
 		
 		switch (this._options.section) {
 			case 'modified':
@@ -343,15 +348,15 @@ $.extend(Viewer.prototype, {
 			
 			//html += '<tr>';
 			
-			html += '<td>' + (htmlLabel ? label : label.htmlencode()) + '</td>';
+			html += '<td class="totals-col-label">' + (htmlLabel ? label : label.htmlencode()) + '</td>';
 			
-			html += '<td align="right">' + FormatBytes(bytes) + '</td>';
-			html += '<td align="right">' + (100 * parseInt(bytes) / parseInt(this._data.totalbytes)).toFixed(2) + '%' + '</td>';
-			html += '<td style="width: 100px;"><div style="overflow: hidden; width: '+ (100 * parseInt(bytes) / parseInt(this._data.totalbytes)) +'%; background-color: #0CF;">&nbsp;</div></td>';
+			html += '<td class="totals-col-byte" align="right">' + FormatBytes(bytes) + '</td>';
+			html += '<td class="totals-col-byte" align="right">' + (100 * parseInt(bytes) / parseInt(this._data.totalbytes)).toFixed(2) + '%' + '</td>';
+			html += '<td class="totals-col-byte" style="width: 100px;"><div style="overflow: hidden; width: '+ (100 * parseInt(bytes) / parseInt(this._data.totalbytes)) +'%; background-color: #0CF;">&nbsp;</div></td>';
 			
-			html += '<td align="right">' + AddCommas(num) + '</td>';
-			html += '<td align="right">' + (100 * parseInt(num) / parseInt(this._data.totalnum)).toFixed(2) + '%' + '</td>';
-			html += '<td style="width: 100px;"><div style="overflow: hidden; width: '+ (100 * parseInt(num) / parseInt(this._data.totalnum)) +'%; background-color: #0CF;">&nbsp;</div></td>';
+			html += '<td class="totals-col-num" align="right">' + AddCommas(num) + '</td>';
+			html += '<td class="totals-col-num" align="right">' + (100 * parseInt(num) / parseInt(this._data.totalnum)).toFixed(2) + '%' + '</td>';
+			html += '<td class="totals-col-num" style="width: 100px;"><div style="overflow: hidden; width: '+ (100 * parseInt(num) / parseInt(this._data.totalnum)) +'%; background-color: #0CF;">&nbsp;</div></td>';
 			
 			//html += '</tr>';
 			
