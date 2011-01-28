@@ -15,6 +15,10 @@ body {
 	font-size: 14px;
 }
 
+a {
+	color: #00F;
+}
+
 .styledtable {
 	border: 1px solid #b5aa88;
 	border-spacing: 1px;
