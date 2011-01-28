@@ -4,13 +4,31 @@ $.widget("ui.tree", {
 	options: {
 		expandRoot: true,
 		data: null,
-		root: null
+		root: null,
+		expandOnSelect: true,
+		closeOthersOnSelect: true
 	},
 	
 	select: function(hash, li) {
+		var self = this;
 		if (!li) li = $('#' + this.widgetBaseClass + '_' + hash);
-		$('li.selected', this.element).removeClass('selected');
-		li.addClass('selected');
+		
+		if (hash != this._lastHash) {
+			this._lastHash = hash;
+			
+			if (this.options.closeOthersOnSelect) {
+				$('li.' + this.widgetBaseClass + '-open').each(function(){
+					if (!$(this).equals(li) && !li.isParentOf($(this)) && !li.isChildOf($(this))) {
+						self.close(null, $(this));
+					}
+				});
+			}
+			
+			$('li.selected', this.element).removeClass('selected');
+			li.addClass('selected');
+			
+			if (self.options.expandOnSelect) self.open(hash, li);
+		}
 	},
 	
 	open: function(hash, li) {
@@ -51,6 +69,7 @@ $.widget("ui.tree", {
 			throw "data and root must be specified in the options for ui.tree.";
 		}
 		
+		this._lastHash = null;
 		this._data = this.options.data;
 		
 		if ($.isUndefined(this._data[this.options.root])) {
