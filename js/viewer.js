@@ -202,7 +202,7 @@ $.extend(Viewer.prototype, {
 		$('> div', this._sections).hide();
 		
 		if (this._data.subdirs.length == 0) {
-			$('#Section_Message').text('This directory does not contain any sub directories.').show();
+			$('#Section_Message').text('This directory does not contain sub directories.').show();
 		}
 		else {
 			this._displayTotalsTable($('#SubDirs'), this._data.subdirs, function(data, field) {
