@@ -194,9 +194,10 @@ $.extend(Viewer.prototype, {
 		$('#Section_Message').hide().text('');
 		
 		$('#Sections')
-			.removeClass('totals-sortedby-label totals-sortedby-byte totals-sortedby-num')
-			.addClass('totals-sortedby-' + this._options.totalsSortBy)
-			[(this._options.totalsSortRev ? 'add' : 'remove') + 'Class']('totals-sortrev');
+			.removeClass('totals-sortedby-label totals-sortedby-byte totals-sortedby-num files-sortedby-name files-sortedby-type files-sortedby-size files-sortedby-modified')
+			.addClass('totals-sortedby-' + this._options.totalsSortBy + ' files-sortedby-' + this._options.filesSortBy)
+			[(this._options.totalsSortRev ? 'add' : 'remove') + 'Class']('totals-sortrev')
+			[(this._options.filesSortRev ? 'add' : 'remove') + 'Class']('files-sortrev');
 		
 		switch (this._options.section) {
 			case 'modified':

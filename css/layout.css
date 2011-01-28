@@ -163,12 +163,20 @@ a {
 
 .totals-sortedby-label .totals-sortby-label,
 .totals-sortedby-byte .totals-sortby-byte,
-.totals-sortedby-num .totals-sortby-num {
+.totals-sortedby-num .totals-sortby-num,
+.files-sortedby-name #Files-SortBy-name,
+.files-sortedby-type #Files-SortBy-type,
+.files-sortedby-size #Files-SortBy-size,
+.files-sortedby-modified #Files-SortBy-modified {
 	background-image: url(../images/tableheader-background-sorted.png);
 }
 .totals-sortedby-label .totals-sortby-label span,
 .totals-sortedby-byte .totals-sortby-byte span,
-.totals-sortedby-num .totals-sortby-num span {
+.totals-sortedby-num .totals-sortby-num span,
+.files-sortedby-name #Files-SortBy-name span,
+.files-sortedby-type #Files-SortBy-type span,
+.files-sortedby-size #Files-SortBy-size span,
+.files-sortedby-modified #Files-SortBy-modified span {
 	padding-right: 14px;
 	background-image: url(../images/tableheader-sort-asc.png);
 	background-repeat: no-repeat;
@@ -176,7 +184,11 @@ a {
 }
 .totals-sortrev.totals-sortedby-label .totals-sortby-label span,
 .totals-sortrev.totals-sortedby-byte .totals-sortby-byte span,
-.totals-sortrev.totals-sortedby-num .totals-sortby-num span {
+.totals-sortrev.totals-sortedby-num .totals-sortby-num span,
+.files-sortrev.files-sortedby-name #Files-SortBy-name span,
+.files-sortrev.files-sortedby-type #Files-SortBy-type span,
+.files-sortrev.files-sortedby-size #Files-SortBy-size span,
+.files-sortrev.files-sortedby-modified #Files-SortBy-modified span {
 	background-image: url(../images/tableheader-sort-desc.png);
 }
 
