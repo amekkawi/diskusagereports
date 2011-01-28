@@ -10,11 +10,24 @@ $.widget("ui.tree", {
 	},
 	
 	select: function(hash, li) {
-		var self = this;
-		if (!li) li = $('#' + this.widgetBaseClass + '_' + hash);
+		var self = this, parents = [];
+		
+		if ($.isArray(hash)) {
+			parents = hash;
+			hash = parents.pop();
+		}
 		
 		if (hash != this._lastHash) {
 			this._lastHash = hash;
+			
+			for (var i = 0; i < parents.length; i++) {
+				this.open(parents[i]);
+			}
+			
+			if (!li) li = $('#' + this.widgetBaseClass + '_' + hash);
+			
+			$('li.selected', this.element).removeClass('selected');
+			li.addClass('selected');
 			
 			if (this.options.closeOthersOnSelect) {
 				$('li.' + this.widgetBaseClass + '-open').each(function(){
@@ -24,10 +37,7 @@ $.widget("ui.tree", {
 				});
 			}
 			
-			$('li.selected', this.element).removeClass('selected');
-			li.addClass('selected');
-			
-			if (self.options.expandOnSelect) self.open(hash, li);
+			if (this.options.expandOnSelect) this.open(hash, li);
 		}
 	},
 	
@@ -47,8 +57,10 @@ $.widget("ui.tree", {
 	close: function(hash, li) {
 		if (!li) li = $('#' + this.widgetBaseClass + '_' + hash);
 		
-		li.removeClass(this.widgetBaseClass + '-open');
-		$('> ul', li).hide();
+		if (!li.hasClass(this.widgetBaseClass + '-root')) {
+			li.removeClass(this.widgetBaseClass + '-open');
+			$('> ul', li).hide();
+		}
 	},
 	
 	toggle: function(hash, li) {
