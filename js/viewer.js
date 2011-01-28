@@ -206,15 +206,20 @@ $.extend(Viewer.prototype, {
 		
 		$('> div', this._sections).hide();
 		
-		if (this._data.subdirs.length == 0) {
+		var subdirs = this._data.subdirs.slice(0);
+		subdirs.push({ isfiles: true, totalbytes: this._data.bytes, totalnum: this._data.num });
+		
+		if (subdirs.length == 0) {
 			$('#Section_Message').text('This directory does not contain sub directories.').show();
 		}
 		else {
-			this._displayTotalsTable($('#SubDirs'), this._data.subdirs, function(data, field) {
+			this._displayTotalsTable($('#SubDirs'), subdirs, function(data, field) {
 				switch (field) {
 					case 'label':
+						if (data.isfiles) return '<i>Files in this Directory</i>';
 						return '<a href="#' + self._createLocation({ hash: data.hash }).htmlencode() + '">' + data.name.htmlencode() + '</a>';
 					case 'sortlabel':
+						if (data.isfiles) return '';
 						return data.name;
 					case 'bytes':
 						return data.totalbytes;
@@ -346,8 +351,6 @@ $.extend(Viewer.prototype, {
 			
 			var html = '';
 			
-			//html += '<tr>';
-			
 			html += '<td class="totals-col-label">' + (htmlLabel ? label : label.htmlencode()) + '</td>';
 			
 			html += '<td class="totals-col-byte" align="right">' + FormatBytes(bytes) + '</td>';
@@ -357,8 +360,6 @@ $.extend(Viewer.prototype, {
 			html += '<td class="totals-col-num" align="right">' + AddCommas(num) + '</td>';
 			html += '<td class="totals-col-num" align="right">' + (100 * parseInt(num) / parseInt(this._data.totalnum)).toFixed(2) + '%' + '</td>';
 			html += '<td class="totals-col-num" style="width: 100px;"><div style="overflow: hidden; width: '+ (100 * parseInt(num) / parseInt(this._data.totalnum)) +'%; background-color: #0CF;">&nbsp;</div></td>';
-			
-			//html += '</tr>';
 			
 			var index = BinarySearch(rows, [ sortValue, sortLabel ], function(needle, item, index) {
 				var modifier = self._options.totalsSortRev ? -1 : 1;
