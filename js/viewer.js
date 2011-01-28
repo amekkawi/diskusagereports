@@ -56,6 +56,7 @@ var Viewer = function(opts) {
 	});
 	
 	this._lastHash = null;
+	this._lastSection = null;
 	
 	this._sections = $('#Sections');
 	this._filesSection = $('#Section_Files');
@@ -106,6 +107,9 @@ $.extend(Viewer.prototype, {
 			this._options.hash = this._options.settings.root;
 		}
 		
+		var sectionChanged = this.lastSection != this._options.section;
+		this._lastSection = this._options.section;
+		
 		if (this._lastHash != this._options.hash) {
 			$.ajax({
 				cache: false,
@@ -136,6 +140,12 @@ $.extend(Viewer.prototype, {
 		}
 		else {
 			this._display();
+			
+			if (sectionChanged) {
+				// Scroll to the top of the report.
+				$('#Report').get(0).scrollTop = 0;
+			}
+			
 			if ($.isFunction(completeFn)) {
 				completeFn();
 			}
