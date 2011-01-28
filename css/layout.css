@@ -39,6 +39,10 @@ body {
 	background-color: #edead9;
 }
 
+.styledtable tfoot td {
+	background-color: #e2dbba;
+}
+
 #Title {
 	font-size: 25px;
 	padding: 8px;
@@ -151,6 +155,32 @@ body {
 	height: 200px;
 	padding: 8px;
 	background-color: #f7f6f0;
+}
+
+.totals-sortedby-label .totals-sortby-label,
+.totals-sortedby-byte .totals-sortby-byte,
+.totals-sortedby-num .totals-sortby-num {
+	background-image: url(../images/tableheader-background-sorted.png);
+}
+.totals-sortedby-label .totals-sortby-label span,
+.totals-sortedby-byte .totals-sortby-byte span,
+.totals-sortedby-num .totals-sortby-num span {
+	padding-right: 14px;
+	background-image: url(../images/tableheader-sort-asc.png);
+	background-repeat: no-repeat;
+	background-position: right center;
+}
+.totals-sortrev.totals-sortedby-label .totals-sortby-label span,
+.totals-sortrev.totals-sortedby-byte .totals-sortby-byte span,
+.totals-sortrev.totals-sortedby-num .totals-sortby-num span {
+	background-image: url(../images/tableheader-sort-desc.png);
+}
+
+.totals-col-bytex {
+	background-color: #FFF;
+}
+.odd .totals-col-bytex {
+	background-color: #000 !important;
 }
 
 #DirectoryTree {
