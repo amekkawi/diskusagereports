@@ -187,6 +187,16 @@ a {
 	background-color: #000 !important;
 }
 
+.percentbar {
+	overflow: hidden; 
+	border: 1px solid #666;
+	width: 100px;
+}
+
+.percentbar div {
+	/*border-right: 1px solid #666;*/
+}
+
 #DirectoryTree {
 	padding: 8px;
 }
