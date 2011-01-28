@@ -51,3 +51,9 @@
 .ui-tree .ui-tree-open > div > div.ui-tree-icon {
 	background-image: url(../images/folder-open.png);
 }
+
+.ui-tree li.selected > div span {
+	background-color: #CCCCFF;
+	margin-left: -2px;
+	padding: 2px;
+}
