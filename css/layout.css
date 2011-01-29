@@ -25,7 +25,7 @@ a {
     margin: 16px;
     padding: 16px;
 	
-	text-shadow: rgba(0,0,0,.15) 2px 1px 2px;
+	/*text-shadow: rgba(0,0,0,.15) 2px 1px 2px;*/
 	
 	-webkit-border-radius: 15px;
 	-moz-border-radius: 15px;
@@ -85,7 +85,7 @@ a {
     color: #CCCCCC;
     font-size: 13px;
     position: absolute;
-    bottom: 4px;
+    bottom: 8px;
     right: -70px;
 	text-align: right;
 }
