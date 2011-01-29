@@ -3,14 +3,16 @@
 // find "DIRECTORYNAME" -printf '%y %TY-%Tm-%Td %TT %s %d %h %f\n' > "OUTFILENAME"
 
 if (!isset($_SERVER['argc']) || $_SERVER['argc'] < 3) {
-	echo "Syntax: process.php <fileslist> <reportdir>\n"; exit;
+	echo "Syntax: process.php <filelist> <reportdir>\n"; exit;
 }
 
 define('TIMEZONE', 'America/New_York');
-define('MAXDETAILDEPTH', 399);
+define('MAXDETAILDEPTH', 2);
 define('MAXLINELENGTH', 1024);
+define('HASDIRECTORYTREE', true);
 define('DELIM', ' ');
 define('DS', '/');
+define('TOP100DEPTH', 3);
 
 define('COL_TYPE', 0);
 define('COL_DATE', 1);
@@ -79,8 +81,10 @@ if (($fh = fopen($filesList, 'r')) === FALSE) {
 }
 
 if (file_put_contents(ConcatPath(DS, $reportDir, 'settings'), json_encode(array(
+		'version' => '1.0',
 		'name' => $reportName,
 		'created' => date('M j, Y g:i:s T'),
+		'directorytree' => HASDIRECTORYTREE,
 		'root' => md5('coas'),
 		'sizes' => $sizeGroups,
 		'modified' => $modifiedGroups,
@@ -125,11 +129,15 @@ while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
 			'num' => '0',
 			'totalnum' => '0',
 			'subdirs' => array(),
-			'files' => array(),
-			'sizes' => array(),
-			'modified' => array(),
-			'types' => array()
+			'files' => array()
 		);
+		
+		if (count($paths) < MAXDETAILDEPTH) {
+			$newPath['sizes'] = array();
+			$newPath['modified'] = array();
+			$newPath['types'] = array();
+			$newPath['top100'] = array();
+		}
 		
 		if ($split[COL_DEPTH] == '0') {
 			//echo 'Root Dir: ' . $split[COL_NAME] . ' (' . md5($split[COL_NAME]) . ')' . "\n";
@@ -140,13 +148,15 @@ while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
 			$newPath['path'] = $split[COL_PARENT] . DS . $split[COL_NAME];
 		}
 		
-		// Add the directory to the hash lookup.
-		$dirList[md5($newPath['path'])] = array(
-			'name' => $split[COL_NAME],
-			'totalbytes' => &$newPath['totalbytes'],
-			'totalnum' => &$newPath['totalnum'],
-			'subdirs' => &$newPath['subdirs']
-		);
+		if (HASDIRECTORYTREE) {
+			// Add the directory to the hash lookup.
+			$dirList[md5($newPath['path'])] = array(
+				'name' => $split[COL_NAME],
+				'totalbytes' => &$newPath['totalbytes'],
+				'totalnum' => &$newPath['totalnum'],
+				'subdirs' => &$newPath['subdirs']
+			);
+		}
 		
 		if (count($paths) > 0) {
 			array_push($paths[count($paths)-1]['subdirs'], array(
@@ -187,7 +197,7 @@ while (count($paths) > 0) {
 	}
 }
 
-if (file_put_contents(ConcatPath(DS, $reportDir, 'directories'), json_encode($dirList)) === FALSE) {
+if (HASDIRECTORYTREE && file_put_contents(ConcatPath(DS, $reportDir, 'directories'), json_encode($dirList)) === FALSE) {
 	echo 'Failed to write: ' . ConcatPath(DS, $reportDir, 'directories') . "\n";
 }
 
@@ -206,7 +216,7 @@ function AddFileData($data) {
 			$paths[$i]['num'] = bcadd($paths[$i]['num'], '1');
 		}
 		
-		if ($i <= MAXDETAILDEPTH) {
+		if ($i < MAXDETAILDEPTH) {
 			for ($g = 0; $g < count($sizeGroups); $g++) {
 				if (bccomp($sizeGroups[$g]['size'].'', $data[COL_SIZE], 0) <= 0) {
 					$paths[$i]['sizes'][$g] = array_key_exists($g, $paths[$i]['sizes'])
