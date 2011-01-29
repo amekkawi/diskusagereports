@@ -10,9 +10,9 @@ var Viewer = function(opts) {
 	// Set the inital options.
 	this._options = $.extend({ gradient: colors }, this.defaults, opts);
 	
-	if ($.isUndefined(this._options.directories)) {
+	/*if ($.isUndefined(this._options.directories)) {
 		throw "You must pass a directory lookup array to Viewer.";
-	}
+	}*/
 	if ($.isUndefined(this._options.settings)) {
 		throw "You must pass the report settings to Viewer.";
 	}
@@ -61,14 +61,16 @@ var Viewer = function(opts) {
 		self.changeOptions({ filesSortBy: 'modified', filesSortRev: self._options.filesSortBy == 'modified' ? !self._options.filesSortRev : false });
 	});
 	
-	// Setup the directory tree.
-	this._tree = $('#DirectoryTree').tree({
-		data: this._options.directories,
-		root: this._options.settings.root,
-		selection: function(e, hash) {
-			self.changeOptions({ hash: hash });
-		}
-	});
+	// Setup the directory tree, if a list was provided.
+	if (this._options.directories) {
+		this._tree = $('#DirectoryTree').tree({
+			data: this._options.directories,
+			root: this._options.settings.root,
+			selection: function(e, hash) {
+				self.changeOptions({ hash: hash });
+			}
+		});
+	}
 	
 	this._lastHash = null;
 	this._lastSection = null;
@@ -142,7 +144,9 @@ $.extend(Viewer.prototype, {
 					}
 					hashPath.push(self._options.hash);
 					
-					self._tree.tree('select', hashPath);
+					if (self._options.directories) {
+						self._tree.tree('select', hashPath);
+					}
 					
 					// Scroll to the top of the report.
 					$('#Report').get(0).scrollTop = 0;
@@ -255,7 +259,10 @@ $.extend(Viewer.prototype, {
 		
 		$('> div', this._sections).hide();
 		
-		if (this._data.modified.length == 0) {
+		if (!this._data.modified) {
+			$('#Section_Message').text('This information is not available at this directory depth.').show();
+		}
+		else if (this._data.modified.length == 0) {
 			$('#Section_Message').text('Neither this directory nor its sub directories contain files.').show();
 		}
 		else {
@@ -283,7 +290,10 @@ $.extend(Viewer.prototype, {
 		
 		$('> div', this._sections).hide();
 		
-		if (this._data.types.length == 0) {
+		if (!this._data.types) {
+			$('#Section_Message').text('This information is not available at this directory depth.').show();
+		}
+		else if (this._data.types.length == 0) {
 			$('#Section_Message').text('Neither this directory nor its sub directories contain files.').show();
 		}
 		else {
@@ -311,7 +321,10 @@ $.extend(Viewer.prototype, {
 		
 		$('> div', this._sections).hide();
 		
-		if (this._data.types.length == 0) {
+		if (!this._data.types) {
+			$('#Section_Message').text('This information is not available at this directory depth.').show();
+		}
+		else if (this._data.sizes.length == 0) {
 			$('#Section_Message').text('Neither this directory nor its sub directories contain files.').show();
 		}
 		else {
