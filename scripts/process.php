@@ -2,17 +2,81 @@
 
 // find "DIRECTORYNAME" -printf '%y %TY-%Tm-%Td %TT %s %d %h %f\n' > "OUTFILENAME"
 
-if (!isset($_SERVER['argc']) || $_SERVER['argc'] < 3) {
-	echo "Syntax: process.php <filelist> <reportdir>\n"; exit;
+if (!isset($_SERVER['argc'])) {
+	echo "Must be run from the command line.\n"; exit(1);
 }
 
-define('TIMEZONE', 'America/New_York');
-define('MAXDETAILDEPTH', 2);
-define('MAXLINELENGTH', 1024);
-define('HASDIRECTORYTREE', true);
-define('DELIM', ' ');
-define('DS', '/');
-define('TOP100DEPTH', 3);
+$args = array(
+	'name' => null,
+	'filelist' => null,
+	'reportdir' => null,
+	'timezone' => 'America/New_York',
+	'totalsdepth' => 2,
+	'top100depth' => 3,
+	'maxlinelength' => 1024,
+	'notree' => false,
+	'delim' => ' ',
+	'ds' => '/'
+);
+
+// syntax: php process.php [-tz '<timezone>'] [-d '<delim>'] [-t <totalsdepth>] [-nt (no tree)] [-ds '<directoryseparator>'] [-td <top100depth>] [-n <reportname>] <reportdir> [<filelist>]
+
+$cliargs = array_slice($_SERVER['argv'], 1);
+
+while (!is_null($cliarg = array_shift($cliargs))) {
+	$shifted = true;
+	
+	switch ($cliarg) {
+		case '-tz':
+			$args['timezone'] = $shifted = array_shift($cliargs);
+			break;
+		case '-d':
+			$args['delim'] = $shifted = array_shift($cliargs);
+			break;
+		case '-t':
+			$args['totalsdepth'] = $shifted = array_shift($cliargs);
+			break;
+		case '-nt':
+			$args['notree'] = true;
+			break;
+		case '-ds':
+			$args['ds'] = $shifted = array_shift($cliargs);
+			break;
+		case '-td':
+			$args['top100depth'] = $shifted = array_shift($cliargs);
+			break;
+		case '-n':
+			$args['name'] = $shifted = array_shift($cliargs);
+			break;
+		case '-l':
+			$args['maxlinelength'] = $shifted = array_shift($cliargs);
+			break;
+		default:
+			$args['reportdir'] = $cliarg;
+			$args['filelist'] = array_shift($cliargs);
+			$cliargs = array();
+	}
+	
+	if (is_null($shifted)) {
+		echo "Missing value after argument $cliarg\n"; exit(1);
+	}
+}
+
+if (is_null($args['reportdir'])) {
+	echo "reportdir argument is missing\n"; exit(1);
+}
+
+if (!is_null($args['filelist']) && !is_file($args['filelist'])) {
+	echo "The <fileslist> does not exist or is not a file.\n"; exit;
+}
+
+if (!is_dir($args['reportdir'])) {
+	echo "The <reportdir> does not exist or is not a directory.\n"; exit;
+}
+
+if (is_null($args['filelist'])) {
+	$args['filelist'] = 'php://stdin';
+}
 
 define('COL_TYPE', 0);
 define('COL_DATE', 1);
@@ -22,7 +86,7 @@ define('COL_DEPTH', 4);
 define('COL_PARENT', 5);
 define('COL_NAME', 6);
 
-if (!(function_exists("date_default_timezone_set") ? @(date_default_timezone_set(TIMEZONE)) : @(putenv("TZ=".TIMEZONE)))) {
+if (!(function_exists("date_default_timezone_set") ? @(date_default_timezone_set($args['timezone'])) : @(putenv("TZ=".$args['timezone'])))) {
 	echo "'timezone' config was set to an invalid identifier."; exit;
 }
 
@@ -65,118 +129,108 @@ $modifiedGroups = array(
 	array('label' => 'Future', 'date' => '9999-99-99')
 );
 
-$filesList = $argv[1];
-$reportDir = $argv[2];
-$reportName = $argv[3];
-
-if (!is_file($filesList)) {
-	echo "The <fileslist> does not exist or is not a file.\n"; exit;
-}
-elseif (!is_dir($reportDir)) {
-	echo "The <reportdir> does not exist or is not a directory.\n"; exit;
-}
-
-if (($fh = fopen($filesList, 'r')) === FALSE) {
+if (($fh = fopen($args['filelist'], 'r')) === FALSE) {
 	echo "Failed to open <fileslist> for reading.\n"; exit;
 }
 
-if (file_put_contents(ConcatPath(DS, $reportDir, 'settings'), json_encode(array(
+if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], 'settings'), json_encode(array(
 		'version' => '1.0',
-		'name' => $reportName,
+		'name' => $args['name'],
 		'created' => date('M j, Y g:i:s T'),
-		'directorytree' => HASDIRECTORYTREE,
+		'directorytree' => !$args['notree'],
 		'root' => md5('coas'),
 		'sizes' => $sizeGroups,
 		'modified' => $modifiedGroups,
-		'ds' => DS
+		'ds' => $args['ds']
 	))) === FALSE) {
 	
-	echo 'Failed to write: ' . ConcatPath(DS, $reportDir, 'settings') . "\n";
+	echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], 'settings') . "\n";
 }
 
 $paths = array();
-
 $dirList = array();
 
 // Read in all lines.
-while (($line = fgets($fh, MAXLINELENGTH)) !== FALSE) {
+while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 	
 	// Trim line separator and split line.
-	$split = explode(DELIM, rtrim($line, "\n\r"));
+	$split = explode($args['delim'], rtrim($line, "\n\r"));
 	
-	while (count($paths) > 0 && $paths[count($paths)-1]['path'] != $split[COL_PARENT]) {
-		$pop = array_pop($paths);
-		//echo 'Exit Dir: ' . $pop['path'] . "\n";
-		
-		$pop['parents'] = array();
-		foreach ($paths as $parent) {
-			array_push($pop['parents'], array(
-				'name' => $parent['name'],
-				'hash' => md5($parent['path'])
-			));
+	if (count($split) == 7) {
+		while (count($paths) > 0 && $paths[count($paths)-1]['path'] != $split[COL_PARENT]) {
+			$pop = array_pop($paths);
+			//echo 'Exit Dir: ' . $pop['path'] . "\n";
+			
+			$pop['parents'] = array();
+			foreach ($paths as $parent) {
+				array_push($pop['parents'], array(
+					'name' => $parent['name'],
+					'hash' => md5($parent['path'])
+				));
+			}
+			
+			if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], md5($pop['path'])), json_encode($pop)) === FALSE) {
+				echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], md5($pop['path'])) . "\n";
+			}
 		}
 		
-		if (file_put_contents(ConcatPath(DS, $reportDir, md5($pop['path'])), json_encode($pop)) === FALSE) {
-			echo 'Failed to write: ' . ConcatPath(DS, $reportDir, md5($pop['path'])) . "\n";
-		}
-	}
-	
-	if ($split[COL_TYPE] == 'd') {
-		$newPath = array(
-			'name' => $split[COL_NAME],
-			'bytes' => '0',
-			'totalbytes' => '0',
-			'num' => '0',
-			'totalnum' => '0',
-			'subdirs' => array(),
-			'files' => array()
-		);
-		
-		if (count($paths) < MAXDETAILDEPTH) {
-			$newPath['sizes'] = array();
-			$newPath['modified'] = array();
-			$newPath['types'] = array();
-			$newPath['top100'] = array();
-		}
-		
-		if ($split[COL_DEPTH] == '0') {
-			//echo 'Root Dir: ' . $split[COL_NAME] . ' (' . md5($split[COL_NAME]) . ')' . "\n";
-			$newPath['path'] = $split[COL_NAME];
+		if ($split[COL_TYPE] == 'd') {
+			$newPath = array(
+				'name' => $split[COL_NAME],
+				'bytes' => '0',
+				'totalbytes' => '0',
+				'num' => '0',
+				'totalnum' => '0',
+				'subdirs' => array(),
+				'files' => array()
+			);
+			
+			if (count($paths) < $args['totalsdepth']) {
+				$newPath['sizes'] = array();
+				$newPath['modified'] = array();
+				$newPath['types'] = array();
+				$newPath['top100'] = array();
+			}
+			
+			if ($split[COL_DEPTH] == '0') {
+				//echo 'Root Dir: ' . $split[COL_NAME] . ' (' . md5($split[COL_NAME]) . ')' . "\n";
+				$newPath['path'] = $split[COL_NAME];
+			}
+			else {
+				//echo 'New Dir:  ' . $split[COL_PARENT] . $args['ds'] . $split[COL_NAME] . "\n";
+				$newPath['path'] = $split[COL_PARENT] . $args['ds'] . $split[COL_NAME];
+			}
+			
+			if (!$args['notree']) {
+				// Add the directory to the hash lookup.
+				$dirList[md5($newPath['path'])] = array(
+					'name' => $split[COL_NAME],
+					'totalbytes' => &$newPath['totalbytes'],
+					'totalnum' => &$newPath['totalnum'],
+					'subdirs' => &$newPath['subdirs']
+				);
+			}
+			
+			if (count($paths) > 0) {
+				array_push($paths[count($paths)-1]['subdirs'], array(
+					'name' => $split[COL_NAME],
+					'totalbytes' => &$newPath['totalbytes'],
+					'totalnum' => &$newPath['totalnum'],
+					'hash' => md5($newPath['path'])
+				));
+			}
+			array_push($paths, $newPath);
 		}
 		else {
-			//echo 'New Dir:  ' . $split[COL_PARENT] . DS . $split[COL_NAME] . "\n";
-			$newPath['path'] = $split[COL_PARENT] . DS . $split[COL_NAME];
-		}
-		
-		if (HASDIRECTORYTREE) {
-			// Add the directory to the hash lookup.
-			$dirList[md5($newPath['path'])] = array(
+			//echo 'File:     ' . $split[COL_PARENT] . $args['ds'] . $split[COL_NAME] . "\n";
+			AddFileData($split);
+			array_push($paths[count($paths)-1]['files'], array(
 				'name' => $split[COL_NAME],
-				'totalbytes' => &$newPath['totalbytes'],
-				'totalnum' => &$newPath['totalnum'],
-				'subdirs' => &$newPath['subdirs']
-			);
-		}
-		
-		if (count($paths) > 0) {
-			array_push($paths[count($paths)-1]['subdirs'], array(
-				'name' => $split[COL_NAME],
-				'totalbytes' => &$newPath['totalbytes'],
-				'totalnum' => &$newPath['totalnum'],
-				'hash' => md5($newPath['path'])
+				'date' => $split[COL_DATE],
+				'time' => $split[COL_TIME],
+				'size' => $split[COL_SIZE]
 			));
 		}
-		array_push($paths, $newPath);
-	}
-	else {
-		//echo 'File:     ' . $split[COL_PARENT] . DS . $split[COL_NAME] . "\n";
-		AddFileData($split);
-		array_push($paths[count($paths)-1]['files'], array(
-			'name' => $split[COL_NAME],
-			'date' => $split[COL_DATE],
-			'time' => $split[COL_TIME],
-			'size' => $split[COL_SIZE]
-		));
 	}
 }
 
@@ -192,19 +246,19 @@ while (count($paths) > 0) {
 		));
 	}
 	
-	if (file_put_contents(ConcatPath(DS, $reportDir, md5($pop['path'])), json_encode($pop)) === FALSE) {
-		echo 'Failed to write: ' . ConcatPath(DS, $reportDir, md5($pop['path'])) . "\n";
+	if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], md5($pop['path'])), json_encode($pop)) === FALSE) {
+		echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], md5($pop['path'])) . "\n";
 	}
 }
 
-if (HASDIRECTORYTREE && file_put_contents(ConcatPath(DS, $reportDir, 'directories'), json_encode($dirList)) === FALSE) {
-	echo 'Failed to write: ' . ConcatPath(DS, $reportDir, 'directories') . "\n";
+if (!$args['notree'] && file_put_contents(ConcatPath($args['ds'], $args['reportdir'], 'directories'), json_encode($dirList)) === FALSE) {
+	echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], 'directories') . "\n";
 }
 
 fclose($fh);
 
 function AddFileData($data) {
-	global $paths, $sizeGroups, $modifiedGroups;
+	global $args, $paths, $sizeGroups, $modifiedGroups;
 	
 	for ($i = 0; $i < count($paths); $i++) {
 		
@@ -216,7 +270,7 @@ function AddFileData($data) {
 			$paths[$i]['num'] = bcadd($paths[$i]['num'], '1');
 		}
 		
-		if ($i < MAXDETAILDEPTH) {
+		if ($i < $args['totalsdepth']) {
 			for ($g = 0; $g < count($sizeGroups); $g++) {
 				if (bccomp($sizeGroups[$g]['size'].'', $data[COL_SIZE], 0) <= 0) {
 					$paths[$i]['sizes'][$g] = array_key_exists($g, $paths[$i]['sizes'])
