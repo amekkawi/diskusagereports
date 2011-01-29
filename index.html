@@ -81,7 +81,7 @@
 				case 'error':
 					switch (xhr.status) {
 						case 404:
-							$('#Loading').append($('<div>').text('Error: It is missing or the report does not exist.'));
+							$('#Loading').append($('<div>').text('Error: Not found. The report may not exist.'));
 							break;
 						case 401:
 							$('#Loading').append($('<div>').text('Error: A username and password is required. Reload to try again.'));
@@ -98,56 +98,67 @@
 		
 		setTimeout(function(){ // Debugging timeout
 		
-		// Load the settings file.
-		$.ajax({
-			cache: false,
-			url: document.reportsBaseURL + window.location.search.substring(1) + '/settings',
-			type: 'GET',
-			dataType: 'json',
-			error: ajaxErrorHandler,
-			success: function(settings, status, xhr){
-				
-				$('#Title > span').append(' for: ').append($('<b>').text(settings.name));
-				$('#Created').html('Created:<br/>' + $.implode(settings.created.split(' ').slice(0,3), ' ').htmlencode()).show();
-				
-				$('#Loading').text('Loading Directory List for Report...');
-				
-				setTimeout(function(){ // Debugging timeout
-				
-				// Load the directory lookup file.
-				$.ajax({
-					cache: false,
-					url: document.reportsBaseURL + window.location.search.substring(1) + '/directories',
-					type: 'GET',
-					dataType: 'json',
-					error: ajaxErrorHandler,
-					success: function(dirLookup, status, xhr){
-						
+			// Load the settings file.
+			$.ajax({
+				cache: false,
+				url: document.reportsBaseURL + window.location.search.substring(1) + '/settings',
+				type: 'GET',
+				dataType: 'json',
+				error: ajaxErrorHandler,
+				success: function(settings, status, xhr){
+					
+					if (settings.name) {
+						$('#Title > span').append(' for: ').append($('<b>').text(settings.name));
+					}
+					$('#Created').html('Created:<br/>' + $.implode(settings.created.split(' ').slice(0,3), ' ').htmlencode()).show();
+					
+					var finalSetup = function(directories){
 						$('#Loading').text('Displaying Report...');
-						
 						setTimeout(function(){ // Debugging timeout
-						
-						document.viewer = new Viewer({
-							directories: dirLookup,
-							settings: settings,
-							report: window.location.search.substring(1)
-						});
-						
-						document.viewer.display(dhtmlHistory.getCurrentLocation(), function(){
-							$('#Loading').hide();
-							$('#Container').show();
 							
-							// Force a resize since the viewer is now displayed.
-							document.resizeWindow();
-						});
+							document.viewer = new Viewer({
+								directories: directories,
+								settings: settings,
+								report: window.location.search.substring(1)
+							});
+							
+							document.viewer.display(dhtmlHistory.getCurrentLocation(), function(){
+								$('#Loading').hide();
+								$('#Container').show();
+								
+								// Force a resize since the viewer is now displayed.
+								document.resizeWindow();
+							});
 						
 						}, 250); // Debugging timeout
+					};
+					
+					if (settings.directorytree) {
+						$('#Loading').text('Loading Directory List for Report...');
+						
+						setTimeout(function(){ // Debugging timeout
+							
+							// Load the directory lookup file.
+							$.ajax({
+								cache: false,
+								url: document.reportsBaseURL + window.location.search.substring(1) + '/directories',
+								type: 'GET',
+								dataType: 'json',
+								error: ajaxErrorHandler,
+								success: function(directories, status, xhr){
+									finalSetup(directories)
+								}
+							});
+							
+						}, 250); // Debugging timeout
 					}
-				});
-				
-				}, 250); // Debugging timeout
-			}
-		});
+					
+					else {
+						$('#LeftColumn').hide();
+						finalSetup(null);
+					}
+				}
+			});
 		
 		}, 250); // Debugging timeout
 	
