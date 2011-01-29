@@ -147,8 +147,8 @@ if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], 'settings'), j
 	echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], 'settings') . "\n";
 }
 
-$paths = array();
-$dirList = array();
+$dirStack = array();
+$dirLookup = array();
 
 // Read in all lines.
 while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
@@ -157,12 +157,12 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 	$split = explode($args['delim'], rtrim($line, "\n\r"));
 	
 	if (count($split) == 7) {
-		while (count($paths) > 0 && $paths[count($paths)-1]['path'] != $split[COL_PARENT]) {
-			$pop = array_pop($paths);
+		while (count($dirStack) > 0 && $dirStack[count($dirStack)-1]['path'] != $split[COL_PARENT]) {
+			$pop = array_pop($dirStack);
 			//echo 'Exit Dir: ' . $pop['path'] . "\n";
 			
 			$pop['parents'] = array();
-			foreach ($paths as $parent) {
+			foreach ($dirStack as $parent) {
 				array_push($pop['parents'], array(
 					'name' => $parent['name'],
 					'hash' => md5($parent['path'])
@@ -175,7 +175,7 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 		}
 		
 		if ($split[COL_TYPE] == 'd') {
-			$newPath = array(
+			$newDir = array(
 				'name' => $split[COL_NAME],
 				'bytes' => '0',
 				'totalbytes' => '0',
@@ -185,46 +185,46 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 				'files' => array()
 			);
 			
-			if (count($paths) < $args['totalsdepth']) {
-				$newPath['sizes'] = array();
-				$newPath['modified'] = array();
-				$newPath['types'] = array();
-				$newPath['top100'] = array();
+			if (count($dirStack) < $args['totalsdepth']) {
+				$newDir['sizes'] = array();
+				$newDir['modified'] = array();
+				$newDir['types'] = array();
+				$newDir['top100'] = array();
 			}
 			
 			if ($split[COL_DEPTH] == '0') {
 				//echo 'Root Dir: ' . $split[COL_NAME] . ' (' . md5($split[COL_NAME]) . ')' . "\n";
-				$newPath['path'] = $split[COL_NAME];
+				$newDir['path'] = $split[COL_NAME];
 			}
 			else {
 				//echo 'New Dir:  ' . $split[COL_PARENT] . $args['ds'] . $split[COL_NAME] . "\n";
-				$newPath['path'] = $split[COL_PARENT] . $args['ds'] . $split[COL_NAME];
+				$newDir['path'] = $split[COL_PARENT] . $args['ds'] . $split[COL_NAME];
 			}
 			
 			if (!$args['notree']) {
 				// Add the directory to the hash lookup.
-				$dirList[md5($newPath['path'])] = array(
+				$dirLookup[md5($newDir['path'])] = array(
 					'name' => $split[COL_NAME],
-					'totalbytes' => &$newPath['totalbytes'],
-					'totalnum' => &$newPath['totalnum'],
-					'subdirs' => &$newPath['subdirs']
+					'totalbytes' => &$newDir['totalbytes'],
+					'totalnum' => &$newDir['totalnum'],
+					'subdirs' => &$newDir['subdirs']
 				);
 			}
 			
-			if (count($paths) > 0) {
-				array_push($paths[count($paths)-1]['subdirs'], array(
+			if (count($dirStack) > 0) {
+				array_push($dirStack[count($dirStack)-1]['subdirs'], array(
 					'name' => $split[COL_NAME],
-					'totalbytes' => &$newPath['totalbytes'],
-					'totalnum' => &$newPath['totalnum'],
-					'hash' => md5($newPath['path'])
+					'totalbytes' => &$newDir['totalbytes'],
+					'totalnum' => &$newDir['totalnum'],
+					'hash' => md5($newDir['path'])
 				));
 			}
-			array_push($paths, $newPath);
+			array_push($dirStack, $newDir);
 		}
 		else {
 			//echo 'File:     ' . $split[COL_PARENT] . $args['ds'] . $split[COL_NAME] . "\n";
 			AddFileData($split);
-			array_push($paths[count($paths)-1]['files'], array(
+			array_push($dirStack[count($dirStack)-1]['files'], array(
 				'name' => $split[COL_NAME],
 				'date' => $split[COL_DATE],
 				'time' => $split[COL_TIME],
@@ -234,12 +234,12 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 	}
 }
 
-while (count($paths) > 0) {
-	$pop = array_pop($paths);
+while (count($dirStack) > 0) {
+	$pop = array_pop($dirStack);
 	//echo 'Exit Dir: ' . $pop['path'] . "\n";
 	
 	$pop['parents'] = array();
-	foreach ($paths as $parent) {
+	foreach ($dirStack as $parent) {
 		array_push($pop['parents'], array(
 			'name' => $parent['name'],
 			'hash' => md5($parent['path'])
@@ -251,30 +251,30 @@ while (count($paths) > 0) {
 	}
 }
 
-if (!$args['notree'] && file_put_contents(ConcatPath($args['ds'], $args['reportdir'], 'directories'), json_encode($dirList)) === FALSE) {
+if (!$args['notree'] && file_put_contents(ConcatPath($args['ds'], $args['reportdir'], 'directories'), json_encode($dirLookup)) === FALSE) {
 	echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], 'directories') . "\n";
 }
 
 fclose($fh);
 
 function AddFileData($data) {
-	global $args, $paths, $sizeGroups, $modifiedGroups;
+	global $args, $dirStack, $sizeGroups, $modifiedGroups;
 	
-	for ($i = 0; $i < count($paths); $i++) {
+	for ($i = 0; $i < count($dirStack); $i++) {
 		
-		$paths[$i]['totalbytes'] = bcadd($paths[$i]['totalbytes'], $data[COL_SIZE]);
-		$paths[$i]['totalnum'] = bcadd($paths[$i]['totalnum'], '1');
+		$dirStack[$i]['totalbytes'] = bcadd($dirStack[$i]['totalbytes'], $data[COL_SIZE]);
+		$dirStack[$i]['totalnum'] = bcadd($dirStack[$i]['totalnum'], '1');
 		
-		if ($i == count($paths) - 1) {
-			$paths[$i]['bytes'] = bcadd($paths[$i]['bytes'], $data[COL_SIZE]);
-			$paths[$i]['num'] = bcadd($paths[$i]['num'], '1');
+		if ($i == count($dirStack) - 1) {
+			$dirStack[$i]['bytes'] = bcadd($dirStack[$i]['bytes'], $data[COL_SIZE]);
+			$dirStack[$i]['num'] = bcadd($dirStack[$i]['num'], '1');
 		}
 		
 		if ($i < $args['totalsdepth']) {
 			for ($g = 0; $g < count($sizeGroups); $g++) {
 				if (bccomp($sizeGroups[$g]['size'].'', $data[COL_SIZE], 0) <= 0) {
-					$paths[$i]['sizes'][$g] = array_key_exists($g, $paths[$i]['sizes'])
-						? array(bcadd($paths[$i]['sizes'][$g][0], $data[COL_SIZE]), bcadd($paths[$i]['sizes'][$g][1], '1'))
+					$dirStack[$i]['sizes'][$g] = array_key_exists($g, $dirStack[$i]['sizes'])
+						? array(bcadd($dirStack[$i]['sizes'][$g][0], $data[COL_SIZE]), bcadd($dirStack[$i]['sizes'][$g][1], '1'))
 						: array($data[COL_SIZE], '1');
 					break;
 				}
@@ -283,8 +283,8 @@ function AddFileData($data) {
 			for ($g = 0; $g < count($modifiedGroups); $g++) {
 				if (strcmp($modifiedGroups[$g]['date'], $data[COL_DATE]) >= 0) {
 					//echo $modifiedGroups[$g]['date'] . ' <= ' . $data[COL_DATE] . "\n"; exit;
-					$paths[$i]['modified'][$g] = array_key_exists($g, $paths[$i]['modified'])
-						? array(bcadd($paths[$i]['modified'][$g][0], $data[COL_SIZE]), bcadd($paths[$i]['modified'][$g][1], '1'))
+					$dirStack[$i]['modified'][$g] = array_key_exists($g, $dirStack[$i]['modified'])
+						? array(bcadd($dirStack[$i]['modified'][$g][0], $data[COL_SIZE]), bcadd($dirStack[$i]['modified'][$g][1], '1'))
 						: array($data[COL_SIZE], '1');
 					break;
 				}
@@ -295,8 +295,8 @@ function AddFileData($data) {
 				if (count($ext) > 1) $ext = $ext[count($ext) - 1];
 				else $ext = '';
 				
-				$paths[$i]['types'][$ext] = array_key_exists($ext, $paths[$i]['types'])
-						? array(bcadd($paths[$i]['types'][$ext][0], $data[COL_SIZE]), bcadd($paths[$i]['types'][$ext][1], '1'))
+				$dirStack[$i]['types'][$ext] = array_key_exists($ext, $dirStack[$i]['types'])
+						? array(bcadd($dirStack[$i]['types'][$ext][0], $data[COL_SIZE]), bcadd($dirStack[$i]['types'][$ext][1], '1'))
 						: array($data[COL_SIZE], '1');
 			}
 		}
