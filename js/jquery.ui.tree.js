@@ -18,6 +18,11 @@ $.widget("ui.tree", {
 			hash = parents.pop();
 		}
 		
+		if (!this._data[hash]) {
+			this.deselect();
+			return;
+		}
+		
 		if (hash != this._lastHash) {
 			this._lastHash = hash;
 			
@@ -122,6 +127,8 @@ $.widget("ui.tree", {
 	},
 	
 	_createUL: function(hash) {
+		if (!this._data[hash]) return '';
+		
 		var li = [],
 			subdirs = this._data[hash].subdirs;
 		
