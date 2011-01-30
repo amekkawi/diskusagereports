@@ -180,7 +180,7 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 	}
 	else {
 		// Check if we have left the current directory in the stack.
-		while (count($dirStack) > 0 && $dirStack[count($dirStack)-1]['path'] != $split[COL_PARENT]) {
+		while (count($dirStack) > 1 && $dirStack[count($dirStack)-1]['path'] != $split[COL_PARENT]) {
 			$pop = array_pop($dirStack);
 			//echo 'Exit Dir: ' . $pop['path'] . "\n";
 			
@@ -329,6 +329,21 @@ if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], 'settings'), j
 
 fclose($fh);
 
+function GetExtension($name) {
+	$name = strtolower($name);
+	$index = strrpos($name, '.');
+	
+	if ($index === FALSE || $index == 0 || $index == strlen($name)-1) {
+		return '';
+	}
+	elseif (true || preg_match('/^[0-9a-z_\-]{1,10}$/', substr($name, $index+1))) {
+		return substr($name, $index+1);
+	}
+	else {
+		return '';
+	}
+}
+
 function AddFileData($data) {
 	global $args, $dirStack, $sizeGroups, $modifiedGroups;
 	
@@ -361,17 +376,55 @@ function AddFileData($data) {
 				}
 			}
 			
-			$ext = explode('.', strtolower($data[COL_NAME]));
-			if ($ext !== FALSE) {
-				if (count($ext) > 1) $ext = $ext[count($ext) - 1];
-				else $ext = '';
+			$ext = GetExtension($data[COL_NAME]);
+			$dirStack[$i]['types'][$ext] = array_key_exists($ext, $dirStack[$i]['types'])
+					? array(bcadd($dirStack[$i]['types'][$ext][0], $data[COL_SIZE]), bcadd($dirStack[$i]['types'][$ext][1], '1'))
+					: array($data[COL_SIZE], '1');
+		}
+		
+		if ($i < $args['top100depth']) {
+			$index = Top100Search($dirStack[$i]['top100'], intval($data[COL_SIZE]));
+			if ($index < 0) $index = abs($index + 1);
+			if (count($dirStack[$i]['top100']) < 100 || $index < 100) {
+				array_splice($dirStack[$i]['top100'], $index, 0, array(array(
+					intval($data[COL_SIZE]),
+					$data[COL_NAME],
+					md5($dirStack[$i]['path'])
+				)));
 				
-				$dirStack[$i]['types'][$ext] = array_key_exists($ext, $dirStack[$i]['types'])
-						? array(bcadd($dirStack[$i]['types'][$ext][0], $data[COL_SIZE]), bcadd($dirStack[$i]['types'][$ext][1], '1'))
-						: array($data[COL_SIZE], '1');
+				if (count($dirStack[$i]['top100']) > 100) {
+					array_pop($dirStack[$i]['top100']);
+				}
 			}
 		}
 	}
+}
+
+function Top100Search($list, $size) {
+	$low = 0;
+	$high = count($list) - 1;
+	$comp = -1;
+	$mid = 0;
+	
+	while ($low <= $high) {
+		$mid = floor(($low + $high) / 2);
+		
+		// Do comparison
+		$comp = $list[$mid][0] - $size;
+		
+		if ($comp < 0) {
+			$high = $mid - 1;
+		}
+		else if ($comp > 0) {
+			$low = $mid + 1;
+		}
+		else {
+			return $mid;
+		}
+	}
+	
+	if ($comp < 0) return -1 - $mid;
+	if ($comp > 0) return -2 - $mid;
 }
 
 function ConcatPath($sep) {
