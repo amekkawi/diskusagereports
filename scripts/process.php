@@ -347,6 +347,12 @@ function GetExtension($name) {
 function AddFileData($data) {
 	global $args, $dirStack, $sizeGroups, $modifiedGroups;
 	
+	$relativePath = '';
+	for ($i = 0; $i < count($dirStack); $i++) {
+		$relativePath .= $args['ds'] . $dirStack[$i]['name'];
+	}
+	$relativePath = substr($relativePath, 1);
+	
 	for ($i = 0; $i < count($dirStack); $i++) {
 		
 		$dirStack[$i]['totalbytes'] = bcadd($dirStack[$i]['totalbytes'], $data[COL_SIZE]);
@@ -387,9 +393,12 @@ function AddFileData($data) {
 			if ($index < 0) $index = abs($index + 1);
 			if (count($dirStack[$i]['top100']) < 100 || $index < 100) {
 				array_splice($dirStack[$i]['top100'], $index, 0, array(array(
-					intval($data[COL_SIZE]),
-					$data[COL_NAME],
-					md5($dirStack[$i]['path'])
+					'name' => $data[COL_NAME],
+					'size' => intval($data[COL_SIZE]),
+					'hash' => md5($dirStack[count($dirStack)-1]['path']),
+					'path' => $relativePath,
+					'date' => $data[COL_DATE],
+					'time' => $data[COL_TIME]
 				)));
 				
 				if (count($dirStack[$i]['top100']) > 100) {
@@ -410,7 +419,7 @@ function Top100Search($list, $size) {
 		$mid = floor(($low + $high) / 2);
 		
 		// Do comparison
-		$comp = $list[$mid][0] - $size;
+		$comp = $list[$mid]['size'] - $size;
 		
 		if ($comp < 0) {
 			$high = $mid - 1;
