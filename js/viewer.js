@@ -37,6 +37,9 @@ var Viewer = function(opts) {
 	$('#Tab_Files').click(function(){
 		self.changeOptions({ 'section': 'files' });
 	});
+	$('#Tab_Top100').click(function(){
+		self.changeOptions({ 'section': 'top100' });
+	});
 	
 	$('#Sections .totals-sortby-label').disableTextSelection().click(function() {
 		self.changeOptions({ totalsSortBy: 'label', totalsSortRev: self._options.totalsSortBy == 'label' ? !self._options.totalsSortRev : false });
@@ -60,6 +63,22 @@ var Viewer = function(opts) {
 	$('#Files-SortBy-modified').disableTextSelection().click(function() {
 		self.changeOptions({ filesSortBy: 'modified', filesSortRev: self._options.filesSortBy == 'modified' ? !self._options.filesSortRev : false });
 	});
+
+	$('#Top100-SortBy-name').disableTextSelection().click(function() {
+		self.changeOptions({ top100SortBy: 'name', top100SortRev: self._options.top100SortBy == 'name' ? !self._options.top100SortRev : false });
+	});
+	$('#Top100-SortBy-type').disableTextSelection().click(function() {
+		self.changeOptions({ top100SortBy: 'type', top100SortRev: self._options.top100SortBy == 'type' ? !self._options.top100SortRev : false });
+	});
+	$('#Top100-SortBy-size').disableTextSelection().click(function() {
+		self.changeOptions({ top100SortBy: 'size', top100SortRev: self._options.top100SortBy == 'size' ? !self._options.top100SortRev : true });
+	});
+	$('#Top100-SortBy-modified').disableTextSelection().click(function() {
+		self.changeOptions({ top100SortBy: 'modified', top100SortRev: self._options.top100SortBy == 'modified' ? !self._options.top100SortRev : false });
+	});
+	$('#Top100-SortBy-path').disableTextSelection().click(function() {
+		self.changeOptions({ top100SortBy: 'path', top100SortRev: self._options.top100SortBy == 'path' ? !self._options.top100SortRev : false });
+	});
 	
 	// Setup the directory tree, if a list was provided.
 	if (this._options.directories) {
@@ -81,6 +100,7 @@ var Viewer = function(opts) {
 	this._sizesSection = $('#Section_Sizes');
 	this._modifiedSection = $('#Section_Modified');
 	this._subdirsSection = $('#Section_SubDirs');
+	this._top100Section = $('#Section_Top100');
 };
 
 $.extend(Viewer.prototype, {
@@ -93,7 +113,9 @@ $.extend(Viewer.prototype, {
 		totalsSortBy: 'byte',
 		totalsSortRev: true,
 		filesSortBy: 'size',
-		filesSortRev: true
+		filesSortRev: true,
+		top100SortBy: 'size',
+		top100SortRev: true
 	},
 	
 	changeOptions: function(opts, skipHistory) {
@@ -237,10 +259,11 @@ $.extend(Viewer.prototype, {
 		$('#Section_Message').hide().text('');
 		
 		$('#Sections')
-			.removeClass('totals-sortedby-label totals-sortedby-byte totals-sortedby-num files-sortedby-name files-sortedby-type files-sortedby-size files-sortedby-modified')
-			.addClass('totals-sortedby-' + this._options.totalsSortBy + ' files-sortedby-' + this._options.filesSortBy)
+			.removeClass('totals-sortedby-label totals-sortedby-byte totals-sortedby-num files-sortedby-name files-sortedby-type files-sortedby-size files-sortedby-modified top100-sortedby-name top100-sortedby-type top100-sortedby-size top100-sortedby-modified top100-sortedby-path')
+			.addClass('totals-sortedby-' + this._options.totalsSortBy + ' files-sortedby-' + this._options.filesSortBy + ' top100-sortedby-' + this._options.top100SortBy)
 			[(this._options.totalsSortRev ? 'add' : 'remove') + 'Class']('totals-sortrev')
-			[(this._options.filesSortRev ? 'add' : 'remove') + 'Class']('files-sortrev');
+			[(this._options.filesSortRev ? 'add' : 'remove') + 'Class']('files-sortrev')
+			[(this._options.top100SortRev ? 'add' : 'remove') + 'Class']('top100-sortrev');
 		
 		switch (this._options.section) {
 			case 'modified':
@@ -254,6 +277,9 @@ $.extend(Viewer.prototype, {
 				break;
 			case 'files':
 				this._displayFiles();
+				break;
+			case 'top100':
+				this._displayTop100();
 				break;
 			default:
 				this._displaySubDirs();
@@ -483,7 +509,7 @@ $.extend(Viewer.prototype, {
 			
 			for (var key in data) {
 				
-				var extData = '', ext = data[key].name.split('.');
+				var extData = '', ext = data[key].name.toLowerCase().split('.');
 				if (ext.length > 1) ext = (extData = ext[ext.length-1]).htmlencode();
 				else ext = "<i>Unknown</i>";
 				
@@ -503,14 +529,12 @@ $.extend(Viewer.prototype, {
 				var html = '';
 				
 				html += '<td>' + data[key].name.htmlencode() + '</td>';
-				html += '<td align="center">' + ext + '</td>';
+				html += '<td align="center">' + ext.htmlencode() + '</td>';
 				html += '<td align="right">' + FormatBytes(data[key].size) + '</td>';
 				html += '<td>' + data[key].date + ' ' + data[key].time + '</td>';
 				
 				var index = BinarySearch(rows, [ sortValue, data[key].name ], function(needle, item, index) {
 					var modifier = self._options.filesSortRev ? -1 : 1;
-					
-					if (self._options.totalsSortBy == 'size') modifier *= -1;
 					
 					if (needle[0] < item[0]) return -1 * modifier;
 					if (needle[0] > item[0]) return 1 * modifier;
@@ -543,6 +567,90 @@ $.extend(Viewer.prototype, {
 		$('#Tab_Files').addClass('selected');
 	},
 	
+	_displayTop100: function() {
+		var self = this;
+		
+		$('> div', this._sections).hide();
+		
+		if (!this._data.top100) {
+			$('#Section_Message').text('This information is not available at this directory depth.').show();
+		}
+		else if (this._data.top100.length == 0) {
+			$('#Section_Message').text('Neither this directory nor its sub directories contain files.').show();
+		}
+		else {
+			var tbody = $('#Top100 > tbody').empty();
+			
+			var totalBytes = 0;
+			var totalNum = 0;
+			var data = this._data.top100;
+			
+			var rows = [];
+			
+			for (var key in data) {
+				
+				var extData = '', ext = data[key].name.toLowerCase().split('.');
+				if (ext.length > 1) ext = (extData = ext[ext.length-1]).htmlencode();
+				else ext = "<i>Unknown</i>";
+				
+				var sortValue = data[key].name;
+				switch (this._options.top100SortBy) {
+					case 'type':
+						sortValue = extData;
+						break;
+					case 'size':
+						sortValue = parseInt(data[key].size);
+						break;
+					case 'modified':
+						sortValue = data[key].date + ' ' + data[key].time;
+						break;
+					case 'path':
+						sortValue = data[key].path;
+						break;
+				}
+				
+				var html = '';
+				
+				html += '<td>' + data[key].name.htmlencode() + '</td>';
+				html += '<td align="center">' + ext.htmlencode() + '</td>';
+				html += '<td align="right">' + FormatBytes(data[key].size) + '</td>';
+				html += '<td>' + data[key].date + ' ' + data[key].time + '</td>';
+				html += '<td><a href="#' + this._createLocation({ hash: data[key].hash, section: 'files' }).htmlencode() + '">' + data[key].path.htmlencode() + '</a></td>';
+				
+				var index = BinarySearch(rows, [ sortValue, data[key].name ], function(needle, item, index) {
+					var modifier = self._options.top100SortRev ? -1 : 1;
+					
+					if (needle[0] < item[0]) return -1 * modifier;
+					if (needle[0] > item[0]) return 1 * modifier;
+					
+					if (needle[1] < item[1]) return -1 * modifier;
+					if (needle[1] > item[1]) return 1 * modifier;
+					
+					return 0;
+				});
+				
+				if (index < 0) {
+					rows.splice(Math.abs(index)-1, 0, [sortValue, data[key].name, html]);
+				}
+				else {
+					rows.splice(index, 0, [sortValue, data[key].name, html]);
+				}
+			}
+			
+			var finalHTML = '';
+			for (var i = 0; i < rows.length; i++) {
+				finalHTML += '<tr class="' + (i % 2 == 0 ? 'odd' : 'even') + '">' + rows[i][2] + '</tr>';
+			}
+			
+			tbody.html(finalHTML);
+			
+			this._top100Section.show();
+		}
+		
+		$('#Tabs li').removeClass('selected');
+		$('#Tab_Top100').addClass('selected');
+	},
+	
 	_processLocation: function(location) {
 		// Make sure the location is an array.
 		if ($.isString(location)) {
@@ -556,7 +664,7 @@ $.extend(Viewer.prototype, {
 		if (location.h && location.h.match(/^[a-f0-9]{32}$/i)) {
 			this._options.hash = location.h.toLowerCase();
 		}
-		if (location.s && location.s.match(/^(subdirs|files|modified|types|sizes)$/i)) {
+		if (location.s && location.s.match(/^(subdirs|files|modified|types|sizes|top100)$/i)) {
 			this._options.section = location.s.toLowerCase();
 		}
 		if (location.tsb && location.tsb.match(/^(label|byte|num)$/)) {
@@ -571,6 +679,13 @@ $.extend(Viewer.prototype, {
 		if (location.fsr && location.fsr.match(/^[01]$/)) {
 			this._options.filesSortRev = location.fsr == '1';
 		}
+		
+		if (location.bsb && location.bsb.match(/^(name|type|size|modified|path)$/)) {
+			this._options.top100SortBy = location.bsb;
+		}
+		if (location.bsr && location.bsr.match(/^[01]$/)) {
+			this._options.top100SortRev = location.bsr == '1';
+		}
 	},
 	
 	_createLocation: function(options) {
@@ -580,7 +695,9 @@ $.extend(Viewer.prototype, {
 			+ '&tsb=' + escape(opts.totalsSortBy)
 			+ '&tsr=' + escape(opts.totalsSortRev ? '1' : '0')
 			+ '&fsb=' + escape(opts.filesSortBy)
-			+ '&fsr=' + escape(opts.filesSortRev ? '1' : '0');
+			+ '&fsr=' + escape(opts.filesSortRev ? '1' : '0')
+			+ '&bsb=' + escape(opts.top100SortBy)
+			+ '&bsr=' + escape(opts.top100SortRev ? '1' : '0');
 	}
 	
 });

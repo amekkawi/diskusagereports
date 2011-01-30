@@ -207,7 +207,12 @@ a {
 .files-sortedby-name #Files-SortBy-name,
 .files-sortedby-type #Files-SortBy-type,
 .files-sortedby-size #Files-SortBy-size,
-.files-sortedby-modified #Files-SortBy-modified {
+.files-sortedby-modified #Files-SortBy-modified,
+.top100-sortedby-name #Top100-SortBy-name,
+.top100-sortedby-type #Top100-SortBy-type,
+.top100-sortedby-size #Top100-SortBy-size,
+.top100-sortedby-modified #Top100-SortBy-modified,
+.top100-sortedby-path #Top100-SortBy-path {
 	background-image: url(../images/tableheader-background-sorted.png);
 }
 .totals-sortedby-label .totals-sortby-label span,
@@ -216,7 +221,12 @@ a {
 .files-sortedby-name #Files-SortBy-name span,
 .files-sortedby-type #Files-SortBy-type span,
 .files-sortedby-size #Files-SortBy-size span,
-.files-sortedby-modified #Files-SortBy-modified span {
+.files-sortedby-modified #Files-SortBy-modified span,
+.top100-sortedby-name #Top100-SortBy-name span,
+.top100-sortedby-type #Top100-SortBy-type span,
+.top100-sortedby-size #Top100-SortBy-size span,
+.top100-sortedby-modified #Top100-SortBy-modified span,
+.top100-sortedby-path #Top100-SortBy-path span {
 	padding-right: 14px;
 	background-image: url(../images/tableheader-sort-asc.png);
 	background-repeat: no-repeat;
@@ -228,7 +238,12 @@ a {
 .files-sortrev.files-sortedby-name #Files-SortBy-name span,
 .files-sortrev.files-sortedby-type #Files-SortBy-type span,
 .files-sortrev.files-sortedby-size #Files-SortBy-size span,
-.files-sortrev.files-sortedby-modified #Files-SortBy-modified span {
+.files-sortrev.files-sortedby-modified #Files-SortBy-modified span,	
+.top100-sortrev.top100-sortedby-name #Top100-SortBy-name span,
+.top100-sortrev.top100-sortedby-type #Top100-SortBy-type span,
+.top100-sortrev.top100-sortedby-size #Top100-SortBy-size span,
+.top100-sortrev.top100-sortedby-modified #Top100-SortBy-modified span,
+.top100-sortrev.top100-sortedby-path #Top100-SortBy-path span {
 	background-image: url(../images/tableheader-sort-desc.png);
 }
 
@@ -266,11 +281,11 @@ a {
 }
 
 #Footer {
-	font-size: 12px;
+	font-size: 14px;
 	padding-top: 4px;
-	color: #999;
+	color: #AAA;
 	text-align: center;
 }
 #Footer a {
-	color: #999;
+	color: #AAA;
 }
