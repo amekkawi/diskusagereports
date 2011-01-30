@@ -382,13 +382,13 @@ $.extend(Viewer.prototype, {
 			
 			html += '<td class="totals-col-label">' + (htmlLabel ? label : label.htmlencode()) + '</td>';
 			
-			var bytePerCent = 100 * parseInt(bytes) / Math.max(1, parseInt(this._data.totalbytes));
+			var bytePerCent = parseInt(10000 * parseInt(bytes) / Math.max(1, parseInt(this._data.totalbytes))) / 100;
 			var byteColorIndex = Math.max(1, Math.floor(this._options.gradient.length * bytePerCent / 100)) - 1;
 			html += '<td class="totals-col-byte" align="right">' + FormatBytes(bytes) + '</td>';
 			html += '<td class="totals-col-byte" align="right">' + bytePerCent.toFixed(2) + '%' + '</td>';
 			html += '<td class="totals-col-byte"><div class="percentbar"><div style="width: '+ bytePerCent +'%; background-color: #' + this._options.gradient[byteColorIndex] + ';">&nbsp;</div></div></td>';
 			
-			var numPerCent = 100 * parseInt(num) / Math.max(1, parseInt(this._data.totalnum));
+			var numPerCent = parseInt(10000 * parseInt(num) / Math.max(1, parseInt(this._data.totalnum))) / 100;
 			var numColorIndex = Math.max(1, Math.floor(this._options.gradient.length * numPerCent / 100)) - 1;
 			html += '<td class="totals-col-num" align="right">' + AddCommas(num) + '</td>';
 			html += '<td class="totals-col-num" align="right">' + numPerCent.toFixed(2) + '%' + '</td>';
