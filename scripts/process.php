@@ -191,6 +191,7 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 			
 			if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], md5($pop['path'])), json_encode($pop)) === FALSE) {
 				echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], md5($pop['path'])) . "\n";
+				array_push($errors, array('writefail', $pop['path'], md5($pop['path'])));
 			}
 		}
 		
@@ -274,6 +275,7 @@ while (count($dirStack) > 0) {
 
 if (!$args['notree'] && file_put_contents(ConcatPath($args['ds'], $args['reportdir'], 'directories'), json_encode($dirLookup)) === FALSE) {
 	echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], 'directories') . "\n";
+	array_push($errors, array('writefail', 'directories', 'directories'));
 }
 
 if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], 'settings'), json_encode(array(
