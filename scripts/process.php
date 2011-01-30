@@ -16,7 +16,7 @@ $args = array(
 	'maxlinelength' => 1024,
 	'notree' => false,
 	'delim' => "\x00",
-	'ds' => '/'
+	'ds' => DIRECTORY_SEPARATOR
 );
 
 // syntax: php process.php [-tz '<timezone>'] [-d '<delim>'] [-t <totalsdepth>] [-nt (no tree)] [-ds '<directoryseparator>'] [-td <top100depth>] [-n <reportname>] <reportdir> [<filelist>]
@@ -144,6 +144,7 @@ if (($fh = fopen($args['filelist'], 'r')) === FALSE) {
 $dirStack = array();
 $dirLookup = array();
 $errors = array();
+$root = null;
 
 // Read in all lines.
 while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
@@ -229,14 +230,14 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 			}
 			
 			// Set top 100 array if allowed at this depth.
-			if (count($dirStack) < $args['total100depth']) {
+			if (count($dirStack) < $args['top100depth']) {
 				$newDir['top100'] = array();
 			}
 			
 			// Set the full path of the directory.
 			if ($split[COL_DEPTH] == '0') {
 				//echo 'Root Dir: ' . $split[COL_NAME] . ' (' . md5($split[COL_NAME]) . ')' . "\n";
-				$newDir['path'] = $split[COL_NAME];
+				$newDir['path'] = $root = $split[COL_NAME];
 			}
 			else {
 				//echo 'New Dir:  ' . $split[COL_PARENT] . $args['ds'] . $split[COL_NAME] . "\n";
@@ -281,7 +282,7 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 // Catch any remaining directories in the stack.
 while (count($dirStack) > 0) {
 	$pop = array_pop($dirStack);
-	//echo 'Exit Dir: ' . $pop['path'] . "\n";
+	echo 'Exit Dir: ' . $pop['path'] . "\n";
 	
 	$pop['parents'] = array();
 	foreach ($dirStack as $parent) {
@@ -310,7 +311,7 @@ if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], 'settings'), j
 		'name' => $args['name'],
 		'created' => date('M j, Y g:i:s A T'),
 		'directorytree' => !$args['notree'],
-		'root' => md5('coas'),
+		'root' => md5($root),
 		'sizes' => $sizeGroups,
 		'modified' => $modifiedGroups,
 		'ds' => $args['ds'],
