@@ -195,6 +195,18 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 			}
 		}
 		
+		// Convert the file list's UTC date/time to the report's timezone
+		$localtime = gmmktime(
+			intval(substr($split[COL_TIME], 0, 2)), // hour
+			intval(substr($split[COL_TIME], 3, 2)), // minute
+			intval(substr($split[COL_TIME], 6, 2)), // second
+			intval(substr($split[COL_DATE], 5, 2)), // month
+			intval(substr($split[COL_DATE], 8, 2)), // day
+			intval(substr($split[COL_DATE], 0, 4))  // year
+		);
+		$split[COL_DATE] = date('Y-m-d', $localtime);
+		$split[COL_TIME] = date('H:i:s', $localtime);
+		
 		if ($split[COL_TYPE] == 'd') {
 			$newDir = array(
 				'name' => $split[COL_NAME],
@@ -281,7 +293,7 @@ if (!$args['notree'] && file_put_contents(ConcatPath($args['ds'], $args['reportd
 if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], 'settings'), json_encode(array(
 		'version' => '1.0',
 		'name' => $args['name'],
-		'created' => date('M j, Y g:i:s T'),
+		'created' => date('M j, Y g:i:s A T'),
 		'directorytree' => !$args['notree'],
 		'root' => md5('coas'),
 		'sizes' => $sizeGroups,
