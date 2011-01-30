@@ -1,6 +1,6 @@
 <?php
 
-// find "DIRECTORYNAME" -printf '%y %TY-%Tm-%Td %TT %s %d %h %f\n' > "OUTFILENAME"
+// export TZ=UTC; find "DIRECTORYNAME" -printf '%y %TY-%Tm-%Td %TT %s %d %h %f\n' > "OUTFILENAME"; unset TZ
 
 if (!isset($_SERVER['argc'])) {
 	echo "Must be run from the command line.\n"; exit(1);
@@ -11,22 +11,30 @@ $args = array(
 	'filelist' => null,
 	'reportdir' => null,
 	'timezone' => 'America/New_York',
-	'totalsdepth' => 2,
+	'totalsdepth' => 6,
 	'top100depth' => 3,
 	'maxlinelength' => 1024,
 	'notree' => false,
-	'delim' => ' ',
+	'delim' => "\x00",
 	'ds' => '/'
 );
 
 // syntax: php process.php [-tz '<timezone>'] [-d '<delim>'] [-t <totalsdepth>] [-nt (no tree)] [-ds '<directoryseparator>'] [-td <top100depth>] [-n <reportname>] <reportdir> [<filelist>]
 
 $cliargs = array_slice($_SERVER['argv'], 1);
+$syntax = "Syntax: php process.php [options] <reportdir> [<filelist>]\nUse -? for help.\n";
 
 while (!is_null($cliarg = array_shift($cliargs))) {
 	$shifted = true;
 	
 	switch ($cliarg) {
+		case '/?':
+		case '-?':
+		case '-h':
+		case '--help':
+			echo $syntax;
+			// TODO: Output help.
+			break;
 		case '-tz':
 			$args['timezone'] = $shifted = array_shift($cliargs);
 			break;
@@ -58,20 +66,20 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 	}
 	
 	if (is_null($shifted)) {
-		echo "Missing value after argument $cliarg\n"; exit(1);
+		echo "Missing value after argument $cliarg\n".$syntax; exit(1);
 	}
 }
 
 if (is_null($args['reportdir'])) {
-	echo "reportdir argument is missing\n"; exit(1);
+	echo "reportdir argument is missing\n".$syntax; exit(1);
 }
 
 if (!is_null($args['filelist']) && !is_file($args['filelist'])) {
-	echo "The <fileslist> does not exist or is not a file.\n"; exit;
+	echo "The <fileslist> does not exist or is not a file.\n"; exit(1);
 }
 
 if (!is_dir($args['reportdir'])) {
-	echo "The <reportdir> does not exist or is not a directory.\n"; exit;
+	echo "The <reportdir> does not exist or is not a directory.\n"; exit(1);
 }
 
 if (is_null($args['filelist'])) {
@@ -87,7 +95,7 @@ define('COL_PARENT', 5);
 define('COL_NAME', 6);
 
 if (!(function_exists("date_default_timezone_set") ? @(date_default_timezone_set($args['timezone'])) : @(putenv("TZ=".$args['timezone'])))) {
-	echo "'timezone' config was set to an invalid identifier."; exit;
+	echo "'timezone' config was set to an invalid identifier."; exit(1);
 }
 
 $sizeGroups = array(
@@ -130,33 +138,45 @@ $modifiedGroups = array(
 );
 
 if (($fh = fopen($args['filelist'], 'r')) === FALSE) {
-	echo "Failed to open <fileslist> for reading.\n"; exit;
-}
-
-if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], 'settings'), json_encode(array(
-		'version' => '1.0',
-		'name' => $args['name'],
-		'created' => date('M j, Y g:i:s T'),
-		'directorytree' => !$args['notree'],
-		'root' => md5('coas'),
-		'sizes' => $sizeGroups,
-		'modified' => $modifiedGroups,
-		'ds' => $args['ds']
-	))) === FALSE) {
-	
-	echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], 'settings') . "\n";
+	echo "Failed to open <fileslist> for reading.\n"; exit(1);
 }
 
 $dirStack = array();
 $dirLookup = array();
+$errors = array();
 
 // Read in all lines.
 while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 	
 	// Trim line separator and split line.
-	$split = explode($args['delim'], rtrim($line, "\n\r"));
+	$split = explode($args['delim'], rtrim($line, "\n\r"), 7);
 	
-	if (count($split) == 7) {
+	if (count($split) != 7) {
+		echo "Invalid Line (".count($split).")\n";
+		array_push($errors, "Invalid column count (".count($split)."):" . $split);
+	}
+	elseif (!preg_match('/^[a-z]$/i', $split[COL_TYPE])) {
+		array_push($errors, array('invalidline', COL_TYPE, $split));
+	}
+	elseif (!preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/', $split[COL_DATE])) {
+		array_push($errors, array('invalidline', COL_DATE, $split));
+	}
+	elseif (!preg_match('/^[0-9]{2}:[0-9]{2}:[0-9]{2}$/', $split[COL_TIME])) {
+		array_push($errors, array('invalidline', COL_TIME, $split));
+	}
+	elseif (!preg_match('/^[0-9]+$/', $split[COL_SIZE])) {
+		array_push($errors, array('invalidline', COL_SIZE, $split));
+	}
+	elseif (!preg_match('/^[0-9]+$/', $split[COL_DEPTH])) {
+		array_push($errors, array('invalidline', COL_DEPTH, $split));
+	}
+	elseif (strlen($split[COL_PARENT]) == 0) {
+		array_push($errors, array('invalidline', COL_PARENT, $split));
+	}
+	elseif (strlen($split[COL_NAME]) == 0) {
+		array_push($errors, array('invalidline', COL_NAME, $split));
+	}
+	else {
 		while (count($dirStack) > 0 && $dirStack[count($dirStack)-1]['path'] != $split[COL_PARENT]) {
 			$pop = array_pop($dirStack);
 			//echo 'Exit Dir: ' . $pop['path'] . "\n";
@@ -248,11 +268,27 @@ while (count($dirStack) > 0) {
 	
 	if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], md5($pop['path'])), json_encode($pop)) === FALSE) {
 		echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], md5($pop['path'])) . "\n";
+		array_push($errors, array('writefail', $pop['path'], md5($pop['path'])));
 	}
 }
 
 if (!$args['notree'] && file_put_contents(ConcatPath($args['ds'], $args['reportdir'], 'directories'), json_encode($dirLookup)) === FALSE) {
 	echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], 'directories') . "\n";
+}
+
+if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], 'settings'), json_encode(array(
+		'version' => '1.0',
+		'name' => $args['name'],
+		'created' => date('M j, Y g:i:s T'),
+		'directorytree' => !$args['notree'],
+		'root' => md5('coas'),
+		'sizes' => $sizeGroups,
+		'modified' => $modifiedGroups,
+		'ds' => $args['ds'],
+		'errors' => $errors
+	))) === FALSE) {
+	
+	echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], 'settings') . "\n";
 }
 
 fclose($fh);
@@ -282,7 +318,6 @@ function AddFileData($data) {
 		
 			for ($g = 0; $g < count($modifiedGroups); $g++) {
 				if (strcmp($modifiedGroups[$g]['date'], $data[COL_DATE]) >= 0) {
-					//echo $modifiedGroups[$g]['date'] . ' <= ' . $data[COL_DATE] . "\n"; exit;
 					$dirStack[$i]['modified'][$g] = array_key_exists($g, $dirStack[$i]['modified'])
 						? array(bcadd($dirStack[$i]['modified'][$g][0], $data[COL_SIZE]), bcadd($dirStack[$i]['modified'][$g][1], '1'))
 						: array($data[COL_SIZE], '1');
