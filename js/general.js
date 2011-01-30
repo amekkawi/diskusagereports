@@ -41,13 +41,13 @@ function ArrayFlip(arr) {
 
 function FormatBytes(bytes, forceBytes) {
 	var byteText = AddCommas(bytes+'') + ' bytes';
-	if (bytes >= 1024 * 1024 * 1024) {
+	if (bytes >= 1000 * 1024 * 1024) {
 		return AddCommas(Math.round(bytes * 100 / 1024 / 1024 / 1024) / 100) + ' GB' + (forceBytes ? ' (' + byteText + ')' : '');
 	}
-	else if (bytes >= 1024 * 1024) {
+	else if (bytes >= 1000 * 1024) {
 		return AddCommas(Math.round(bytes * 100 / 1024 / 1024) / 100) + ' MB' + (forceBytes ? ' (' + byteText + ')' : '');
 	}
-	else if (bytes >= 1024) {
+	else if (bytes >= 1000) {
 		return AddCommas(Math.round(bytes * 100 / 1024) / 100) + ' KB' + (forceBytes ? ' (' + byteText + ')' : '');
 	}
 	else {
