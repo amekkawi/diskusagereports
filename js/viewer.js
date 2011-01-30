@@ -339,7 +339,7 @@ $.extend(Viewer.prototype, {
 			this._displayTotalsTable($('#Types'), this._data.types, function(data, field, key) {
 				switch (field) {
 					case 'label':
-						return key == '' ? '<i>None</i>' : key.htmlencode();
+						return key == '' ? '<i>Unknown</i>' : key.htmlencode();
 					case 'sortlabel':
 						return key;
 					case 'bytes':
@@ -485,7 +485,7 @@ $.extend(Viewer.prototype, {
 				
 				var extData = '', ext = data[key].name.split('.');
 				if (ext.length > 1) ext = (extData = ext[ext.length-1]).htmlencode();
-				else ext = "<i>None</i>";
+				else ext = "<i>Unknown</i>";
 				
 				var sortValue = data[key].name;
 				switch (this._options.filesSortBy) {
