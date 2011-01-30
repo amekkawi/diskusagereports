@@ -125,7 +125,7 @@
 							
 							document.viewer.display(dhtmlHistory.getCurrentLocation(), function(){
 								$('#Loading').hide();
-								$('#Container').show();
+								$('#Columns').show();
 								
 								// Force a resize since the viewer is now displayed.
 								document.resizeWindow();
@@ -185,147 +185,151 @@
 				document.resizeWindow();
 			}, 100);
 		});
+		
+		document.resizeWindow();
 	});
 </script>
 </head>
 <body>
 	
-<div id="Title">Disk Usage Report <span></span><div id="CreatedX" style="display: none;"></div>
-</div>
+<div id="Title">Disk Usage Report <span></span></div>
 
-<div id="Loading"></div>
-
-<div id="Container" style="display: none;">
-
-	<div id="LeftColumn">
-		<div id="DirectoryTree"></div>
-	</div>
+<div id="Container">
+	<div id="Loading"></div>
 	
-	<div id="RightColumn">
+	<div id="Columns" style="display: none;">
 		
-		<div id="ReportHead">
-			<div id="Path"></div>
-			<div id="DirSummary">Total Size: <span id="TotalBytes"></span> (<span id="Bytes"></span> in this directory alone)<br/>
-				Total Files: <span id="TotalNum"></span> (<span id="Num"></span> in this directory alone)</div>
+		<div id="LeftColumn">
+			<div id="DirectoryTree"></div>
 		</div>
 		
-		<div id="Tabs">
-			<ul>
-				<li id="Tab_SubDirs">Contents</li>
-				<li id="Tab_Files">File List</li>
-				<li id="Tab_Modified">Last Modified</li>
-				<li id="Tab_Sizes">File Sizes</li>
-				<li id="Tab_Types">File Types</li>
-			</ul>
-		</div>
-		
-		<div id="Report">
-	
-			<div id="Sections">
+		<div id="RightColumn">
 			
-				<div id="Section_SubDirs">
-					<table class="styledtable" id="SubDirs" border="1" cellspacing="0" cellpadding="4">
-						<thead>
-							<tr>
-								<th class="totals-sortby-label"><span>Name</span></th>
-								<th class="totals-sortby-byte" colspan="3"><span>Total Size</span></th>
-								<th class="totals-sortby-num" colspan="3"><span>File Count</span></th>
-							</tr>
-						</thead>
-						<tfoot>
-							<td>Total</td>
-							<td colspan="3"></td>
-							<td colspan="3"></td>
-						</tfoot>
-						<tbody>
-							
-						</tbody>
-					</table>
-				</div>
-				
-				<div id="Section_Modified">
-					<table class="styledtable" id="Modified" border="1" cellspacing="0" cellpadding="4">
-						<thead>
-							<tr>
-								<th class="totals-sortby-label"><span>Age</span></th>
-								<th class="totals-sortby-byte" colspan="3"><span>Total Size</span></th>
-								<th class="totals-sortby-num" colspan="3"><span>File Count</span></th>
-							</tr>
-						</thead>
-						<tfoot>
-							<td>Total</td>
-							<td colspan="3"></td>
-							<td colspan="3"></td>
-						</tfoot>
-						<tbody>
-							
-						</tbody>
-					</table>
-				</div>
-				
-				<div id="Section_Sizes">
-					<table class="styledtable" id="Sizes" border="1" cellspacing="0" cellpadding="4">
-						<thead>
-							<tr>
-								<th class="totals-sortby-label"><span>Range</span></th>
-								<th class="totals-sortby-byte" colspan="3"><span>Total Size</span></th>
-								<th class="totals-sortby-num" colspan="3"><span>File Count</span></th>
-							</tr>
-						</thead>
-						<tfoot>
-							<td>Total</td>
-							<td colspan="3"></td>
-							<td colspan="3"></td>
-						</tfoot>
-						<tbody>
-							
-						</tbody>
-					</table>
-				</div>
-				
-				<div id="Section_Types">
-					<table class="styledtable" id="Types" border="1" cellspacing="0" cellpadding="4">
-						<thead>
-							<tr>
-								<th class="totals-sortby-label"><span>Extension</span></th>
-								<th class="totals-sortby-byte" colspan="3"><span>Total Size</span></th>
-								<th class="totals-sortby-num" colspan="3"><span>File Count</span></th>
-							</tr>
-						</thead>
-						<tfoot>
-							<td>Total</td>
-							<td colspan="3"></td>
-							<td colspan="3"></td>
-						</tfoot>
-						<tbody>
-							
-						</tbody>
-					</table>
-				</div>
-				
-				<div id="Section_Files">
-					<table class="styledtable" id="Files" border="1" cellspacing="0" cellpadding="4">
-						<thead>
-							<tr>
-								<th id="Files-SortBy-name"><span>Name</span></th>
-								<th id="Files-SortBy-type"><span>Type</span></th>
-								<th id="Files-SortBy-size"><span>Size</span></th>
-								<th id="Files-SortBy-modified"><span>Modified</span></th>
-							</tr>
-						</thead>
-						<tbody>
-							
-						</tbody>
-					</table>
-				</div>
-				
-				<div id="Section_Message" style="display: none;"></div>
-			
+			<div id="ReportHead">
+				<div id="Path"></div>
+				<div id="DirSummary">Total Size: <span id="TotalBytes"></span> (<span id="Bytes"></span> in this directory alone)<br/>
+					Total Files: <span id="TotalNum"></span> (<span id="Num"></span> in this directory alone)</div>
 			</div>
+			
+			<div id="Tabs">
+				<ul>
+					<li id="Tab_SubDirs">Contents</li>
+					<li id="Tab_Files">File List</li>
+					<li id="Tab_Modified">Last Modified</li>
+					<li id="Tab_Sizes">File Sizes</li>
+					<li id="Tab_Types">File Types</li>
+				</ul>
+			</div>
+			
+			<div id="Report">
 		
-		</div> <!-- Report -->
+				<div id="Sections">
+				
+					<div id="Section_SubDirs">
+						<table class="styledtable" id="SubDirs" border="1" cellspacing="0" cellpadding="4">
+							<thead>
+								<tr>
+									<th class="totals-sortby-label"><span>Name</span></th>
+									<th class="totals-sortby-byte" colspan="3"><span>Total Size</span></th>
+									<th class="totals-sortby-num" colspan="3"><span>File Count</span></th>
+								</tr>
+							</thead>
+							<tfoot>
+								<td>Total</td>
+								<td colspan="3"></td>
+								<td colspan="3"></td>
+							</tfoot>
+							<tbody>
+								
+							</tbody>
+						</table>
+					</div>
+					
+					<div id="Section_Modified">
+						<table class="styledtable" id="Modified" border="1" cellspacing="0" cellpadding="4">
+							<thead>
+								<tr>
+									<th class="totals-sortby-label"><span>Age</span></th>
+									<th class="totals-sortby-byte" colspan="3"><span>Total Size</span></th>
+									<th class="totals-sortby-num" colspan="3"><span>File Count</span></th>
+								</tr>
+							</thead>
+							<tfoot>
+								<td>Total</td>
+								<td colspan="3"></td>
+								<td colspan="3"></td>
+							</tfoot>
+							<tbody>
+								
+							</tbody>
+						</table>
+					</div>
+					
+					<div id="Section_Sizes">
+						<table class="styledtable" id="Sizes" border="1" cellspacing="0" cellpadding="4">
+							<thead>
+								<tr>
+									<th class="totals-sortby-label"><span>Range</span></th>
+									<th class="totals-sortby-byte" colspan="3"><span>Total Size</span></th>
+									<th class="totals-sortby-num" colspan="3"><span>File Count</span></th>
+								</tr>
+							</thead>
+							<tfoot>
+								<td>Total</td>
+								<td colspan="3"></td>
+								<td colspan="3"></td>
+							</tfoot>
+							<tbody>
+								
+							</tbody>
+						</table>
+					</div>
+					
+					<div id="Section_Types">
+						<table class="styledtable" id="Types" border="1" cellspacing="0" cellpadding="4">
+							<thead>
+								<tr>
+									<th class="totals-sortby-label"><span>Extension</span></th>
+									<th class="totals-sortby-byte" colspan="3"><span>Total Size</span></th>
+									<th class="totals-sortby-num" colspan="3"><span>File Count</span></th>
+								</tr>
+							</thead>
+							<tfoot>
+								<td>Total</td>
+								<td colspan="3"></td>
+								<td colspan="3"></td>
+							</tfoot>
+							<tbody>
+								
+							</tbody>
+						</table>
+					</div>
+					
+					<div id="Section_Files">
+						<table class="styledtable" id="Files" border="1" cellspacing="0" cellpadding="4">
+							<thead>
+								<tr>
+									<th id="Files-SortBy-name"><span>Name</span></th>
+									<th id="Files-SortBy-type"><span>Type</span></th>
+									<th id="Files-SortBy-size"><span>Size</span></th>
+									<th id="Files-SortBy-modified"><span>Modified</span></th>
+								</tr>
+							</thead>
+							<tbody>
+								
+							</tbody>
+						</table>
+					</div>
+					
+					<div id="Section_Message" style="display: none;"></div>
+				
+				</div>
+			
+			</div> <!-- Report -->
+		
+		</div> <!-- Right Column -->
 	
-	</div> <!-- Right Column -->
+	</div> <!-- Columns -->
 
 </div> <!-- Container -->
 
