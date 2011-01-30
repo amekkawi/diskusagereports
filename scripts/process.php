@@ -180,7 +180,7 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 	}
 	else {
 		// Check if we have left the current directory in the stack.
-		while (count($dirStack) > 0 && $dirStack[count($dirStack)-1]['path'] != $split[COL_PARENT]) {
+		while (count($dirStack) > 1 && $dirStack[count($dirStack)-1]['path'] != $split[COL_PARENT]) {
 			$pop = array_pop($dirStack);
 			//echo 'Exit Dir: ' . $pop['path'] . "\n";
 			
@@ -282,7 +282,7 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 // Catch any remaining directories in the stack.
 while (count($dirStack) > 0) {
 	$pop = array_pop($dirStack);
-	echo 'Exit Dir: ' . $pop['path'] . "\n";
+	//echo 'Exit Dir: ' . $pop['path'] . "\n";
 	
 	$pop['parents'] = array();
 	foreach ($dirStack as $parent) {
