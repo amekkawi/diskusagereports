@@ -180,7 +180,7 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 	}
 	else {
 		// Check if we have left the current directory in the stack.
-		while (count($dirStack) > 1 && $dirStack[count($dirStack)-1]['path'] != $split[COL_PARENT]) {
+		while (count($dirStack) > 0 && $dirStack[count($dirStack)-1]['path'] != $split[COL_PARENT]) {
 			$pop = array_pop($dirStack);
 			//echo 'Exit Dir: ' . $pop['path'] . "\n";
 			
@@ -192,10 +192,14 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 				));
 			}
 			
+			// Remove the path so it is not saved.
+			$path = $pop['path'];
+			unset($pop['path']);
+			
 			// Save the directory data.
-			if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], md5($pop['path'])), json_encode($pop)) === FALSE) {
-				echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], md5($pop['path'])) . "\n";
-				array_push($errors, array('writefail', $pop['path'], md5($pop['path'])));
+			if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], md5($path)), json_encode($pop)) === FALSE) {
+				echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], md5($path)) . "\n";
+				array_push($errors, array('writefail', $path, md5($path)));
 			}
 		}
 		
@@ -235,13 +239,11 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 			}
 			
 			// Set the full path of the directory.
+			$newDir['path'] = $split[COL_PARENT] . $args['ds'] . $split[COL_NAME];
+			
+			// Make note of the root directory's path.
 			if ($split[COL_DEPTH] == '0') {
-				//echo 'Root Dir: ' . $split[COL_NAME] . ' (' . md5($split[COL_NAME]) . ')' . "\n";
-				$newDir['path'] = $root = $split[COL_NAME];
-			}
-			else {
-				//echo 'New Dir:  ' . $split[COL_PARENT] . $args['ds'] . $split[COL_NAME] . "\n";
-				$newDir['path'] = $split[COL_PARENT] . $args['ds'] . $split[COL_NAME];
+				$root = $newDir['path'];
 			}
 			
 			// Add this directory to the directory list, if is not being skipped.
@@ -292,10 +294,14 @@ while (count($dirStack) > 0) {
 		));
 	}
 	
+	// Remove the path so it is not saved.
+	$path = $pop['path'];
+	unset($pop['path']);
+	
 	// Save the directory data.
-	if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], md5($pop['path'])), json_encode($pop)) === FALSE) {
-		echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], md5($pop['path'])) . "\n";
-		array_push($errors, array('writefail', $pop['path'], md5($pop['path'])));
+	if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], md5($path)), json_encode($pop)) === FALSE) {
+		echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], md5($path)) . "\n";
+		array_push($errors, array('writefail', $path, md5($path)));
 	}
 }
 
