@@ -128,12 +128,55 @@ $.extend(Viewer.prototype, {
 		this._lastSection = this._options.section;
 		
 		if (this._lastHash != this._options.hash) {
-			$.ajax({
+			if (this._xhr) this._xhr.abort();
+			this._xhr = $.ajax({
 				cache: false,
 				url: document.reportsBaseURL + this._options.report + '/' + this._options.hash,
 				type: 'GET',
 				dataType: 'json',
+				error: function(xhr, status, ex) {
+					self._lastHash = self._options.hash;
+					self._data = null;
+					
+					switch (status) {
+						case 'parsererror':
+							$('#Error').text('Error: Data for this directory is invalid or could not be parsed.');
+							break;
+						case 'timeout':
+							$('#Error').text('Error: Download took to long and timed out. Reload to try again.');
+							break;
+						case 'error':
+							switch (xhr.status) {
+								case 404:
+									$('#Error').text('Error: Not found. The data for this directory may be missing.');
+									break;
+								case 401:
+									$('#Error').text('Error: A username and password is required. Reload to try again.');
+									break;
+								default:
+									$('#Error').text('Error: An unknown error occurred (HTTP Status ' + xhr.status + '). Reload to try again.');
+							}
+							break;
+						default:
+							$('#Error').text('Error: An unknown error occurred. Reload to try again.');
+					}
+					
+					if (self._options.directories) {
+						self._tree.tree('deselect');
+					}
+					
+					$('#RightColumn').hide();
+					$('#Error').show();
+				},
+				complete: function() {
+					if ($.isFunction(completeFn)) {
+						completeFn();
+					}
+				},
 				success: function(data, status, xhr) {
+					$('#Error').hide().text('');
+					$('#RightColumn').show();
+					
 					self._lastHash = self._options.hash;
 					self._data = data;
 					self._display();
@@ -150,10 +193,6 @@ $.extend(Viewer.prototype, {
 					
 					// Scroll to the top of the report.
 					$('#Report').get(0).scrollTop = 0;
-					
-					if ($.isFunction(completeFn)) {
-						completeFn();
-					}
 				}
 			});
 		}
