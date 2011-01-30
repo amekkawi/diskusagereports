@@ -42,6 +42,11 @@ $.widget("ui.tree", {
 		}
 	},
 	
+	deselect: function() {
+		$('li.selected', this.element).removeClass('selected');
+		this._lastHash = null;
+	},
+	
 	open: function(hash, li) {
 		if (!li) li = $('#' + this.widgetBaseClass + '_' + hash);
 		
