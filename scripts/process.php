@@ -1,6 +1,7 @@
 <?php
 
-// export TZ=UTC; find "DIRECTORYNAME" -printf '%y %TY-%Tm-%Td %TT %s %d %h %f\n' > "OUTFILENAME"; unset TZ
+// export TZ=UTC; find "DIRECTORYNAME" -type d -or -type f -printf '%y %TY-%Tm-%Td %TT %s %d %h %f\n' > "OUTFILENAME"; unset TZ
+// cat diskusage-gs.txt | sed -En -e 's/^d/&/p' -e 's/^f.+\.(jpg)$/&/p' | php scripts/process.php ../diskusage-data/test2
 
 if (!isset($_SERVER['argc'])) {
 	echo "Must be run from the command line.\n"; exit(1);
