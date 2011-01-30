@@ -1,9 +1,9 @@
  * Add Top 100 Files to the first X levels of the report.
  * Scroll to tree nodes when they are not in view.
  * Add byte/num sorting to the tree.
- * Handle errors when retreiving files after the initial load.
- * Create php version of 'find'.
  
+ X Create php version of 'find'.
+ X Handle errors when retreiving files after the initial load.
  X Use NULL as a column delim in the files to process.
  X Verify report data.
  X Add proper support for command line arguments in process.php.
