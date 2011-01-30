@@ -65,7 +65,7 @@ a {
 	padding: 8px;
 	padding-left: 48px;
 	margin-left: 10px;
-	margin-right: 75px;
+	/*margin-right: 75px;*/
 	color: #FFF;
 	background-image: url(../images/title-icon.png);
 	background-repeat: no-repeat;
@@ -78,10 +78,10 @@ a {
 #Title b {
 	color: #dfcd90;
 	font-weight: normal;
-	white-space: nowrap;
+	/*white-space: nowrap;*/
 }
 
-#Created {
+#Title #Created {
     color: #CCCCCC;
     font-size: 13px;
     position: absolute;
@@ -248,4 +248,14 @@ a {
 	background-image: url(../images/info.png);
 	background-repeat: no-repeat;
 	background-position: 10px center;
+}
+
+#Footer {
+	font-size: 12px;
+	padding-top: 4px;
+	color: #999;
+	text-align: center;
+}
+#Footer a {
+	color: #999;
 }

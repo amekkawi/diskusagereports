@@ -110,7 +110,8 @@
 					if (settings.name) {
 						$('#Title > span').append(' for: ').append($('<b>').text(settings.name));
 					}
-					$('#Created').html('Created:<br/>' + $.implode(settings.created.split(' ').slice(0,3), ' ').htmlencode()).show();
+					//$('#Created').html('Created:<br/>' + $.implode(settings.created.split(' ').slice(0,3), ' ').htmlencode()).show();
+					$('#Created').text(' on ' + settings.created);
 					
 					var finalSetup = function(directories){
 						$('#Loading').text('Displaying Report...');
@@ -168,9 +169,11 @@
 		}
 		
 		document.resizeWindow = function() {
+			var footerHeight = $('#Footer').outerHeight();
+			
 			// Set the correct height for the container.
 			var containerHeightDiff = $('#Container').outerHeight(true) - $('#Container').height();
-			$('#Container').height($('body').height() - containerHeightDiff - $('#Container').offset().top - 10);
+			$('#Container').height($('body').height() - containerHeightDiff - $('#Container').offset().top - footerHeight - 5);
 			
 			var reportHeightDiff = $('#Report').outerHeight(true) - $('#Report').height();
 			$('#Report').height($('#RightColumn').height() - reportHeightDiff - $('#Report').position().top);
@@ -187,7 +190,7 @@
 </head>
 <body>
 	
-<div id="Title">Disk Usage Report <span></span><div id="Created" style="display: none;"></div>
+<div id="Title">Disk Usage Report <span></span><div id="CreatedX" style="display: none;"></div>
 </div>
 
 <div id="Loading"></div>
@@ -325,6 +328,8 @@
 	</div> <!-- Right Column -->
 
 </div> <!-- Container -->
+
+<div id="Footer">Report Generated <span id="Created"></span> using <a href="http://diskusagereport.sourceforge.net/" target="_blank">Disk Usage Reports</a></div>
 
 </body>
 </html>
