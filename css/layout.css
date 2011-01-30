@@ -74,11 +74,11 @@ a {
 #Title {
 	font-size: 25px;
 	padding: 8px;
-	padding-left: 48px;
+	padding-left: 42px;
 	margin-left: 10px;
 	/*margin-right: 75px;*/
 	color: #FFF;
-	background-image: url(../images/title-icon.png);
+	background-image: url(../images/title-icon2.png);
 	background-repeat: no-repeat;
 	background-position: 0 6px;
 	position: relative;
