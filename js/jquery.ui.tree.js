@@ -87,7 +87,7 @@ $.widget("ui.tree", {
 		this._data = this.options.data;
 		
 		if ($.isUndefined(this._data[this.options.root])) {
-			throw "root was not found in the provided.";
+			throw "root was not found in the provided directory data.";
 		}
 		
 		$elem.click(function(eo) {
