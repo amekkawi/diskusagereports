@@ -1,5 +1,8 @@
  * Scroll to tree nodes when they are not in view.
  * Add byte/num sorting to the tree.
+ * Allow directory tree to be resized.
+ * Allow for errors to be viewed in report.
+ * Allow for other languages
  
  X Add Top 100 Files to the first X levels of the report.
  X Create php version of 'find'.
