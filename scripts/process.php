@@ -151,6 +151,7 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 	// Trim line separator and split line.
 	$split = explode($args['delim'], rtrim($line, "\n\r"), 7);
 	
+	// Validate the line.
 	if (count($split) != 7) {
 		echo "Invalid Line (".count($split).")\n";
 		array_push($errors, "Invalid column count (".count($split)."):" . $split);
@@ -177,6 +178,7 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 		array_push($errors, array('invalidline', COL_NAME, $split));
 	}
 	else {
+		// Check if we have left the current directory in the stack.
 		while (count($dirStack) > 0 && $dirStack[count($dirStack)-1]['path'] != $split[COL_PARENT]) {
 			$pop = array_pop($dirStack);
 			//echo 'Exit Dir: ' . $pop['path'] . "\n";
@@ -189,6 +191,7 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 				));
 			}
 			
+			// Save the directory data.
 			if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], md5($pop['path'])), json_encode($pop)) === FALSE) {
 				echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], md5($pop['path'])) . "\n";
 				array_push($errors, array('writefail', $pop['path'], md5($pop['path'])));
@@ -218,13 +221,19 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 				'files' => array()
 			);
 			
+			// Set totals arrays if allowed at this depth.
 			if (count($dirStack) < $args['totalsdepth']) {
 				$newDir['sizes'] = array();
 				$newDir['modified'] = array();
 				$newDir['types'] = array();
+			}
+			
+			// Set top 100 array if allowed at this depth.
+			if (count($dirStack) < $args['total100depth']) {
 				$newDir['top100'] = array();
 			}
 			
+			// Set the full path of the directory.
 			if ($split[COL_DEPTH] == '0') {
 				//echo 'Root Dir: ' . $split[COL_NAME] . ' (' . md5($split[COL_NAME]) . ')' . "\n";
 				$newDir['path'] = $split[COL_NAME];
@@ -234,6 +243,7 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 				$newDir['path'] = $split[COL_PARENT] . $args['ds'] . $split[COL_NAME];
 			}
 			
+			// Add this directory to the directory list, if is not being skipped.
 			if (!$args['notree']) {
 				// Add the directory to the hash lookup.
 				$dirLookup[md5($newDir['path'])] = array(
@@ -244,6 +254,7 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 				);
 			}
 			
+			// Add this directory to its parent (if one exists).
 			if (count($dirStack) > 0) {
 				array_push($dirStack[count($dirStack)-1]['subdirs'], array(
 					'name' => $split[COL_NAME],
@@ -267,6 +278,7 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 	}
 }
 
+// Catch any remaining directories in the stack.
 while (count($dirStack) > 0) {
 	$pop = array_pop($dirStack);
 	//echo 'Exit Dir: ' . $pop['path'] . "\n";
@@ -279,17 +291,20 @@ while (count($dirStack) > 0) {
 		));
 	}
 	
+	// Save the directory data.
 	if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], md5($pop['path'])), json_encode($pop)) === FALSE) {
 		echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], md5($pop['path'])) . "\n";
 		array_push($errors, array('writefail', $pop['path'], md5($pop['path'])));
 	}
 }
 
+// Save the directory list.
 if (!$args['notree'] && file_put_contents(ConcatPath($args['ds'], $args['reportdir'], 'directories'), json_encode($dirLookup)) === FALSE) {
 	echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], 'directories') . "\n";
 	array_push($errors, array('writefail', 'directories', 'directories'));
 }
 
+// Save the settings file.
 if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], 'settings'), json_encode(array(
 		'version' => '1.0',
 		'name' => $args['name'],
