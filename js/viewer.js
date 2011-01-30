@@ -162,7 +162,7 @@ $.extend(Viewer.prototype, {
 					}
 					
 					if (self._options.directories) {
-						self._tree.tree('deselect');
+						self._tree.tree('select', self._options.hash);
 					}
 					
 					$('#RightColumn').hide();
