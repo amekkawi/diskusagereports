@@ -155,7 +155,6 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 	
 	// Validate the line.
 	if (count($split) != 7) {
-		echo "Invalid Line (".count($split).")\n";
 		array_push($errors, "Invalid column count (".count($split)."):" . $split);
 	}
 	elseif (!preg_match('/^[a-z]$/i', $split[COL_TYPE])) {
