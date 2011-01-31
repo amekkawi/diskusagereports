@@ -1,7 +1,9 @@
 <?php
 
+$STDERR = fopen('php://stderr', 'w+');
+
 if (!isset($_SERVER['argc'])) {
-	echo "Must be run from the command line.\n"; exit(1);
+	fwrite($STDERR, "Must be run from the command line.\n"); exit(1);
 }
 
 $args = array(
@@ -23,7 +25,7 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 		case '-?':
 		case '-h':
 		case '--help':
-			echo $syntax;
+			fwrite($STDERR, $syntax);
 			// TODO: Output help.
 			break;
 		case '-i':
@@ -45,35 +47,38 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 	}
 	
 	if (is_null($shifted)) {
-		echo "Missing value after argument $cliarg\n".$syntax; exit(1);
+		fwrite($STDERR, "Missing value after argument $cliarg\n".$syntax);
+		exit(1);
 	}
 }
 
 if (is_null($args['directory'])) {
-	echo "directory argument is missing\n".$syntax; exit(1);
+	fwrite($STDERR, "directory argument is missing\n".$syntax); exit(1);
 }
 
 if (!is_dir($args['directory'])) {
-	echo "The <directory> does not exist or is not a directory.\n"; exit(1);
+	fwrite($STDERR, "The <directory> does not exist or is not a directory.\n"); exit(1);
 }
 
 if (!(function_exists("date_default_timezone_set") ? @(date_default_timezone_set('UTC')) : @(putenv("TZ=UTC")))) {
-	echo "Timezone could not be set to UTC."; exit(1);
+	echo fwrite($STDERR, "Timezone could not be set to UTC."); exit(1);
 }
 
 if (($stat = stat($args['directory'])) === FALSE) {
-	echo "Could not determine stats of root directory.\n"; exit(1);
+	fwrite($STDERR, "Could not determine stats of root directory.\n"); exit(1);
 }
 else {
 	echo 'd' . $args['delim'] . date('Y-m-d', intval($stat['mtime'])) . $args['delim'] . date('H:i:s', intval($stat['mtime'])) . $args['delim'] . $stat['size'] . $args['delim'] . '0' . $args['delim'] . dirname($args['directory']) . $args['delim'] . basename($args['directory']) . "\n";
 	ProcessFolder($args['directory'], 1);	
 }
 
+fclose($STDERR);
+
 function ProcessFolder($directory, $depth) {
-	global $args;
+	global $args, $STDERR;
 	
 	if (($dirh = opendir($directory)) === FALSE) {
-		echo "Failed to open directory for listing files: ".$directory."\n";
+		fwrite($STDERR, "Failed to open directory for listing files: ".$directory."\n");
 	}
 	else {
 		while (($file = readdir($dirh)) !== FALSE) {
@@ -87,8 +92,7 @@ function ProcessFolder($directory, $depth) {
 		        	}
 		        }
 		        else {
-		        	echo $filepath."\n";
-		        	exit(1);
+		        	fwrite($STDERR, 'Failed to stat: ' . $filepath."\n");
 		        }
 	        }
 	    }
