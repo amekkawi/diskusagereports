@@ -4,6 +4,8 @@
 // cat diskusage-gs.txt | sed -En -e 's/^d/&/p' -e 's/^f.+\.(jpg)$/&/p' | php scripts/process.php ../diskusage-data/test2
 // php scripts/find.php `pwd` | sed -E -e 's/^.*\.svn.*$//' -e 's/^.*diskusage-[a-z0-9]+\.txt.*$//' -e 's/^.*\.settings.*$//' -e 's/^.*\$dev.*$//' -e 's/^.*\.DS_Store.*$//' -e 's/^.*\.tmp_.*$//' -e '/^$/d' | php scripts/process.php -n "Disk Usage Reports Code" ../diskusage-data/test2
 
+define('LARGE_INT', defined('PHP_INT_MAX') && strlen(PHP_INT_MAX.'') > 12);
+
 if (!isset($_SERVER['argc'])) {
 	echo "Must be run from the command line.\n"; exit(1);
 }
@@ -12,7 +14,7 @@ $args = array(
 	'name' => null,
 	'filelist' => null,
 	'reportdir' => null,
-	'timezone' => 'America/New_York',
+	'timezone' => @date_default_timezone_get(), //'America/New_York',
 	'totalsdepth' => 6,
 	'top100depth' => 3,
 	'maxlinelength' => 1024,
@@ -24,7 +26,7 @@ $args = array(
 // syntax: php process.php [-tz '<timezone>'] [-d '<delim>'] [-t <totalsdepth>] [-nt (no tree)] [-ds '<directoryseparator>'] [-td <top100depth>] [-n <reportname>] <reportdir> [<filelist>]
 
 $cliargs = array_slice($_SERVER['argv'], 1);
-$syntax = "Syntax: php process.php [options] <reportdir> [<filelist>]\nUse -? for help.\n";
+$syntax = "Syntax: php process.php [options] <reportdir> [<filelist>]\nSee http://diskusagereport.sourceforge.net/docs/ for help.\n";
 
 while (!is_null($cliarg = array_shift($cliargs))) {
 	$shifted = true;
@@ -88,6 +90,7 @@ if (is_null($args['filelist'])) {
 	$args['filelist'] = 'php://stdin';
 }
 
+define('LINE_REGEX', '/^[df]'.preg_quote($args['delim']).'[0-9]{4}-[0-9]{2}-[0-9]{2}'.preg_quote($args['delim']).'[0-9]{2}:[0-9]{2}:[0-9]{2}'.preg_quote($args['delim']).'[0-9]+'.preg_quote($args['delim']).'[0-9]+'.preg_quote($args['delim']).'/');
 define('COL_TYPE', 0);
 define('COL_DATE', 1);
 define('COL_TIME', 2);
@@ -146,41 +149,39 @@ if (($fh = fopen($args['filelist'], 'r')) === FALSE) {
 $dirStack = array();
 $dirLookup = array();
 $errors = array();
+$relativePath = '';
 $root = null;
 
 // Read in all lines.
-while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
+while (($line = fgets($fh, $args['maxlinelength']+1)) !== FALSE) {
 	
-	if (trim($line) == '') continue;
+	$line = trim($line);
 	
-	// Trim line separator and split line.
-	$split = explode($args['delim'], rtrim($line, "\n\r"), 7);
+	// Skip blank lines
+	if ($line == '') { }
 	
-	// Validate the line.
-	if (count($split) != 7) {
+	elseif (strlen($line) > $args['maxlinelength']) {
+		array_push($errors, array('invalidline', -1, $line));
+	}
+	
+	// Validate the line up to the parent dir column.
+	elseif (!preg_match(LINE_REGEX, $line)) {
+		array_push($errors, array('invalidline', -2, $line));
+	}
+	
+	// Split the line and validate its length;
+	elseif (count($split = explode($args['delim'], rtrim($line, "\n\r"), 8)) != 7) {
 		array_push($errors, "Invalid column count (".count($split)."):" . $split);
 	}
-	elseif (!preg_match('/^[a-z]$/i', $split[COL_TYPE])) {
-		array_push($errors, array('invalidline', COL_TYPE, $split));
-	}
-	elseif (!preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/', $split[COL_DATE])) {
-		array_push($errors, array('invalidline', COL_DATE, $split));
-	}
-	elseif (!preg_match('/^[0-9]{2}:[0-9]{2}:[0-9]{2}$/', $split[COL_TIME])) {
-		array_push($errors, array('invalidline', COL_TIME, $split));
-	}
-	elseif (!preg_match('/^[0-9]+$/', $split[COL_SIZE])) {
-		array_push($errors, array('invalidline', COL_SIZE, $split));
-	}
-	elseif (!preg_match('/^[0-9]+$/', $split[COL_DEPTH])) {
-		array_push($errors, array('invalidline', COL_DEPTH, $split));
-	}
+	
+	// Make sure the parent and file name are at least one character.
 	elseif (strlen($split[COL_PARENT]) == 0) {
 		array_push($errors, array('invalidline', COL_PARENT, $split));
 	}
 	elseif (strlen($split[COL_NAME]) == 0) {
 		array_push($errors, array('invalidline', COL_NAME, $split));
 	}
+	
 	else {
 		// Check if we have left the current directory in the stack.
 		while (count($dirStack) > 1 && $dirStack[count($dirStack)-1]['path'] != $split[COL_PARENT]) {
@@ -222,10 +223,10 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 			$newDir = array(
 				'name' => $split[COL_NAME],
 				'path' => ConcatPath($args['ds'], $split[COL_PARENT], $split[COL_NAME]),
-				'bytes' => '0',
-				'totalbytes' => '0',
-				'num' => '0',
-				'totalnum' => '0',
+				'bytes' => 0,
+				'totalbytes' => 0,
+				'num' => 0,
+				'totalnum' => 0,
 				'subdirs' => array(),
 				'files' => array()
 			);
@@ -269,7 +270,16 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 					'hash' => md5($newDir['path'])
 				));
 			}
+			
+			// Add the directory to the stack.
 			array_push($dirStack, $newDir);
+			
+			// Create a relative path to be used by 'top 100'.
+			$relativePath = '';
+			for ($i = 0; $i < count($dirStack); $i++) {
+				$relativePath = ConcatPath($args['ds'], $relativePath, $dirStack[$i]['name']);
+			}
+			$relativePath = substr($relativePath, 1);
 		}
 		else {
 			//echo 'File:     ' . $split[COL_PARENT] . $args['ds'] . $split[COL_NAME] . "\n";
@@ -348,30 +358,24 @@ function GetExtension($name) {
 }
 
 function AddFileData($data) {
-	global $args, $dirStack, $sizeGroups, $modifiedGroups;
-	
-	$relativePath = '';
-	for ($i = 0; $i < count($dirStack); $i++) {
-		$relativePath = ConcatPath($args['ds'], $relativePath, $dirStack[$i]['name']);
-	}
-	$relativePath = substr($relativePath, 1);
+	global $args, $dirStack, $sizeGroups, $modifiedGroups, $relativePath;
 	
 	for ($i = 0; $i < count($dirStack); $i++) {
 		
-		$dirStack[$i]['totalbytes'] = bcadd($dirStack[$i]['totalbytes'], $data[COL_SIZE]);
-		$dirStack[$i]['totalnum'] = bcadd($dirStack[$i]['totalnum'], '1');
+		$dirStack[$i]['totalbytes'] = BigAdd($dirStack[$i]['totalbytes'], $data[COL_SIZE]);
+		$dirStack[$i]['totalnum']++;
 		
 		if ($i == count($dirStack) - 1) {
-			$dirStack[$i]['bytes'] = bcadd($dirStack[$i]['bytes'], $data[COL_SIZE]);
-			$dirStack[$i]['num'] = bcadd($dirStack[$i]['num'], '1');
+			$dirStack[$i]['bytes'] = BigAdd($dirStack[$i]['bytes'], $data[COL_SIZE]);
+			$dirStack[$i]['num']++;
 		}
 		
 		if ($i < $args['totalsdepth']) {
 			for ($g = 0; $g < count($sizeGroups); $g++) {
-				if (bccomp($sizeGroups[$g]['size'].'', $data[COL_SIZE], 0) <= 0) {
+				if (BigComp($sizeGroups[$g]['size'], $data[COL_SIZE]) <= 0) {
 					$dirStack[$i]['sizes'][$g] = array_key_exists($g, $dirStack[$i]['sizes'])
-						? array(bcadd($dirStack[$i]['sizes'][$g][0], $data[COL_SIZE]), bcadd($dirStack[$i]['sizes'][$g][1], '1'))
-						: array($data[COL_SIZE], '1');
+						? array(BigAdd($dirStack[$i]['sizes'][$g][0], $data[COL_SIZE]), $dirStack[$i]['sizes'][$g][1] + 1)
+						: array($data[COL_SIZE], 1);
 					break;
 				}
 			}
@@ -379,16 +383,16 @@ function AddFileData($data) {
 			for ($g = 0; $g < count($modifiedGroups); $g++) {
 				if (strcmp($modifiedGroups[$g]['date'], $data[COL_DATE]) >= 0) {
 					$dirStack[$i]['modified'][$g] = array_key_exists($g, $dirStack[$i]['modified'])
-						? array(bcadd($dirStack[$i]['modified'][$g][0], $data[COL_SIZE]), bcadd($dirStack[$i]['modified'][$g][1], '1'))
-						: array($data[COL_SIZE], '1');
+						? array(BigAdd($dirStack[$i]['modified'][$g][0], $data[COL_SIZE]), $dirStack[$i]['modified'][$g][1] + 1)
+						: array($data[COL_SIZE], 1);
 					break;
 				}
 			}
 			
 			$ext = GetExtension($data[COL_NAME]);
 			$dirStack[$i]['types'][$ext] = array_key_exists($ext, $dirStack[$i]['types'])
-					? array(bcadd($dirStack[$i]['types'][$ext][0], $data[COL_SIZE]), bcadd($dirStack[$i]['types'][$ext][1], '1'))
-					: array($data[COL_SIZE], '1');
+					? array(BigAdd($dirStack[$i]['types'][$ext][0], $data[COL_SIZE]), $dirStack[$i]['types'][$ext][1] + 1)
+					: array($data[COL_SIZE], 1);
 		}
 		
 		if ($i < $args['top100depth']) {
@@ -409,6 +413,24 @@ function AddFileData($data) {
 				}
 			}
 		}
+	}
+}
+
+function BigAdd($a, $b) {
+	if (LARGE_INT) {
+		return intval($a) + intval($b);
+	}
+	else {
+		return bcadd($a+'', $b+'');
+	}
+}
+
+function BigComp($a, $b) {
+	if (LARGE_INT) {
+		return intval($a) - intval($b);
+	}
+	else {
+		return bccomp($a+'', $b+'');
 	}
 }
 
