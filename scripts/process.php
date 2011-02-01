@@ -2,6 +2,7 @@
 
 // export TZ=UTC; find "DIRECTORYNAME" -type d -or -type f -printf '%y %TY-%Tm-%Td %TT %s %d %h %f\n' > "OUTFILENAME"; unset TZ
 // cat diskusage-gs.txt | sed -En -e 's/^d/&/p' -e 's/^f.+\.(jpg)$/&/p' | php scripts/process.php ../diskusage-data/test2
+// php scripts/find.php `pwd` | sed -E -e 's/^.*\.svn.*$//' -e 's/^.*diskusage-[a-z0-9]+\.txt.*$//' -e 's/^.*\.settings.*$//' -e 's/^.*\$dev.*$//' -e 's/^.*\.DS_Store.*$//' -e 's/^.*\.tmp_.*$//' -e '/^$/d' | php scripts/process.php -n "Disk Usage Reports Code" ../diskusage-data/test2
 
 if (!isset($_SERVER['argc'])) {
 	echo "Must be run from the command line.\n"; exit(1);
@@ -150,6 +151,8 @@ $root = null;
 // Read in all lines.
 while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 	
+	if (trim($line) == '') continue;
+	
 	// Trim line separator and split line.
 	$split = explode($args['delim'], rtrim($line, "\n\r"), 7);
 	
@@ -218,6 +221,7 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 		if ($split[COL_TYPE] == 'd') {
 			$newDir = array(
 				'name' => $split[COL_NAME],
+				'path' => ConcatPath($args['ds'], $split[COL_PARENT], $split[COL_NAME]),
 				'bytes' => '0',
 				'totalbytes' => '0',
 				'num' => '0',
@@ -225,6 +229,8 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 				'subdirs' => array(),
 				'files' => array()
 			);
+			
+			//echo 'Enter Dir: ' . $newDir['path'] . "\n";
 			
 			// Set totals arrays if allowed at this depth.
 			if (count($dirStack) < $args['totalsdepth']) {
@@ -237,9 +243,6 @@ while (($line = fgets($fh, $args['maxlinelength'])) !== FALSE) {
 			if (count($dirStack) < $args['top100depth']) {
 				$newDir['top100'] = array();
 			}
-			
-			// Set the full path of the directory.
-			$newDir['path'] = $split[COL_PARENT] . $args['ds'] . $split[COL_NAME];
 			
 			// Make note of the root directory's path.
 			if ($split[COL_DEPTH] == '0') {
@@ -349,7 +352,7 @@ function AddFileData($data) {
 	
 	$relativePath = '';
 	for ($i = 0; $i < count($dirStack); $i++) {
-		$relativePath .= $args['ds'] . $dirStack[$i]['name'];
+		$relativePath = ConcatPath($args['ds'], $relativePath, $dirStack[$i]['name']);
 	}
 	$relativePath = substr($relativePath, 1);
 	
