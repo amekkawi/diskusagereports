@@ -15,7 +15,7 @@ $args = array(
 );
 
 $cliargs = array_slice($_SERVER['argv'], 1);
-$syntax = "Syntax: php find.php [options] <directory>\nUse -? for help.\n";
+$syntax = "Syntax: php find.php [options] <directory>\nSee http://diskusagereport.sourceforge.net/docs/index.html for help.\n";
 
 while (!is_null($cliarg = array_shift($cliargs))) {
 	$shifted = true;
