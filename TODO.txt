@@ -3,7 +3,10 @@
  * Allow directory tree to be resized.
  * Allow for errors to be viewed in report.
  * Allow for other languages
- 
+ * Sorting for 'Range' in file sizes tab seems to be wrong.
+ * Figure out a way to make sure 'File Types' list doesn't get too long.
+ * Allow for directory list to be skipped if it takes too long to download.
+  
  X Add Top 100 Files to the first X levels of the report.
  X Create php version of 'find'.
  X Handle errors when retreiving files after the initial load.
