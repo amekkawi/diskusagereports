@@ -43,6 +43,30 @@ a {
 	overflow: hidden;
 }
 
+#ErrorCount {
+	position: absolute;
+	z-index: 100;
+	top: -8px;
+	padding: 6px 12px;
+	right: 20px;
+	background-color: #C00;
+	color: #FFF;
+	font-weight: bold;
+	
+	cursor: pointer;
+	
+	-moz-box-shadow: 2px 2px 2px rgba(0,0,0,0.2);
+	-webkit-box-shadow: 2px 2px 2px rgba(0,0,0,0.2);
+	box-shadow: 2px 2px 2px rgba(0,0,0,0.2);
+	
+	-webkit-border-radius: 8px;
+	-webkit-border-radius: 8px;
+	-moz-border-radius: 8px;
+	-moz-border-radius: 8px;
+	border-radius: 8px;
+	border-radius: 8px;
+}
+
 .styledtable {
 	border: 1px solid #b5aa88;
 	border-spacing: 1px;
@@ -102,6 +126,7 @@ a {
 }
 
 #Container {
+	position: relative;
 	background-color: #3980ac;
 	background-image: url(../images/contents-background.png);
 	background-repeat: repeat-y;

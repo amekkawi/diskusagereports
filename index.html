@@ -111,7 +111,11 @@
 					if (settings.name) {
 						$('#Title > span').append(' for: ').append($('<b>').text(settings.name));
 					}
-					//$('#Created').html('Created:<br/>' + $.implode(settings.created.split(' ').slice(0,3), ' ').htmlencode()).show();
+					
+					if (settings.errors.length > 0) {
+						$('#ErrorCount').text('Errors: ' + settings.errors.length).disableTextSelection().show();
+					}
+					
 					$('#Created').text(' on ' + settings.created);
 					
 					var finalSetup = function(directories){
@@ -148,7 +152,12 @@
 								dataType: 'json',
 								error: ajaxErrorHandler,
 								success: function(directories, status, xhr){
-									finalSetup(directories)
+									if ($.isUndefined(directories[settings.root])) {
+										$('#Loading').append($('<div>').text('Error: The root directory could not be found in the directory list.'));
+									}
+									else {
+										finalSetup(directories)
+									}
 								}
 							});
 							
@@ -194,6 +203,8 @@
 <body>
 	
 <div id="Title">Disk Usage Report <span></span></div>
+
+<div style="position: relative;"><div id="ErrorCount" style="display: none;"></div></div>
 
 <div id="Container">
 	<div id="Loading"></div>
