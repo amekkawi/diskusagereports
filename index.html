@@ -7,7 +7,7 @@
 <script type="text/javascript">
 	// Path to the directory that contains the reports.
 	// Example: document.reportsBaseURL = '/path/to/me/';
-	document.reportsBaseURL = '/php/diskusage-data/';
+	document.reportsBaseURL = 'data/';
 </script>
 
 <link rel="shortcut icon" href="images/favicon.png" type="image/png" /> 
@@ -37,13 +37,6 @@
 
 <!-- Disk Usage Reporting Scripts -->
 <script type="text/javascript">
-	
-	/*$(fun0ction() {
-		var div = $('<div>').css({ width: '100px', position: 'absolute', top: '100px', left: '100px', 'z-index': '100', 'background-color': '#FFF' }).appendTo($('body'));
-		for (var i = 0; i < document.barColors.length; i++) {
-			$('<div>').css({ height: '2px', 'background-color': '#' + document.barColors[i] }).appendTo(div);
-		}
-	});*/
 	
 	// Override the JSON methods in RSH.
 	window.dhtmlHistory.create({
