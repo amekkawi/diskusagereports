@@ -612,7 +612,7 @@ $.extend(Viewer.prototype, {
 				var html = '';
 				
 				html += '<td>' + data[key].name.htmlencode() + '</td>';
-				html += '<td align="center">' + ext.htmlencode() + '</td>';
+				html += '<td align="center">' + ext + '</td>';
 				html += '<td align="right">' + FormatBytes(data[key].size) + '</td>';
 				html += '<td>' + data[key].date + ' ' + data[key].time + '</td>';
 				html += '<td><a href="#' + this._createLocation({ hash: data[key].hash, section: 'files' }).htmlencode() + '">' + data[key].path.htmlencode() + '</a></td>';
