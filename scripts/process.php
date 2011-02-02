@@ -5,6 +5,7 @@
 // php scripts/find.php `pwd` | sed -E -e 's/^.*\.svn.*$//' -e 's/^.*diskusage-[a-z0-9]+\.txt.*$//' -e 's/^.*\.settings.*$//' -e 's/^.*\$dev.*$//' -e 's/^.*\.DS_Store.*$//' -e 's/^.*\.tmp_.*$//' -e '/^$/d' | php scripts/process.php -n "Disk Usage Reports Code" ../diskusage-data/test2
 
 define('LARGE_INT', defined('PHP_INT_MAX') && strlen(PHP_INT_MAX.'') > 12);
+define('DEBUG', TRUE);
 
 if(!function_exists('json_encode') ) {
 	require_once('inc/json_encode.php');
@@ -150,16 +151,25 @@ if (($fh = fopen($args['filelist'], 'r')) === FALSE) {
 	echo "Failed to open <fileslist> for reading.\n"; exit(1);
 }
 
+$fstat = fstat($fh);
+
 $dirStack = array();
 $dirLookup = array();
 $errors = array();
 $relativePath = '';
 $root = null;
+$fread = 0;
+$fpercent = 0;
 
 // Read in all lines.
 while (($line = fgets($fh, $args['maxlinelength']+1)) !== FALSE) {
-	
+	$fread += strlen($line);
 	$line = trim($line);
+	
+	if (DEBUG && $fpercent != floor($fread / $fstat['size'] * 100)) {
+		$fpercent = floor($fread / $fstat['size'] * 100);
+		echo $fpercent . "% - " . memory_get_usage() .  "\n";
+	}
 	
 	// Skip blank lines
 	if ($line == '') { }
@@ -428,7 +438,7 @@ function BigAdd($a, $b) {
 		return bcadd($a.'', $b.'');
 	}
 	elseif (function_exists('gmp_add')) {
-		return gmp_add($a.'', $b.'');
+		return gmp_strval(gmp_add($a.'', $b.''));
 	}
 	else {
 		trigger_error('Neither bcadd or gmp_add are avalable and the system does not seem to be 64-bit.', E_USER_ERRO);
@@ -440,10 +450,10 @@ function BigComp($a, $b) {
 		return intval($a) - intval($b);
 	}
 	elseif (function_exists('bccomp')) {
-		return bccomp($a+'', $b+'');
+		return bccomp($a.'', $b.'');
 	}
 	elseif (function_exists('gmp_cmp')) {
-		return gmp_cmp($a+'', $b+'');
+		return gmp_cmp($a.'', $b.'');
 	}
 	else {
 		trigger_error('Neither bcadd or gmp_add are avalable and the system does not seem to be 64-bit.', E_USER_ERRO);
