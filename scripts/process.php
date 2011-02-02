@@ -4,7 +4,7 @@
 // cat diskusage-gs.txt | sed -En -e 's/^d/&/p' -e 's/^f.+\.(jpg)$/&/p' | php scripts/process.php ../diskusage-data/test2
 // php scripts/find.php `pwd` | sed -E -e 's/^.*\.svn.*$//' -e 's/^.*diskusage-[a-z0-9]+\.txt.*$//' -e 's/^.*\.settings.*$//' -e 's/^.*\$dev.*$//' -e 's/^.*\.DS_Store.*$//' -e 's/^.*\.tmp_.*$//' -e '/^$/d' | php scripts/process.php -n "Disk Usage Reports Code" ../diskusage-data/test2
 
-define('LARGE_INT', defined('PHP_INT_MAX') && strlen(PHP_INT_MAX.'') > 12);
+define('LARGE_INT', defined('PHP_INT_MAX') && strlen(PHP_INT_MAX.'') > 14);
 define('DEBUG', TRUE);
 
 if(!function_exists('json_encode') ) {
@@ -166,9 +166,9 @@ while (($line = fgets($fh, $args['maxlinelength']+1)) !== FALSE) {
 	$fread += strlen($line);
 	$line = trim($line);
 	
-	if (DEBUG && $fpercent != floor($fread / $fstat['size'] * 100)) {
+	if (DEBUG && $fstat['size'] > 0 && $fpercent != floor($fread / $fstat['size'] * 100)) {
 		$fpercent = floor($fread / $fstat['size'] * 100);
-		echo $fpercent . "% - " . memory_get_usage() .  "\n";
+		echo $fpercent . "% - " . number_format(memory_get_usage()) .  "\n";
 	}
 	
 	// Skip blank lines
@@ -302,7 +302,7 @@ while (($line = fgets($fh, $args['maxlinelength']+1)) !== FALSE) {
 				'name' => $split[COL_NAME],
 				'date' => $split[COL_DATE],
 				'time' => $split[COL_TIME],
-				'size' => $split[COL_SIZE]
+				'size' => BigVal($split[COL_SIZE])
 			));
 		}
 	}
@@ -389,7 +389,7 @@ function AddFileData($data) {
 				if (BigComp($sizeGroups[$g]['size'], $data[COL_SIZE]) <= 0) {
 					$dirStack[$i]['sizes'][$g] = array_key_exists($g, $dirStack[$i]['sizes'])
 						? array(BigAdd($dirStack[$i]['sizes'][$g][0], $data[COL_SIZE]), $dirStack[$i]['sizes'][$g][1] + 1)
-						: array($data[COL_SIZE], 1);
+						: array(BigVal($data[COL_SIZE]), 1);
 					break;
 				}
 			}
@@ -398,7 +398,7 @@ function AddFileData($data) {
 				if (strcmp($modifiedGroups[$g]['date'], $data[COL_DATE]) >= 0) {
 					$dirStack[$i]['modified'][$g] = array_key_exists($g, $dirStack[$i]['modified'])
 						? array(BigAdd($dirStack[$i]['modified'][$g][0], $data[COL_SIZE]), $dirStack[$i]['modified'][$g][1] + 1)
-						: array($data[COL_SIZE], 1);
+						: array(BigVal($data[COL_SIZE]), 1);
 					break;
 				}
 			}
@@ -406,16 +406,16 @@ function AddFileData($data) {
 			$ext = GetExtension($data[COL_NAME]);
 			$dirStack[$i]['types'][$ext] = array_key_exists($ext, $dirStack[$i]['types'])
 					? array(BigAdd($dirStack[$i]['types'][$ext][0], $data[COL_SIZE]), $dirStack[$i]['types'][$ext][1] + 1)
-					: array($data[COL_SIZE], 1);
+					: array(BigVal($data[COL_SIZE]), 1);
 		}
 		
 		if ($i < $args['top100depth']) {
-			$index = Top100Search($dirStack[$i]['top100'], intval($data[COL_SIZE]));
+			$index = BinarySearch($dirStack[$i]['top100'], $data[COL_SIZE], 'Top100Comparator');
 			if ($index < 0) $index = abs($index + 1);
 			if (count($dirStack[$i]['top100']) < 100 || $index < 100) {
 				array_splice($dirStack[$i]['top100'], $index, 0, array(array(
 					'name' => $data[COL_NAME],
-					'size' => intval($data[COL_SIZE]),
+					'size' => BigVal($data[COL_SIZE]),
 					'hash' => md5($dirStack[count($dirStack)-1]['path']),
 					'path' => $relativePath,
 					'date' => $data[COL_DATE],
@@ -430,7 +430,14 @@ function AddFileData($data) {
 	}
 }
 
+function BigVal($num) {
+	return LARGE_INT ? intval($num) : floatval($num);
+}
+
 function BigAdd($a, $b) {
+	return BigVal($a) + BigVal($b);
+	
+	// TODO: Remove
 	if (LARGE_INT) {
 		return intval($a) + intval($b);
 	}
@@ -446,6 +453,9 @@ function BigAdd($a, $b) {
 }
 
 function BigComp($a, $b) {
+	return BigVal($a) - BigVal($b);
+	
+	// TODO: Remove
 	if (LARGE_INT) {
 		return intval($a) - intval($b);
 	}
@@ -460,7 +470,11 @@ function BigComp($a, $b) {
 	}
 }
 
-function Top100Search($list, $size) {
+function Top100Comparator($listitem, $needle) {
+	return BigVal($listitem['size']) - BigVal($needle);
+}
+
+function BinarySearch($list, $needle, $comparator) {
 	$low = 0;
 	$high = count($list) - 1;
 	$comp = -1;
@@ -469,8 +483,7 @@ function Top100Search($list, $size) {
 	while ($low <= $high) {
 		$mid = floor(($low + $high) / 2);
 		
-		// Do comparison
-		$comp = $list[$mid]['size'] - $size;
+		$comp = $comparator($list[$mid], $needle);
 		
 		if ($comp < 0) {
 			$high = $mid - 1;
