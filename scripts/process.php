@@ -6,6 +6,10 @@
 
 define('LARGE_INT', defined('PHP_INT_MAX') && strlen(PHP_INT_MAX.'') > 12);
 
+if(!function_exists('json_encode') ) {
+	require_once('inc/json_encode.php');
+}
+
 if (!isset($_SERVER['argc'])) {
 	echo "Must be run from the command line.\n"; exit(1);
 }
