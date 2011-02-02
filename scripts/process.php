@@ -424,8 +424,14 @@ function BigAdd($a, $b) {
 	if (LARGE_INT) {
 		return intval($a) + intval($b);
 	}
+	elseif (function_exists('bcadd')) {
+		return bcadd($a.'', $b.'');
+	}
+	elseif (function_exists('gmp_add')) {
+		return gmp_add($a.'', $b.'');
+	}
 	else {
-		return bcadd($a+'', $b+'');
+		trigger_error('Neither bcadd or gmp_add are avalable and the system does not seem to be 64-bit.', E_USER_ERRO);
 	}
 }
 
@@ -433,8 +439,14 @@ function BigComp($a, $b) {
 	if (LARGE_INT) {
 		return intval($a) - intval($b);
 	}
-	else {
+	elseif (function_exists('bccomp')) {
 		return bccomp($a+'', $b+'');
+	}
+	elseif (function_exists('gmp_cmp')) {
+		return gmp_cmp($a+'', $b+'');
+	}
+	else {
+		trigger_error('Neither bcadd or gmp_add are avalable and the system does not seem to be 64-bit.', E_USER_ERRO);
 	}
 }
 
