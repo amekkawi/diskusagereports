@@ -18,7 +18,7 @@
  *
  */
 
-function json_encode() {
+function json_encode($value) {
 	if (is_object($value)) {
 		return 'OBJECT not supported';
 	} else if (is_array($value)) {
