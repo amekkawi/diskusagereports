@@ -398,7 +398,7 @@ $.extend(Viewer.prototype, {
 					case 'label':
 						return self._options.settings.sizes[parseInt(key)].label;
 					case 'sortlabel':
-						return key;
+						return parseInt(key);
 					case 'bytes':
 						return data[0];
 					case 'num':
