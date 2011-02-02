@@ -85,10 +85,12 @@ function ProcessFolder($directory, $depth) {
 	        if ($file != '.' && $file != '..') {
 		        $filepath = ConcatPath($args['ds'], $directory, $file);
 		        if (($stat = stat($filepath)) !== FALSE) {
-		        	$isdir = is_dir($filepath);
-		        	echo ($isdir ? 'd' : 'f') . $args['delim'] . date('Y-m-d', intval($stat['mtime'])) . $args['delim'] . date('H:i:s', intval($stat['mtime'])) . $args['delim'] . $stat['size'] . $args['delim'] . $depth . $args['delim'] . $directory . $args['delim'] . $file . "\n";
-		        	if ($isdir) {
-		        		ProcessFolder($filepath, $depth + 1);
+		        	if (!is_link($filepath)) {
+		        		$isdir = is_dir($filepath);
+			        	echo ($isdir ? 'd' : 'f') . $args['delim'] . date('Y-m-d', intval($stat['mtime'])) . $args['delim'] . date('H:i:s', intval($stat['mtime'])) . $args['delim'] . $stat['size'] . $args['delim'] . $depth . $args['delim'] . $directory . $args['delim'] . $file . "\n";
+			        	if (!$islink && $isdir) {
+			        		ProcessFolder($filepath, $depth + 1);
+			        	}
 		        	}
 		        }
 		        else {
