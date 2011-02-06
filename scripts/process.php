@@ -4,17 +4,23 @@
 // cat diskusage-gs.txt | sed -En -e 's/^d/&/p' -e 's/^f.+\.(jpg)$/&/p' | php scripts/process.php ../diskusage-data/test2
 // php scripts/find.php `pwd` | sed -E -e 's/^.*\.svn.*$//' -e 's/^.*diskusage-[a-z0-9]+\.txt.*$//' -e 's/^.*\.settings.*$//' -e 's/^.*\$dev.*$//' -e 's/^.*\.DS_Store.*$//' -e 's/^.*\.tmp_.*$//' -e '/^$/d' | php scripts/process.php -n "Disk Usage Reports Code" ../diskusage-data/test2
 
+// Determine if the system supports 64-bit integers.
 define('LARGE_INT', defined('PHP_INT_MAX') && strlen(PHP_INT_MAX.'') > 14);
+
+// Show/hide debugging output.
 define('DEBUG', FALSE);
 
+// Backwards compatibility includes.
 if(!function_exists('json_encode') ) {
 	require_once('inc/json_encode.php');
 }
 
+// Make sure this is being run from the command line.
 if (!isset($_SERVER['argc'])) {
 	echo "Must be run from the command line.\n"; exit(1);
 }
 
+// Default arguments.
 $args = array(
 	'name' => null,
 	'filelist' => null,
@@ -28,11 +34,10 @@ $args = array(
 	'ds' => DIRECTORY_SEPARATOR
 );
 
-// syntax: php process.php [-tz '<timezone>'] [-d '<delim>'] [-t <totalsdepth>] [-nt (no tree)] [-ds '<directoryseparator>'] [-td <top100depth>] [-n <reportname>] <reportdir> [<filelist>]
-
 $cliargs = array_slice($_SERVER['argv'], 1);
 $syntax = "Syntax: php process.php [options] <reportdir> [<filelist>]\nSee http://diskusagereport.sourceforge.net/docs/ for help.\n";
 
+// Process command line arguments.
 while (!is_null($cliarg = array_shift($cliargs))) {
 	$shifted = true;
 	
@@ -74,23 +79,26 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 			$cliargs = array();
 	}
 	
+	// If we shifted and found nothing, output an error.
 	if (is_null($shifted)) {
 		echo "Missing value after argument $cliarg\n".$syntax; exit(1);
 	}
 }
 
+// Check required arguments.
 if (is_null($args['reportdir'])) {
 	echo "reportdir argument is missing\n".$syntax; exit(1);
 }
-
 if (!is_null($args['filelist']) && !is_file($args['filelist'])) {
 	echo "The <fileslist> does not exist or is not a file.\n"; exit(1);
 }
 
+// Verify the report directory is valid.
 if (!is_dir($args['reportdir'])) {
 	echo "The <reportdir> does not exist or is not a directory.\n"; exit(1);
 }
 
+// Read the file list from STDIN if it was not specified.
 if (is_null($args['filelist'])) {
 	$args['filelist'] = 'php://stdin';
 }
@@ -104,10 +112,12 @@ define('COL_DEPTH', 4);
 define('COL_PARENT', 5);
 define('COL_NAME', 6);
 
+// Set the timezone.
 if (!(function_exists("date_default_timezone_set") ? @(date_default_timezone_set($args['timezone'])) : @(putenv("TZ=".$args['timezone'])))) {
 	echo "'timezone' config was set to an invalid identifier."; exit(1);
 }
 
+// Labels for size ranges.
 $sizeGroups = array(
 	array('label' => '1 GB or More', 'size' => 1024 * 1024 * 1024),
 	array('label' => '500 MB - 1 GB', 'size' => 1024 * 1024 * 500),
@@ -129,6 +139,7 @@ $sizeGroups = array(
 	array('label' => 'Less than 1 KB', 'size' => 0)
 );
 
+// Labels for age ranges.
 $dateFormat = 'Y-m-d';
 $modifiedGroups = array(
 	array('label' => '10 Years or More', 'date' => date($dateFormat, strtotime('-10 year'))),
@@ -147,12 +158,15 @@ $modifiedGroups = array(
 	array('label' => 'Future', 'date' => '9999-99-99')
 );
 
+// Attempt to open the file list.
 if (($fh = fopen($args['filelist'], 'r')) === FALSE) {
 	echo "Failed to open <fileslist> for reading.\n"; exit(1);
 }
 
+// Get details about the file.
 $fstat = fstat($fh);
 
+// Initialize report variables.
 $dirStack = array();
 $dirLookup = array();
 $errors = array();
@@ -200,7 +214,7 @@ while (($line = fgets($fh, $args['maxlinelength']+1)) !== FALSE) {
 		// Check if we have left the current directory in the stack.
 		while (count($dirStack) > 1 && $dirStack[count($dirStack)-1]['path'] != $split[COL_PARENT]) {
 			$pop = array_pop($dirStack);
-			//echo 'Exit Dir: ' . $pop['path'] . "\n";
+			if (DEBUG) echo 'Exit Dir: ' . $pop['path'] . "\n";
 			
 			$pop['parents'] = array();
 			foreach ($dirStack as $parent) {
@@ -245,7 +259,7 @@ while (($line = fgets($fh, $args['maxlinelength']+1)) !== FALSE) {
 				'files' => array()
 			);
 			
-			//echo 'Enter Dir: ' . $newDir['path'] . "\n";
+			if (DEBUG) echo 'Enter Dir: ' . $newDir['path'] . "\n";
 			
 			// Set totals arrays if allowed at this depth.
 			if (count($dirStack) < $args['totalsdepth']) {
@@ -296,7 +310,7 @@ while (($line = fgets($fh, $args['maxlinelength']+1)) !== FALSE) {
 			$relativePath = substr($relativePath, 1);
 		}
 		else {
-			//echo 'File:     ' . $split[COL_PARENT] . $args['ds'] . $split[COL_NAME] . "\n";
+			//if (DEBUG) echo 'File:     ' . $split[COL_PARENT] . $args['ds'] . $split[COL_NAME] . "\n";
 			AddFileData($split);
 			array_push($dirStack[count($dirStack)-1]['files'], array(
 				'name' => $split[COL_NAME],
@@ -311,7 +325,7 @@ while (($line = fgets($fh, $args['maxlinelength']+1)) !== FALSE) {
 // Catch any remaining directories in the stack.
 while (count($dirStack) > 0) {
 	$pop = array_pop($dirStack);
-	//echo 'Exit Dir: ' . $pop['path'] . "\n";
+	if (DEBUG) echo 'Exit Dir: ' . $pop['path'] . "\n";
 	
 	$pop['parents'] = array();
 	foreach ($dirStack as $parent) {
