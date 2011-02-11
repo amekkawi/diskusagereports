@@ -145,8 +145,26 @@ a {
 	width: 200px;
 	height: 100%;
 	margin-right: 10px;
-	overflow: auto;
+	overflow: hidden;
 	background-color: #f7f6f0;
+}
+
+#LeftColumnBorder {
+	position: relative;
+	margin: 1px;
+	border: 1px solid #b5aa88;
+	height: 100%;
+	overflow: hidden;
+}
+
+#LeftColumn table {
+	border: 0 none #FFF;
+}
+
+#LeftColumnScroller {
+	overflow: auto;
+	margin: 0 1px 1px;
+	height: 100%;
 }
 
 #RightColumn {
@@ -226,6 +244,11 @@ a {
 	background-color: #f7f6f0;
 }
 
+#LeftColumn table.styledtable thead th,
+#Sections table.styledtable thead th {
+	cursor: pointer;	
+}
+
 .totals-sortedby-label .totals-sortby-label,
 .totals-sortedby-byte .totals-sortby-byte,
 .totals-sortedby-num .totals-sortby-num,
@@ -237,7 +260,10 @@ a {
 .top100-sortedby-type #Top100-SortBy-type,
 .top100-sortedby-size #Top100-SortBy-size,
 .top100-sortedby-modified #Top100-SortBy-modified,
-.top100-sortedby-path #Top100-SortBy-path {
+.top100-sortedby-path #Top100-SortBy-path,
+.tree-sortedby-label .tree-sortby-label,
+.tree-sortedby-byte .tree-sortby-byte,
+.tree-sortedby-num .tree-sortby-num {
 	background-image: url(../images/tableheader-background-sorted.png);
 }
 .totals-sortedby-label .totals-sortby-label span,
@@ -251,7 +277,10 @@ a {
 .top100-sortedby-type #Top100-SortBy-type span,
 .top100-sortedby-size #Top100-SortBy-size span,
 .top100-sortedby-modified #Top100-SortBy-modified span,
-.top100-sortedby-path #Top100-SortBy-path span {
+.top100-sortedby-path #Top100-SortBy-path span,
+.tree-sortedby-label .tree-sortby-label span,
+.tree-sortedby-byte .tree-sortby-byte span,
+.tree-sortedby-num .tree-sortby-num span {
 	padding-right: 14px;
 	background-image: url(../images/tableheader-sort-asc.png);
 	background-repeat: no-repeat;
@@ -268,7 +297,10 @@ a {
 .top100-sortrev.top100-sortedby-type #Top100-SortBy-type span,
 .top100-sortrev.top100-sortedby-size #Top100-SortBy-size span,
 .top100-sortrev.top100-sortedby-modified #Top100-SortBy-modified span,
-.top100-sortrev.top100-sortedby-path #Top100-SortBy-path span {
+.top100-sortrev.top100-sortedby-path #Top100-SortBy-path span,
+.tree-sortrev.tree-sortedby-label .tree-sortby-label span,
+.tree-sortrev.tree-sortedby-byte .tree-sortby-byte span,
+.tree-sortrev.tree-sortedby-num .tree-sortby-num span {
 	background-image: url(../images/tableheader-sort-desc.png);
 }
 

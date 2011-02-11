@@ -180,6 +180,12 @@
 			var containerHeightDiff = $('#Container').outerHeight(true) - $('#Container').height();
 			$('#Container').height($('body').height() - containerHeightDiff - $('#Container').offset().top - footerHeight - 5);
 			
+			var leftColumnBorderHeightDiff = $('#LeftColumnBorder').outerHeight(true) - $('#LeftColumnBorder').height();
+			$('#LeftColumnBorder').height($('#LeftColumn').height() - leftColumnBorderHeightDiff);
+			
+			var leftColumnScrollerHeightDiff = $('#LeftColumnScroller').outerHeight(true) - $('#LeftColumnScroller').height();
+			$('#LeftColumnScroller').height($('#LeftColumnBorder').height() - $('#LeftColumnScroller').position().top - leftColumnScrollerHeightDiff);
+			
 			var reportHeightDiff = $('#Report').outerHeight(true) - $('#Report').height();
 			$('#Report').height($('#RightColumn').height() - reportHeightDiff - $('#Report').position().top);
 		};
@@ -207,7 +213,20 @@
 	<div id="Columns" style="display: none;">
 		
 		<div id="LeftColumn">
-			<div id="DirectoryTree"></div>
+			<div id="LeftColumnBorder">
+				<table class="styledtable" width="100%" id="TreeSort" border="0" cellspacing="0" cellpadding="4">
+					<thead>
+						<tr>
+							<th class="tree-sortby-label"><span>Name</span></th>
+							<th class="tree-sortby-byte" colspan="3"><span>Size</span></th>
+							<th class="tree-sortby-num" colspan="3"><span>Count</span></th>
+						</tr>
+					</thead>
+				</table>
+				<div id="LeftColumnScroller">
+					<div id="DirectoryTree"></div>
+				</div>
+			</div>
 		</div>
 		
 		<div id="Error" style="display: none;"></div>
