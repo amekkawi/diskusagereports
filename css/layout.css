@@ -152,13 +152,8 @@ a {
 #LeftColumnBorder {
 	position: relative;
 	margin: 1px;
-	border: 1px solid #b5aa88;
 	height: 100%;
 	overflow: hidden;
-}
-
-#LeftColumn table {
-	border: 0 none #FFF;
 }
 
 #LeftColumnScroller {
@@ -201,19 +196,16 @@ a {
 
 #Tabs li {
 	cursor: pointer;
-	position: relative;
-	top: 1px;
 	float: left;
 	display: block;
 	padding: 8px;
 	margin-left: 10px;
-	background-color: #B9B6A5;
+	background-color: #DFDCCD;
 	color: #5A5842;
 	font-weight: bold;
-	background-image: url(../images/tab-background.gif);
-	background-position: center top;
+	background-image: url(../images/tab-background2.gif);
+	background-position: center bottom;
 	background-repeat: repeat-x;
-	border-bottom: 1px solid #918E81;
 	
 	-webkit-border-top-left-radius: 5px;
 	-webkit-border-top-right-radius: 5px;
@@ -230,13 +222,11 @@ a {
 	cursor: default;
 	text-decoration: none !important;
 	background-color: #F7F6F0;
-	border-bottom: 1px solid #F7F6F0;
 	background-image: none;
 	color: #000;
 }
 
 #Report {
-	border-top: 1px solid #918E81;
 	clear: both;
 	overflow: auto;
 	height: 200px;
