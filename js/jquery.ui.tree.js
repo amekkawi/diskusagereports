@@ -6,7 +6,12 @@ $.widget("ui.tree", {
 		data: null,
 		root: null,
 		expandOnSelect: true,
-		closeOthersOnSelect: true
+		closeOthersOnSelect: true,
+		comparator: function(a, b) {
+			if (a.name.toLowerCase() < b.name.toLowerCase()) return -1;
+			if (a.name.toLowerCase() > b.name.toLowerCase()) return 1;
+			return 0;
+		}
 	},
 	
 	select: function(hash, li) {
@@ -130,23 +135,23 @@ $.widget("ui.tree", {
 		if (!this._data[hash]) return '';
 		
 		var li = [],
+			self = this,
 			subdirs = this._data[hash].subdirs;
 		
 		for (var i = 0; i < subdirs.length; i++) {
 			
-			var html = this._createLI(subdirs[i].hash, subdirs[i].name, this._data[subdirs[i].hash].subdirs.length > 0 ? '' : this.widgetBaseClass + '-nosubdirs');
+			var data = this._data[subdirs[i]];
+			var html = this._createLI(subdirs[i], data.name, data.subdirs.length > 0 ? '' : this.widgetBaseClass + '-nosubdirs');
 			
-			var index = BinarySearch(li, subdirs[i].name.toLowerCase(), function(needle, item, index) {
-				if (needle < item[0]) return -1;
-				if (needle > item[0]) return 1;
-				return 0;
+			var index = BinarySearch(li, data, function(needle, item, index) {
+				return self.options.comparator(needle, item[0]);
 			});
 			
 			if (index < 0) {
-				li.splice(Math.abs(index)-1, 0, [subdirs[i].name.toLowerCase(), html]);
+				li.splice(Math.abs(index)-1, 0, [data, html]);
 			}
 			else {
-				li.splice(index, 0, [subdirs[i].name.toLowerCase(), html]);
+				li.splice(index, 0, [data, html]);
 			}
 		}
 		
@@ -160,6 +165,36 @@ $.widget("ui.tree", {
 	
 	_createLI: function(hash, name, classes) {
 		return '<li '+ ($.isString(classes) ? ' class="' + classes + '" ' : '') +' id="' + this.widgetBaseClass + '_' + hash.htmlencode() + '"><div class="' + this.widgetBaseClass + '-expander"><div class="' + this.widgetBaseClass + '-icon"><span>' + name.htmlencode() + '</span></div></div></li>';
+	},
+	
+	resort: function() {
+		var self = this, subUL,
+			stack = [ $('>ul', this.element).get(0) ], ul;
+		
+		while ($.isDefined(ul = stack.pop())) {
+			var sorted = [], original = $('>li', ul);
+			
+			$('>li', ul).each(function(){
+				var hash = this.id.substr((self.widgetBaseClass + '_').length);
+				var data = self._data[hash];
+				
+				if (subUL = $('>ul', this))
+					stack.push(subUL);
+				
+				var index = BinarySearch(sorted, data, function(needle, item, index) {
+					return self.options.comparator(needle, item[0]);
+				});
+				
+				if (index < 0) {
+					sorted.splice(Math.abs(index)-1, 0, [data, this]);
+				}
+				else {
+					sorted.splice(index, 0, [data, this]);
+				}
+			});
+			
+			$(ul).append($($.map(sorted, function(item){ return item[1]; })));
+		}
 	}
 });
 
