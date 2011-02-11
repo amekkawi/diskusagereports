@@ -80,6 +80,16 @@ var Viewer = function(opts) {
 		self.changeOptions({ top100SortBy: 'path', top100SortRev: self._options.top100SortBy == 'path' ? !self._options.top100SortRev : false });
 	});
 	
+	$('#LeftColumn .tree-sortby-label').disableTextSelection().click(function() {
+		self.changeOptions({ treeSortBy: 'label', treeSortRev: self._options.treeSortBy == 'label' ? !self._options.treeSortRev : false });
+	});
+	$('#LeftColumn .tree-sortby-byte').disableTextSelection().click(function() {
+		self.changeOptions({ treeSortBy: 'byte', treeSortRev: self._options.treeSortBy == 'byte' ? !self._options.treeSortRev : true });
+	});
+	$('#LeftColumn .tree-sortby-num').disableTextSelection().click(function() {
+		self.changeOptions({ treeSortBy: 'num', treeSortRev: self._options.treeSortBy == 'num' ? !self._options.treeSortRev : true });
+	});
+	
 	// Setup the directory tree, if a list was provided.
 	if (this._options.directories) {
 		this._tree = $('#DirectoryTree').tree({
@@ -87,6 +97,27 @@ var Viewer = function(opts) {
 			root: this._options.settings.root,
 			selection: function(e, hash) {
 				self.changeOptions({ hash: hash });
+			},
+			comparator: function(a, b) {
+				var modifier = self._options.treeSortRev ? -1 : 1;
+				
+				if (self._options.treeSortBy == 'byte') {
+					if (a.totalbytes < b.totalbytes) return -1 * modifier;
+					if (a.totalbytes > b.totalbytes) return 1 * modifier;
+				}
+				else if (self._options.treeSortBy == 'num') {
+					if (a.totalnum < b.totalnum) return -1 * modifier;
+					if (a.totalnum > b.totalnum) return 1 * modifier;
+				}
+				else {
+					if (a.name.toLowerCase() < b.name.toLowerCase()) return -1 * modifier;
+					if (a.name.toLowerCase() > b.name.toLowerCase()) return 1 * modifier;
+				}
+				
+				// Secondary sort
+				if (a.name.toLowerCase() < b.name.toLowerCase()) return -1;
+				if (a.name.toLowerCase() > b.name.toLowerCase()) return 1;
+				return 0;
 			}
 		});
 	}
@@ -115,7 +146,9 @@ $.extend(Viewer.prototype, {
 		filesSortBy: 'size',
 		filesSortRev: true,
 		top100SortBy: 'size',
-		top100SortRev: true
+		top100SortRev: true,
+		treeSortBy: 'label',
+		treeSortRev: true
 	},
 	
 	changeOptions: function(opts, skipHistory) {
@@ -284,6 +317,13 @@ $.extend(Viewer.prototype, {
 			default:
 				this._displaySubDirs();
 		}
+		
+		$('#LeftColumn')
+			.removeClass('tree-sortedby-label tree-sortedby-byte tree-sortedby-num')
+			.addClass('tree-sortedby-' + this._options.treeSortBy)
+			[(this._options.treeSortRev ? 'add' : 'remove') + 'Class']('tree-sortrev');
+		
+		this._tree.tree('resort');
 	},
 	
 	_displaySubDirs: function() {
@@ -305,7 +345,7 @@ $.extend(Viewer.prototype, {
 						return '<a href="#' + self._createLocation({ hash: data.hash }).htmlencode() + '">' + data.name.htmlencode() + '</a>';
 					case 'sortlabel':
 						if (data.isfiles) return '';
-						return data.name;
+						return data.name.toLowerCase();
 					case 'bytes':
 						return data.totalbytes;
 					case 'num':
@@ -367,7 +407,7 @@ $.extend(Viewer.prototype, {
 					case 'label':
 						return key == '' ? '<i>Unknown</i>' : key.htmlencode();
 					case 'sortlabel':
-						return key;
+						return key.toLowerCase();
 					case 'bytes':
 						return data[0];
 					case 'num':
@@ -427,7 +467,7 @@ $.extend(Viewer.prototype, {
 		
 		for (var key in data) {
 			var label = getValue(data[key], 'label', key);
-			var sortValue = sortLabel = getValue(data[key], 'sortlabel', key)
+			var sortValue = sortLabel = getValue(data[key], 'sortlabel', key);
 			var bytes = getValue(data[key], 'bytes', key);
 			var num = getValue(data[key], 'num', key);
 			
@@ -513,7 +553,7 @@ $.extend(Viewer.prototype, {
 				if (ext.length > 1) ext = (extData = ext[ext.length-1]).htmlencode();
 				else ext = "<i>Unknown</i>";
 				
-				var sortValue = data[key].name;
+				var sortValue = data[key].name.toLowerCase();
 				switch (this._options.filesSortBy) {
 					case 'type':
 						sortValue = extData;
@@ -679,12 +719,17 @@ $.extend(Viewer.prototype, {
 		if (location.fsr && location.fsr.match(/^[01]$/)) {
 			this._options.filesSortRev = location.fsr == '1';
 		}
-		
 		if (location.bsb && location.bsb.match(/^(name|type|size|modified|path)$/)) {
 			this._options.top100SortBy = location.bsb;
 		}
 		if (location.bsr && location.bsr.match(/^[01]$/)) {
 			this._options.top100SortRev = location.bsr == '1';
+		}
+		if (location.dsb && location.dsb.match(/^(name|byte|num)$/)) {
+			this._options.treeSortBy = location.dsb;
+		}
+		if (location.dsr && location.dsr.match(/^[01]$/)) {
+			this._options.treeSortRev = location.dsr == '1';
 		}
 	},
 	
@@ -697,7 +742,9 @@ $.extend(Viewer.prototype, {
 			+ '&fsb=' + escape(opts.filesSortBy)
 			+ '&fsr=' + escape(opts.filesSortRev ? '1' : '0')
 			+ '&bsb=' + escape(opts.top100SortBy)
-			+ '&bsr=' + escape(opts.top100SortRev ? '1' : '0');
+			+ '&bsr=' + escape(opts.top100SortRev ? '1' : '0')
+			+ '&dsb=' + escape(opts.treeSortBy)
+			+ '&dsr=' + escape(opts.treeSortRev ? '1' : '0');
 	}
 	
 });
