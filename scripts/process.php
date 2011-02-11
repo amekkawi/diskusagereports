@@ -169,6 +169,7 @@ $fstat = fstat($fh);
 // Initialize report variables.
 $dirStack = array();
 $dirLookup = array();
+$dirLookupStack = array();
 $errors = array();
 $relativePath = '';
 $root = null;
@@ -214,6 +215,8 @@ while (($line = fgets($fh, $args['maxlinelength']+1)) !== FALSE) {
 		// Check if we have left the current directory in the stack.
 		while (count($dirStack) > 1 && $dirStack[count($dirStack)-1]['path'] != $split[COL_PARENT]) {
 			$pop = array_pop($dirStack);
+			array_pop($dirLookupStack);
+			
 			if (DEBUG) echo 'Exit Dir: ' . $pop['path'] . "\n";
 			
 			$pop['parents'] = array();
@@ -259,6 +262,8 @@ while (($line = fgets($fh, $args['maxlinelength']+1)) !== FALSE) {
 				'files' => array()
 			);
 			
+			$hash = md5($newDir['path']);
+			
 			if (DEBUG) echo 'Enter Dir: ' . $newDir['path'] . "\n";
 			
 			// Set totals arrays if allowed at this depth.
@@ -281,12 +286,20 @@ while (($line = fgets($fh, $args['maxlinelength']+1)) !== FALSE) {
 			// Add this directory to the directory list, if is not being skipped.
 			if (!$args['notree']) {
 				// Add the directory to the hash lookup.
-				$dirLookup[md5($newDir['path'])] = array(
+				$dirLookup[$hash] = array(
 					'name' => $split[COL_NAME],
 					'totalbytes' => &$newDir['totalbytes'],
 					'totalnum' => &$newDir['totalnum'],
-					'subdirs' => &$newDir['subdirs']
+					'subdirs' => array()
 				);
+				
+				// Add this directory to its parent (if one exists).
+				if (count($dirLookupStack) > 0) {
+					array_push($dirLookupStack[count($dirLookupStack)-1]['subdirs'], $hash);
+				}
+				
+				// Add the directory to the lookup stack.
+				array_push($dirLookupStack, &$dirLookup[$hash]);
 			}
 			
 			// Add this directory to its parent (if one exists).
@@ -295,7 +308,7 @@ while (($line = fgets($fh, $args['maxlinelength']+1)) !== FALSE) {
 					'name' => $split[COL_NAME],
 					'totalbytes' => &$newDir['totalbytes'],
 					'totalnum' => &$newDir['totalnum'],
-					'hash' => md5($newDir['path'])
+					'hash' => $hash
 				));
 			}
 			
@@ -325,6 +338,8 @@ while (($line = fgets($fh, $args['maxlinelength']+1)) !== FALSE) {
 // Catch any remaining directories in the stack.
 while (count($dirStack) > 0) {
 	$pop = array_pop($dirStack);
+	array_pop($dirLookupStack);
+	
 	if (DEBUG) echo 'Exit Dir: ' . $pop['path'] . "\n";
 	
 	$pop['parents'] = array();
