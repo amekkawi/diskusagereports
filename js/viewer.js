@@ -331,7 +331,7 @@ $.extend(Viewer.prototype, {
 			.addClass('tree-sortedby-' + this._options.treeSortBy)
 			[(this._options.treeSortRev ? 'add' : 'remove') + 'Class']('tree-sortrev');
 		
-		if (this._lastTreeOptions != ''.concat(this._options.treeSortBy, this._options.treeSortRev)) {
+		if (this._options.directories && this._lastTreeOptions != ''.concat(this._options.treeSortBy, this._options.treeSortRev)) {
 			this._lastTreeOptions = ''.concat(this._options.treeSortBy, this._options.treeSortRev);
 			this._tree.tree('resort');
 		}
