@@ -192,8 +192,7 @@ $.extend(Viewer.prototype, {
 				type: 'GET',
 				dataType: 'json',
 				error: function(xhr, status, ex) {
-					self._lastHash = self._options.hash;
-					self._lastSection = self._lastSectionOptions = null;
+					// Clear the data since it was not loaded.
 					self._data = null;
 					
 					switch (status) {
@@ -222,38 +221,42 @@ $.extend(Viewer.prototype, {
 					if (self._options.directories) {
 						self._tree.tree('select', self._options.hash);
 					}
-					
-					$('#RightColumn').hide();
-					$('#Error').show();
 				},
 				complete: function() {
+					self._lastHash = self._options.hash;
+					self._lastSection = self._lastSectionOptions = null;
+					
+					$('#Error')[self._data ? 'hide' : 'show']();
+					$('#RightColumn')[self._data ? 'show' : 'hide']();
+					
+					// Scroll to the top of the report.
+					$('#Report').get(0).scrollTop = 0;
+					
+					// Layout the left and right columns.
+					self._display();
+					
+					// Correct the height of divs.
+					document.resizeWindow();
+					
 					if ($.isFunction(completeFn)) {
 						completeFn();
 					}
 				},
 				success: function(data, status, xhr) {
-					$('#Error').hide().text('');
-					$('#RightColumn').show();
-					
-					self._lastHash = self._options.hash;
-					self._lastSection = self._lastSectionOptions = null;
+					// Set the loaded data.
 					self._data = data;
-					self._display();
-					
-					document.resizeWindow();
-					
-					var hashPath = [];
-					for (var i = 0; i < data.parents.length; i++) {
-						hashPath.push(data.parents[i].hash);
-					}
-					hashPath.push(self._options.hash);
 					
 					if (self._options.directories) {
+						// Determine the path to the selected directory.
+						var hashPath = [];
+						for (var i = 0; i < data.parents.length; i++) {
+							hashPath.push(data.parents[i].hash);
+						}
+						hashPath.push(self._options.hash);
+						
+						// Load that path in the tree.
 						self._tree.tree('select', hashPath);
 					}
-					
-					// Scroll to the top of the report.
-					$('#Report').get(0).scrollTop = 0;
 				}
 			});
 		}
@@ -284,47 +287,49 @@ $.extend(Viewer.prototype, {
 	},
 	
 	_display: function() {
-		$('#Path').empty();
-		for (var i = 0; i < this._data.parents.length; i++) {
-			$('#Path').append($('<a>').attr('href', '#' + this._createLocation({ hash: this._data.parents[i].hash })).text(this._data.parents[i].name)).append(' ' + this._options.settings.ds.htmlencode() + ' ');
-		}
-		$('#Path').append(this._data.name.htmlencode());
-		
-		$('#Bytes').text(FormatBytes(this._data.bytes)); // + ' (' + AddCommas(this._data.bytes) + ')');
-		$('#TotalBytes').text(FormatBytes(this._data.totalbytes)); // + ' (' + AddCommas(this._data.totalbytes) + ')');
-		$('#Num').text(AddCommas(this._data.num));
-		$('#TotalNum').text(AddCommas(this._data.totalnum));
-		
-		$('#Section_Message').hide().text('');
-		
-		$('#Sections')
-			.removeClass('totals-sortedby-label totals-sortedby-byte totals-sortedby-num files-sortedby-name files-sortedby-type files-sortedby-size files-sortedby-modified top100-sortedby-name top100-sortedby-type top100-sortedby-size top100-sortedby-modified top100-sortedby-path')
-			.addClass('totals-sortedby-' + this._options.totalsSortBy + ' files-sortedby-' + this._options.filesSortBy + ' top100-sortedby-' + this._options.top100SortBy)
-			[(this._options.totalsSortRev ? 'add' : 'remove') + 'Class']('totals-sortrev')
-			[(this._options.filesSortRev ? 'add' : 'remove') + 'Class']('files-sortrev')
-			[(this._options.top100SortRev ? 'add' : 'remove') + 'Class']('top100-sortrev');
-		
-		if (this._lastSectionOptions != ''.concat(this._options.section, this._options.totalsSortBy, this._options.totalsSortRev, this._options.filesSortBy, this._options.filesSortRev, this._options.top100SortBy, this._options.top100SortRev)) {
-			this._lastSectionOptions = ''.concat(this._options.section, this._options.totalsSortBy, this._options.totalsSortRev, this._options.filesSortBy, this._options.filesSortRev, this._options.top100SortBy, this._options.top100SortRev)
+		if (this._data) {
+			$('#Path').empty();
+			for (var i = 0; i < this._data.parents.length; i++) {
+				$('#Path').append($('<a>').attr('href', '#' + this._createLocation({ hash: this._data.parents[i].hash })).text(this._data.parents[i].name)).append(' ' + this._options.settings.ds.htmlencode() + ' ');
+			}
+			$('#Path').append(this._data.name.htmlencode());
 			
-			switch (this._options.section) {
-				case 'modified':
-					this._displayModified();
-					break;
-				case 'types':
-					this._displayTypes();
-					break;
-				case 'sizes':
-					this._displaySizes();
-					break;
-				case 'files':
-					this._displayFiles();
-					break;
-				case 'top100':
-					this._displayTop100();
-					break;
-				default:
-					this._displaySubDirs();
+			$('#Bytes').text(FormatBytes(this._data.bytes)); // + ' (' + AddCommas(this._data.bytes) + ')');
+			$('#TotalBytes').text(FormatBytes(this._data.totalbytes)); // + ' (' + AddCommas(this._data.totalbytes) + ')');
+			$('#Num').text(AddCommas(this._data.num));
+			$('#TotalNum').text(AddCommas(this._data.totalnum));
+			
+			$('#Section_Message').hide().text('');
+			
+			$('#Sections')
+				.removeClass('totals-sortedby-label totals-sortedby-byte totals-sortedby-num files-sortedby-name files-sortedby-type files-sortedby-size files-sortedby-modified top100-sortedby-name top100-sortedby-type top100-sortedby-size top100-sortedby-modified top100-sortedby-path')
+				.addClass('totals-sortedby-' + this._options.totalsSortBy + ' files-sortedby-' + this._options.filesSortBy + ' top100-sortedby-' + this._options.top100SortBy)
+				[(this._options.totalsSortRev ? 'add' : 'remove') + 'Class']('totals-sortrev')
+				[(this._options.filesSortRev ? 'add' : 'remove') + 'Class']('files-sortrev')
+				[(this._options.top100SortRev ? 'add' : 'remove') + 'Class']('top100-sortrev');
+			
+			if (this._lastSectionOptions != ''.concat(this._options.section, this._options.totalsSortBy, this._options.totalsSortRev, this._options.filesSortBy, this._options.filesSortRev, this._options.top100SortBy, this._options.top100SortRev)) {
+				this._lastSectionOptions = ''.concat(this._options.section, this._options.totalsSortBy, this._options.totalsSortRev, this._options.filesSortBy, this._options.filesSortRev, this._options.top100SortBy, this._options.top100SortRev)
+				
+				switch (this._options.section) {
+					case 'modified':
+						this._displayModified();
+						break;
+					case 'types':
+						this._displayTypes();
+						break;
+					case 'sizes':
+						this._displaySizes();
+						break;
+					case 'files':
+						this._displayFiles();
+						break;
+					case 'top100':
+						this._displayTop100();
+						break;
+					default:
+						this._displaySubDirs();
+				}
 			}
 		}
 		
