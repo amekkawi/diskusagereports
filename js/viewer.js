@@ -124,6 +124,8 @@ var Viewer = function(opts) {
 	
 	this._lastHash = null;
 	this._lastSection = null;
+	this._lastSectionOptions = null;
+	this._lastTreeOptions = null;
 	
 	this._sections = $('#Sections');
 	this._filesSection = $('#Section_Files');
@@ -179,7 +181,7 @@ $.extend(Viewer.prototype, {
 			this._options.hash = this._options.settings.root;
 		}
 		
-		var sectionChanged = this.lastSection != this._options.section;
+		var sectionChanged = this._lastSection != this._options.section;
 		this._lastSection = this._options.section;
 		
 		if (this._lastHash != this._options.hash) {
@@ -298,24 +300,28 @@ $.extend(Viewer.prototype, {
 			[(this._options.filesSortRev ? 'add' : 'remove') + 'Class']('files-sortrev')
 			[(this._options.top100SortRev ? 'add' : 'remove') + 'Class']('top100-sortrev');
 		
-		switch (this._options.section) {
-			case 'modified':
-				this._displayModified();
-				break;
-			case 'types':
-				this._displayTypes();
-				break;
-			case 'sizes':
-				this._displaySizes();
-				break;
-			case 'files':
-				this._displayFiles();
-				break;
-			case 'top100':
-				this._displayTop100();
-				break;
-			default:
-				this._displaySubDirs();
+		if (this._lastSectionOptions != ''.concat(this._options.section, this._options.totalsSortBy, this._options.totalsSortRev, this._options.filesSortBy, this._options.filesSortRev, this._options.top100SortBy, this._options.top100SortRev)) {
+			this._lastSectionOptions = ''.concat(this._options.section, this._options.totalsSortBy, this._options.totalsSortRev, this._options.filesSortBy, this._options.filesSortRev, this._options.top100SortBy, this._options.top100SortRev)
+			
+			switch (this._options.section) {
+				case 'modified':
+					this._displayModified();
+					break;
+				case 'types':
+					this._displayTypes();
+					break;
+				case 'sizes':
+					this._displaySizes();
+					break;
+				case 'files':
+					this._displayFiles();
+					break;
+				case 'top100':
+					this._displayTop100();
+					break;
+				default:
+					this._displaySubDirs();
+			}
 		}
 		
 		$('#LeftColumn')
@@ -323,7 +329,10 @@ $.extend(Viewer.prototype, {
 			.addClass('tree-sortedby-' + this._options.treeSortBy)
 			[(this._options.treeSortRev ? 'add' : 'remove') + 'Class']('tree-sortrev');
 		
-		this._tree.tree('resort');
+		if (this._lastTreeOptions != ''.concat(this._options.treeSortBy, this._options.treeSortRev)) {
+			this._lastTreeOptions = ''.concat(this._options.treeSortBy, this._options.treeSortRev);
+			this._tree.tree('resort');
+		}
 	},
 	
 	_displaySubDirs: function() {
