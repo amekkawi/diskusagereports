@@ -657,7 +657,7 @@ $.extend(Viewer.prototype, {
 				if (ext.length > 1) ext = (extData = ext[ext.length-1]).htmlencode();
 				else ext = "<i>Unknown</i>";
 				
-				var sortValue = data[key].name;
+				var sortValue = data[key].name.toLowerCase();
 				switch (this._options.top100SortBy) {
 					case 'type':
 						sortValue = extData;
