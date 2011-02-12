@@ -118,6 +118,13 @@ var Viewer = function(opts) {
 				if (a.name.toLowerCase() < b.name.toLowerCase()) return -1;
 				if (a.name.toLowerCase() > b.name.toLowerCase()) return 1;
 				return 0;
+			},
+			getPrefix: function(data, parentdata) {
+				if (!data || !parentdata || self._options.treeSortBy == 'label') return null;
+				
+				var percent = Math.floor(data[self._options.treeSortBy == 'byte' ? 'totalbytes' : 'totalnum'] / parentdata[self._options.treeSortBy == 'byte' ? 'totalbytes' : 'totalnum'] * 100);
+				if (percent < 1) return null;
+				else return percent + '%';
 			}
 		});
 	}
@@ -484,7 +491,7 @@ $.extend(Viewer.prototype, {
 		
 		for (var key in data) {
 			var label = getValue(data[key], 'label', key);
-			var sortValue = sortLabel = getValue(data[key], 'sortlabel', key);
+			var sortValue = sortLabel = getValue(data[key], 'sortlabel', key).toLowerCase();
 			var bytes = getValue(data[key], 'bytes', key);
 			var num = getValue(data[key], 'num', key);
 			
@@ -522,8 +529,8 @@ $.extend(Viewer.prototype, {
 				if (needle[0] < item[0]) return -1 * modifier;
 				if (needle[0] > item[0]) return 1 * modifier;
 				
-				if (needle[1] < item[1]) return -1 * modifier;
-				if (needle[1] > item[1]) return 1 * modifier;
+				if (needle[1] < item[1]) return -1;
+				if (needle[1] > item[1]) return 1;
 				
 				return 0;
 			});
@@ -590,23 +597,23 @@ $.extend(Viewer.prototype, {
 				html += '<td align="right">' + FormatBytes(data[key].size) + '</td>';
 				html += '<td>' + data[key].date + ' ' + data[key].time + '</td>';
 				
-				var index = BinarySearch(rows, [ sortValue, data[key].name ], function(needle, item, index) {
+				var index = BinarySearch(rows, [ sortValue, data[key].name.toLowerCase() ], function(needle, item, index) {
 					var modifier = self._options.filesSortRev ? -1 : 1;
 					
 					if (needle[0] < item[0]) return -1 * modifier;
 					if (needle[0] > item[0]) return 1 * modifier;
 					
-					if (needle[1] < item[1]) return -1 * modifier;
-					if (needle[1] > item[1]) return 1 * modifier;
+					if (needle[1] < item[1]) return -1;
+					if (needle[1] > item[1]) return 1;
 					
 					return 0;
 				});
 				
 				if (index < 0) {
-					rows.splice(Math.abs(index)-1, 0, [sortValue, data[key].name, html]);
+					rows.splice(Math.abs(index)-1, 0, [sortValue, data[key].name.toLowerCase(), html]);
 				}
 				else {
-					rows.splice(index, 0, [sortValue, data[key].name, html]);
+					rows.splice(index, 0, [sortValue, data[key].name.toLowerCase(), html]);
 				}
 			}
 			
