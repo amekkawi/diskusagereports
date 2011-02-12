@@ -181,9 +181,7 @@ $.extend(Viewer.prototype, {
 			this._options.hash = this._options.settings.root;
 		}
 		
-		var sectionChanged = this._lastSection != this._options.section;
-		this._lastSection = this._options.section;
-		
+		// If the hash changed, load the data for the new directory.
 		if (this._lastHash != this._options.hash) {
 			if (this._xhr) this._xhr.abort();
 			this._xhr = $.ajax({
@@ -218,6 +216,7 @@ $.extend(Viewer.prototype, {
 							$('#Error').text('Error: An unknown error occurred. Reload to try again.');
 					}
 					
+					// Attempt to select the tree node. This should be impossible unless the page is (re-)loaded with the invalid hash.
 					if (self._options.directories) {
 						self._tree.tree('select', self._options.hash);
 					}
@@ -240,13 +239,12 @@ $.extend(Viewer.prototype, {
 				},
 				complete: function() {
 					self._lastHash = self._options.hash;
+					
+					// Reset the section so it is freshly loaded.
 					self._lastSection = self._lastSectionOptions = null;
 					
 					$('#Error')[self._data ? 'hide' : 'show']();
 					$('#RightColumn')[self._data ? 'show' : 'hide']();
-					
-					// Scroll to the top of the report.
-					$('#Report').get(0).scrollTop = 0;
 					
 					// Layout the left and right columns.
 					self._display();
@@ -262,11 +260,6 @@ $.extend(Viewer.prototype, {
 		}
 		else {
 			this._display();
-			
-			if (sectionChanged) {
-				// Scroll to the top of the report.
-				$('#Report').get(0).scrollTop = 0;
-			}
 			
 			if ($.isFunction(completeFn)) {
 				completeFn();
@@ -330,6 +323,12 @@ $.extend(Viewer.prototype, {
 					default:
 						this._displaySubDirs();
 				}
+			}
+			
+			// Scroll to the top of the section if it changed.
+			if (this._lastSection != this._options.section) {
+				this._lastSection = this._options.section;
+				$('#Report').get(0).scrollTop = 0;
 			}
 		}
 		
