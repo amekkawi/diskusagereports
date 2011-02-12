@@ -240,6 +240,8 @@ $.extend(Viewer.prototype, {
 					self._data = data;
 					self._display();
 					
+					document.resizeWindow();
+					
 					var hashPath = [];
 					for (var i = 0; i < data.parents.length; i++) {
 						hashPath.push(data.parents[i].hash);
