@@ -150,7 +150,7 @@ $.extend(Viewer.prototype, {
 		top100SortBy: 'size',
 		top100SortRev: true,
 		treeSortBy: 'label',
-		treeSortRev: true
+		treeSortRev: false
 	},
 	
 	changeOptions: function(opts, skipHistory) {
