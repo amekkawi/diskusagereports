@@ -140,8 +140,9 @@ $.widget("ui.tree", {
 		
 		for (var i = 0; i < subdirs.length; i++) {
 			
-			var data = this._data[subdirs[i]];
-			var html = this._createLI(subdirs[i], data.name, data.subdirs.length > 0 ? '' : this.widgetBaseClass + '-nosubdirs');
+			var hash = $.isString(subdirs[i]) ? subdirs[i] : subdirs[i].hash;
+			var data = this._data[hash];
+			var html = this._createLI(hash, data.name, data.subdirs.length > 0 ? '' : this.widgetBaseClass + '-nosubdirs');
 			
 			var index = BinarySearch(li, data, function(needle, item, index) {
 				return self.options.comparator(needle, item[0]);
