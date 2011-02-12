@@ -67,7 +67,7 @@ $.widget("ui.tree", {
 		}
 		else {
 			li.addClass(this.widgetBaseClass + '-open');
-			li.append(this._createUL(hash, li));
+			li.append(this._createUL(hash));
 		}
 	},
 	
@@ -129,23 +129,18 @@ $.widget("ui.tree", {
 		
 		$elem.append('<ul>' + this._createLI(this.options.root, this._data[this.options.root].name, this.widgetBaseClass + '-root ' + this.widgetBaseClass + '-open') + '</ul>');
 		
-		$('#' + this.widgetBaseClass + '_' + this.options.root).append(this._createUL(this.options.root, $('>ul>li', $elem)));
+		$('#' + this.widgetBaseClass + '_' + this.options.root).append(this._createUL(this.options.root));
 	},
 	
-	_createUL: function(hash, li) {
-		if (!this._data[hash]) return '';
+	_createUL: function(parenthash) {
+		if (!this._data[parenthash]) return '';
 		
 		var sorted = [],
 			self = this,
-			subdirs = this._data[hash].subdirs;
-		
-		var parentdata, parentLi = $(li).parent().closest('li[id]', this.element);
-		if (parentLi.size() && this.options.getPrefix) {
-			parentdata = this._data[parentLi.attr('id').substr((this.widgetBaseClass + '_').length)];
-		}
+			parentdata = this._data[parenthash],
+			subdirs = parentdata.subdirs;
 		
 		for (var i = 0; i < subdirs.length; i++) {
-			
 			var hash = $.isString(subdirs[i]) ? subdirs[i] : subdirs[i].hash;
 			var data = this._data[hash];
 			var html = this._createLI(hash, data.name, data.subdirs.length > 0 ? '' : this.widgetBaseClass + '-nosubdirs', this.options.getPrefix ? this.options.getPrefix(data, parentdata) : '');
