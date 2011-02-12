@@ -6,6 +6,11 @@ String.prototype.htmlencode = function() {
 	return div.innerHTML.replace(/"/g, "&quot;");
 };
 
+RegExp.escape = function(str) {
+	var specials = new RegExp("[.*+?|()\\[\\]{}\\\\/]", "g"); // .*+?|()[]{}\/
+	return str.replace(specials, "\\$&");
+}
+
 String.prototype.parseQS = function() {
 	var result = {};
 	var str = this.indexOf('?') == 0 ? this.substring(1) : this;
