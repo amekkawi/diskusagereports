@@ -161,7 +161,7 @@
 					}
 					
 					else {
-						$('#LeftColumn').hide();
+						$('#LeftColumn, #LeftColumnResizer').hide();
 						finalSetup(null);
 					}
 				}
@@ -187,6 +187,8 @@
 				
 				var leftColumnScrollerHeightDiff = $('#LeftColumnScroller').outerHeight(true) - $('#LeftColumnScroller').height();
 				$('#LeftColumnScroller').height($('#LeftColumnBorder').height() - $('#LeftColumnScroller').position().top - leftColumnScrollerHeightDiff);
+				
+				$('#LeftColumn').width(Math.max(100, Math.min($('#Columns').width() - 200, $('#LeftColumn').width())));
 			}
 			
 			if ($('#Report').is(':visible')) {
@@ -195,14 +197,34 @@
 			}
 		};
 		
-		$(window).bind("resize", function() {
-			if (document.resizeTimerID) clearTimeout(document.resizeTimerID);
-			document.resizeTimerID = setTimeout(function() {
-				document.resizeWindow();
-			}, 100);
-		});
+		$(window)
+			.resize(function(){
+				if (document.resizeTimerID) clearTimeout(document.resizeTimerID);
+				document.resizeTimerID = setTimeout(function() {
+					document.resizeWindow();
+				}, 100);
+			});
 		
 		document.resizeWindow();
+		
+		$('#LeftColumnResizer').disableTextSelection().mousedown(function(evDown){
+			var startX = evDown.screenX;
+			var origWidth = $('#LeftColumn').width();
+			
+			$(document).bind('mousemove.resizer', function(evMove){
+				$('#LeftColumn').width(Math.max(100, Math.min($('#Columns').width() - 200, origWidth + evMove.screenX - startX)));
+				
+				if (document.resizeTimerID) clearTimeout(document.resizeTimerID);
+				document.resizeTimerID = setTimeout(function() {
+					document.resizeWindow();
+				}, 100);
+			});
+			
+			$(document).one('mouseup', function(evUp){
+				//$('#LeftColumn').width(origWidth + evUp.screenX - startX);
+				$(document).unbind('mousemove.resizer');
+			})
+		});
 	});
 </script>
 </head>
@@ -233,6 +255,8 @@
 				</div>
 			</div>
 		</div>
+		
+		<div id="LeftColumnResizer"></div>
 		
 		<div id="Error" style="display: none;"></div>
 		

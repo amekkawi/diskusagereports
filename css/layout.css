@@ -144,7 +144,7 @@ a {
 	float: left;
 	width: 200px;
 	height: 100%;
-	margin-right: 10px;
+	/*margin-right: 10px;*/
 	overflow: hidden;
 	background-color: #f7f6f0;
 }
@@ -160,6 +160,17 @@ a {
 	overflow: auto;
 	margin: 0 1px 1px;
 	height: 100%;
+}
+
+#LeftColumnResizer {
+	float: left;
+	margin: 0 2px;
+	width: 8px;
+	height: 100%;
+	cursor: move;
+	background-image: url(../images/resizer.png);
+	background-position: center center;
+	background-repeat: no-repeat;
 }
 
 #RightColumn {
