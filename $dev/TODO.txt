@@ -1,12 +1,13 @@
  * Scroll to tree nodes when they are not in view.
- * Add byte/num sorting to the tree.
  * Allow directory tree to be resized.
  * Allow for errors to be viewed in report.
  * Allow for other languages
  * Figure out a way to make sure 'File Types' list doesn't get too long.
  * Allow for directory list to be skipped if it takes too long to download.
  * Add paging to the file list.
-  
+ * Automatically skip tree view if it gets over a certian size.
+ 
+ X Add byte/num sorting to the tree.
  X Sorting for 'Range' in file sizes tab seems to be wrong.
  X Add Top 100 Files to the first X levels of the report.
  X Create php version of 'find'.
