@@ -180,11 +180,13 @@
 			var containerHeightDiff = $('#Container').outerHeight(true) - $('#Container').height();
 			$('#Container').height($('body').height() - containerHeightDiff - $('#Container').offset().top - footerHeight - 5);
 			
-			var leftColumnBorderHeightDiff = $('#LeftColumnBorder').outerHeight(true) - $('#LeftColumnBorder').height();
-			$('#LeftColumnBorder').height($('#LeftColumn').height() - leftColumnBorderHeightDiff);
-			
-			var leftColumnScrollerHeightDiff = $('#LeftColumnScroller').outerHeight(true) - $('#LeftColumnScroller').height();
-			$('#LeftColumnScroller').height($('#LeftColumnBorder').height() - $('#LeftColumnScroller').position().top - leftColumnScrollerHeightDiff);
+			if ($('#LeftColumn').is(':visible')) {
+				var leftColumnBorderHeightDiff = $('#LeftColumnBorder').outerHeight(true) - $('#LeftColumnBorder').height();
+				$('#LeftColumnBorder').height($('#LeftColumn').height() - leftColumnBorderHeightDiff);
+				
+				var leftColumnScrollerHeightDiff = $('#LeftColumnScroller').outerHeight(true) - $('#LeftColumnScroller').height();
+				$('#LeftColumnScroller').height($('#LeftColumnBorder').height() - $('#LeftColumnScroller').position().top - leftColumnScrollerHeightDiff);
+			}
 			
 			var reportHeightDiff = $('#Report').outerHeight(true) - $('#Report').height();
 			$('#Report').height($('#RightColumn').height() - reportHeightDiff - $('#Report').position().top);
