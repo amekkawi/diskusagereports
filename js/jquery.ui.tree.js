@@ -63,6 +63,7 @@ $.widget("ui.tree", {
 		
 		if ($('> ul', li).size() != 0) {
 			li.addClass(this.widgetBaseClass + '-open');
+			this.resort($('> ul', li));
 			$('> ul', li).show();
 		}
 		else {
@@ -169,9 +170,11 @@ $.widget("ui.tree", {
 		return '<li '+ ($.isString(classes) ? ' class="' + classes + '" ' : '') +' id="' + this.widgetBaseClass + '_' + hash.htmlencode() + '"><div class="' + this.widgetBaseClass + '-expander"><div class="' + this.widgetBaseClass + '-icon"><span class="' + this.widgetBaseClass + '-prefix">'+ ($.isString(prefix) && prefix != '' ? prefix.htmlencode() + ' ' : '') +'</span><span>' + name.htmlencode() + '</span></div></div></li>';
 	},
 	
-	resort: function() {
-		var self = this, subUL,
-			stack = [ $('>ul>li>ul', this.element).get(0) ], ul;
+	resort: function(startUL) {
+		var self = this,
+			ul,
+			subUL,
+			stack = [ startUL ? startUL : $('>ul>li>ul', this.element).get(0) ];
 		
 		while ($.isDefined(ul = stack.pop())) {
 			var sorted = [], original = $('>li', ul);
@@ -190,8 +193,9 @@ $.widget("ui.tree", {
 					}
 				}
 				
-				if (subUL = $('>ul', $this))
+				if ($this.hasClass(self.widgetBaseClass + '-open') && (subUL = $('>ul', $this))) {
 					stack.push(subUL);
+				}
 				
 				var index = BinarySearch(sorted, data, function(needle, item, index) {
 					return self.options.comparator(needle, item[0]);
