@@ -64,6 +64,7 @@
 	});
 	
 	$(function() {
+		var debugTimeout = 50;
 		$('#Loading').text('Loading Report Settings...');
 		
 		var ajaxErrorHandler = function(xhr, status, err){
@@ -131,7 +132,7 @@
 								document.resizeWindow();
 							});
 						
-						}, 250); // Debugging timeout
+						}, debugTimeout); // Debugging timeout
 					};
 					
 					if (settings.directorytree) {
@@ -156,7 +157,7 @@
 								}
 							});
 							
-						}, 250); // Debugging timeout
+						}, debugTimeout); // Debugging timeout
 					}
 					
 					else {
@@ -166,7 +167,7 @@
 				}
 			});
 		
-		}, 250); // Debugging timeout
+		}, debugTimeout); // Debugging timeout
 	
 		// Load the location on first load.
 		if (dhtmlHistory.isFirstLoad()) {
