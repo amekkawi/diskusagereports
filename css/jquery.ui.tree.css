@@ -58,3 +58,8 @@
 	margin-left: -2px;
 	padding: 2px;
 }
+
+.ui-tree li > div span.ui-tree-prefix {
+    color: #666666;
+    padding-right: 0;
+}

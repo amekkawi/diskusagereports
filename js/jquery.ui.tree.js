@@ -11,7 +11,8 @@ $.widget("ui.tree", {
 			if (a.name.toLowerCase() < b.name.toLowerCase()) return -1;
 			if (a.name.toLowerCase() > b.name.toLowerCase()) return 1;
 			return 0;
-		}
+		},
+		getPrefix: null
 	},
 	
 	select: function(hash, li) {
@@ -66,7 +67,7 @@ $.widget("ui.tree", {
 		}
 		else {
 			li.addClass(this.widgetBaseClass + '-open');
-			li.append(this._createUL(hash));
+			li.append(this._createUL(hash, li));
 		}
 	},
 	
@@ -128,58 +129,73 @@ $.widget("ui.tree", {
 		
 		$elem.append('<ul>' + this._createLI(this.options.root, this._data[this.options.root].name, this.widgetBaseClass + '-root ' + this.widgetBaseClass + '-open') + '</ul>');
 		
-		$('#' + this.widgetBaseClass + '_' + this.options.root).append(this._createUL(this.options.root));
+		$('#' + this.widgetBaseClass + '_' + this.options.root).append(this._createUL(this.options.root, $('>ul>li', $elem)));
 	},
 	
-	_createUL: function(hash) {
+	_createUL: function(hash, li) {
 		if (!this._data[hash]) return '';
 		
-		var li = [],
+		var sorted = [],
 			self = this,
 			subdirs = this._data[hash].subdirs;
+		
+		var parentdata, parentLi = $(li).parent().closest('li[id]', this.element);
+		if (parentLi.size() && this.options.getPrefix) {
+			parentdata = this._data[parentLi.attr('id').substr((this.widgetBaseClass + '_').length)];
+		}
 		
 		for (var i = 0; i < subdirs.length; i++) {
 			
 			var hash = $.isString(subdirs[i]) ? subdirs[i] : subdirs[i].hash;
 			var data = this._data[hash];
-			var html = this._createLI(hash, data.name, data.subdirs.length > 0 ? '' : this.widgetBaseClass + '-nosubdirs');
+			var html = this._createLI(hash, data.name, data.subdirs.length > 0 ? '' : this.widgetBaseClass + '-nosubdirs', this.options.getPrefix ? this.options.getPrefix(data, parentdata) : '');
 			
-			var index = BinarySearch(li, data, function(needle, item, index) {
+			var index = BinarySearch(sorted, data, function(needle, item, index) {
 				return self.options.comparator(needle, item[0]);
 			});
 			
 			if (index < 0) {
-				li.splice(Math.abs(index)-1, 0, [data, html]);
+				sorted.splice(Math.abs(index)-1, 0, [data, html]);
 			}
 			else {
-				li.splice(index, 0, [data, html]);
+				sorted.splice(index, 0, [data, html]);
 			}
 		}
 		
 		var finalHTML = '';
-		for (var i = 0; i < li.length; i++) {
-			finalHTML += li[i][1];
+		for (var i = 0; i < sorted.length; i++) {
+			finalHTML += sorted[i][1];
 		}
 		
 		return '<ul>' + finalHTML + '</ul>';
 	},
 	
-	_createLI: function(hash, name, classes) {
-		return '<li '+ ($.isString(classes) ? ' class="' + classes + '" ' : '') +' id="' + this.widgetBaseClass + '_' + hash.htmlencode() + '"><div class="' + this.widgetBaseClass + '-expander"><div class="' + this.widgetBaseClass + '-icon"><span>' + name.htmlencode() + '</span></div></div></li>';
+	_createLI: function(hash, name, classes, prefix) {
+		return '<li '+ ($.isString(classes) ? ' class="' + classes + '" ' : '') +' id="' + this.widgetBaseClass + '_' + hash.htmlencode() + '"><div class="' + this.widgetBaseClass + '-expander"><div class="' + this.widgetBaseClass + '-icon"><span class="' + this.widgetBaseClass + '-prefix">'+ ($.isString(prefix) && prefix != '' ? prefix.htmlencode() + ' ' : '') +'</span><span>' + name.htmlencode() + '</span></div></div></li>';
 	},
 	
 	resort: function() {
 		var self = this, subUL,
-			stack = [ $('>ul', this.element).get(0) ], ul;
+			stack = [ $('>ul>li>ul', this.element).get(0) ], ul;
 		
 		while ($.isDefined(ul = stack.pop())) {
 			var sorted = [], original = $('>li', ul);
 			
 			$('>li', ul).each(function(){
-				var hash = this.id.substr((self.widgetBaseClass + '_').length);
-				var data = self._data[hash];
+				var $this = $(this),
+					hash = $this.attr('id').substr((self.widgetBaseClass + '_').length),
+					data = self._data[hash];
 				
-				if (subUL = $('>ul', this))
+				if (self.options.getPrefix) {
+					var parentLi = $this.parent().closest('li[id]', self.element);
+					if (parentLi.size()) {
+						var parenthash = parentLi.attr('id').substr((self.widgetBaseClass + '_').length);
+						var prefix = self.options.getPrefix(data, self._data[parenthash]);
+						$('span:eq(0)', $this).text($.isString(prefix) ? prefix + ' ' : '');
+					}
+				}
+				
+				if (subUL = $('>ul', $this))
 					stack.push(subUL);
 				
 				var index = BinarySearch(sorted, data, function(needle, item, index) {
