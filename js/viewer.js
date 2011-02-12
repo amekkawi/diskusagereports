@@ -193,6 +193,7 @@ $.extend(Viewer.prototype, {
 				dataType: 'json',
 				error: function(xhr, status, ex) {
 					self._lastHash = self._options.hash;
+					self._lastSection = self._lastSectionOptions = null;
 					self._data = null;
 					
 					switch (status) {
@@ -235,6 +236,7 @@ $.extend(Viewer.prototype, {
 					$('#RightColumn').show();
 					
 					self._lastHash = self._options.hash;
+					self._lastSection = self._lastSectionOptions = null;
 					self._data = data;
 					self._display();
 					
