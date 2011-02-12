@@ -667,12 +667,11 @@ $.extend(Viewer.prototype, {
 				}
 				
 				var html = '';
-				
 				html += '<td>' + data[key].name.htmlencode() + '</td>';
 				html += '<td align="center">' + ext + '</td>';
 				html += '<td align="right">' + FormatBytes(data[key].size) + '</td>';
 				html += '<td>' + data[key].date + ' ' + data[key].time + '</td>';
-				html += '<td><a href="#' + this._createLocation({ hash: data[key].hash, section: 'files' }).htmlencode() + '">' + data[key].path.htmlencode() + '</a></td>';
+				html += '<td><a href="#' + this._createLocation({ hash: data[key].hash, section: 'files' }).htmlencode() + '">' + data[key].path.replace(new RegExp(RegExp.escape(this._options.settings.ds), 'g'), this._options.settings.ds+' ').htmlencode() + '</a></td>';
 				
 				var index = BinarySearch(rows, [ sortValue, data[key].name ], function(needle, item, index) {
 					var modifier = self._options.top100SortRev ? -1 : 1;
