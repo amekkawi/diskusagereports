@@ -188,8 +188,10 @@
 				$('#LeftColumnScroller').height($('#LeftColumnBorder').height() - $('#LeftColumnScroller').position().top - leftColumnScrollerHeightDiff);
 			}
 			
-			var reportHeightDiff = $('#Report').outerHeight(true) - $('#Report').height();
-			$('#Report').height($('#RightColumn').height() - reportHeightDiff - $('#Report').position().top);
+			if ($('#Report').is(':visible')) {
+				var reportHeightDiff = $('#Report').outerHeight(true) - $('#Report').height();
+				$('#Report').height($('#RightColumn').height() - reportHeightDiff - $('#Report').position().top);
+			}
 		};
 		
 		$(window).bind("resize", function() {
