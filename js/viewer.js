@@ -222,6 +222,22 @@ $.extend(Viewer.prototype, {
 						self._tree.tree('select', self._options.hash);
 					}
 				},
+				success: function(data, status, xhr) {
+					// Set the loaded data.
+					self._data = data;
+					
+					if (self._options.directories) {
+						// Determine the path to the selected directory.
+						var hashPath = [];
+						for (var i = 0; i < data.parents.length; i++) {
+							hashPath.push(data.parents[i].hash);
+						}
+						hashPath.push(self._options.hash);
+						
+						// Load that path in the tree.
+						self._tree.tree('select', hashPath);
+					}
+				},
 				complete: function() {
 					self._lastHash = self._options.hash;
 					self._lastSection = self._lastSectionOptions = null;
@@ -240,22 +256,6 @@ $.extend(Viewer.prototype, {
 					
 					if ($.isFunction(completeFn)) {
 						completeFn();
-					}
-				},
-				success: function(data, status, xhr) {
-					// Set the loaded data.
-					self._data = data;
-					
-					if (self._options.directories) {
-						// Determine the path to the selected directory.
-						var hashPath = [];
-						for (var i = 0; i < data.parents.length; i++) {
-							hashPath.push(data.parents[i].hash);
-						}
-						hashPath.push(self._options.hash);
-						
-						// Load that path in the tree.
-						self._tree.tree('select', hashPath);
 					}
 				}
 			});
