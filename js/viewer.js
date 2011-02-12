@@ -491,7 +491,7 @@ $.extend(Viewer.prototype, {
 		
 		for (var key in data) {
 			var label = getValue(data[key], 'label', key);
-			var sortValue = sortLabel = getValue(data[key], 'sortlabel', key).toLowerCase();
+			var sortValue = sortLabel = getValue(data[key], 'sortlabel', key);
 			var bytes = getValue(data[key], 'bytes', key);
 			var num = getValue(data[key], 'num', key);
 			
