@@ -168,6 +168,7 @@ a {
 	width: 8px;
 	height: 100%;
 	cursor: move;
+	cursor: ew-resize;
 	background-image: url(../images/resizer.png);
 	background-position: center center;
 	background-repeat: no-repeat;
