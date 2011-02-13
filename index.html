@@ -136,6 +136,8 @@
 								
 								// Force a resize since the viewer is now displayed.
 								document.resizeWindow();
+								
+								$('#LeftColumnScroller').scrollIntoView($('#DirectoryTree li.selected'));
 							});
 						
 						}, debugTimeout); // Debugging timeout
