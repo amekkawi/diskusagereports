@@ -177,7 +177,7 @@ $fread = 0;
 $fpercent = 0;
 
 // Read in all lines.
-while (($line = fgets($fh, $args['maxlinelength']+1)) !== FALSE) {
+while (($line = fgets($fh, $args['maxlinelength']+2)) !== FALSE) {
 	$fread += strlen($line);
 	$line = trim($line);
 	
@@ -186,29 +186,31 @@ while (($line = fgets($fh, $args['maxlinelength']+1)) !== FALSE) {
 		echo $fpercent . "% - " . number_format(memory_get_usage()) .  "\n";
 	}
 	
+	echo strlen($line)."\n";
+	
 	// Skip blank lines
 	if ($line == '') { }
 	
 	elseif (strlen($line) > $args['maxlinelength']) {
-		array_push($errors, array('invalidline', -1, $line));
+		array_push($errors, array('invalidline', 'maxlinelength', $line));
 	}
 	
 	// Validate the line up to the parent dir column.
 	elseif (!preg_match(LINE_REGEX, $line)) {
-		array_push($errors, array('invalidline', -2, $line));
+		array_push($errors, array('invalidline', 'regex', $line));
 	}
 	
 	// Split the line and validate its length;
 	elseif (count($split = explode($args['delim'], rtrim($line, "\n\r"), 8)) != 7) {
-		array_push($errors, "Invalid column count (".count($split)."):" . $split);
+		array_push($errors, array('invalidline', 'columncount', $split));
 	}
 	
 	// Make sure the parent and file name are at least one character.
 	elseif (strlen($split[COL_PARENT]) == 0) {
-		array_push($errors, array('invalidline', COL_PARENT, $split));
+		array_push($errors, array('invalidline', 'column', 'parent', COL_PARENT, $split));
 	}
 	elseif (strlen($split[COL_NAME]) == 0) {
-		array_push($errors, array('invalidline', COL_NAME, $split));
+		array_push($errors, array('invalidline', 'column', 'name', COL_NAME, $split));
 	}
 	
 	else {
@@ -384,6 +386,8 @@ if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], 'settings'), j
 }
 
 fclose($fh);
+
+exit(count($errors));
 
 function GetExtension($name) {
 	$name = strtolower($name);

@@ -115,7 +115,56 @@
 					}
 					
 					if (settings.errors.length > 0) {
+						
+						// Display the number of errors.
 						$('#ErrorCount').text('Errors: ' + settings.errors.length).disableTextSelection().show();
+						
+						// Populate the error list.
+						for (var i = 0; i < settings.errors.length; i++) {
+							var detail = '',
+								errorTitle = 'Unknown Error (' + settings.errors[i] + ')';
+							
+							switch (settings.errors[i][0]) {
+								case 'invalidline':
+									errorTitle = 'Invalid Line - ';
+									switch (settings.errors[i][1]) {
+										case 'regex':
+											errorTitle += 'Wrong Format';
+											detail += '<div style="overflow: auto; width: 100%;">'+ settings.errors[i][2].htmlencode() +'</div>';
+											break;
+										case 'maxlinelength':
+											errorTitle += 'Line Too Long (' + settings.errors[i][2].length + ' characters)';
+											detail += '<div style="overflow: auto; width: 100%;">'+ settings.errors[i][2].htmlencode() +'</div>';
+											break;
+										case 'columncount':
+											errorTitle += 'Wrong Column Count (' + settings.errors[i][2].length + ')';
+											detail += '<table class="styledtable" border="1" cellspacing="0" cellpadding="4"><tbody><tr class="odd">';
+											for (var c = 0; c < settings.errors[i][2].length; c++) {
+												detail += '<td>' + settings.errors[i][2][c].htmlencode() + '</td>';
+											}
+											detail += '</tr></tbody></table>';
+											break;
+										case 'column':
+											errorTitle += 'Bad Value for Column \'' + settings.errors[i][2] + '\'';
+											detail += '<table class="styledtable" border="1" cellspacing="0" cellpadding="4"><tbody><tr class="odd">';
+											for (var c = 0; c < settings.errors[i][4].length; c++) {
+												detail += '<td ' + (c == settings.errors[i][3] ? ' style="background-color: #FF0;"' : '') + '>' + settings.errors[i][4][c].htmlencode() + '</td>';
+											}
+											detail += '</tr></tbody></table>';
+											break;
+										default:
+											errorTitle += 'Unknown Error (' + settings.errors[i][1] + ')';
+									}
+									errorTitle += ':';
+									break;
+								case 'writefail':
+									errorTitle = 'Error Writing File (' + settings.errors[i][2].htmlencode() + ') for:'
+									detail += '<div style="overflow: auto; width: 100%;">'+ settings.errors[i][1].htmlencode() +'</div>';
+									break;
+							}
+							var errorItem = $('<div>').addClass('errors-item').html('<b>' + errorTitle.htmlencode() + '</b>').appendTo($('#ErrorsList'));
+							if (detail != '') errorItem.append(detail);
+						}
 					}
 					
 					$('#Created').text(' on ' + settings.created);
@@ -189,6 +238,14 @@
 			var containerHeightDiff = $('#Container').outerHeight(true) - $('#Container').height();
 			$('#Container').height($('body').height() - containerHeightDiff - $('#Container').offset().top - footerHeight - 5);
 			
+			if ($('#Errors').is(':visible')) {
+				var errorsHeightDiff = $('#ErrorsInner').outerHeight(true) - $('#ErrorsInner').height();
+				$('#ErrorsInner').height($('#Errors').height() - errorsHeightDiff);
+				
+				var errorsScrollerHeightDiff = $('#ErrorsScroller').outerHeight(true) - $('#ErrorsScroller').height();
+				$('#ErrorsScroller').height($('#ErrorsInner').height() - errorsScrollerHeightDiff - $('#ErrorsScroller').position().top);
+			}
+				
 			if ($('#LeftColumn').is(':visible')) {
 				var leftColumnBorderHeightDiff = $('#LeftColumnBorder').outerHeight(true) - $('#LeftColumnBorder').height();
 				$('#LeftColumnBorder').height($('#LeftColumn').height() - leftColumnBorderHeightDiff);
@@ -214,6 +271,14 @@
 			});
 		
 		document.resizeWindow();
+		
+		$('#ErrorCount').click(function() {
+			$('#Errors, #Dimmer').show();
+			document.resizeWindow();
+		});
+		$('#ErrorsTitle div').click(function() {
+			$('#Errors, #Dimmer').hide();
+		});
 		
 		$('#LeftColumnResizer').disableTextSelection().mousedown(function(evDown){
 			var startX = evDown.screenX;
@@ -242,8 +307,19 @@
 
 <div style="position: relative;"><div id="ErrorCount" style="display: none;"></div></div>
 
+<div id="Dimmer"></div>
+
 <div id="Container">
 	<div id="Loading"></div>
+	
+	<div id="Errors">
+		<div id="ErrorsInner">
+			<div id="ErrorsTitle"><div>Close</div>Errors While Processing Report:</div>
+			<div id="ErrorsScroller">
+				<div id="ErrorsList"></div>
+			</div>
+		</div>
+	</div>
 	
 	<div id="Columns" style="display: none;">
 		
