@@ -60,15 +60,18 @@ $.widget("ui.tree", {
 	
 	open: function(hash, li) {
 		if (!li) li = $('#' + this.widgetBaseClass + '_' + hash);
+		else li = $(li);
 		
-		if ($('> ul', li).size() != 0) {
-			li.addClass(this.widgetBaseClass + '-open');
-			this.resort($('> ul', li));
-			$('> ul', li).show();
-		}
-		else {
-			li.addClass(this.widgetBaseClass + '-open');
-			li.append(this._createUL(hash));
+		if (!li.hasClass(this.widgetBaseClass + '-open') && !li.hasClass(this.widgetBaseClass + '-nosubdirs')) {
+			if ($('> ul', li).size() != 0) {
+				li.addClass(this.widgetBaseClass + '-open');
+				this.resort($('> ul', li));
+				$('> ul', li).show();
+			}
+			else {
+				li.addClass(this.widgetBaseClass + '-open');
+				li.append(this._createUL(hash));
+			}
 		}
 	},
 	
