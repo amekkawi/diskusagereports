@@ -24,10 +24,12 @@
 <script type="text/javascript" src="js/external/jquery.ui.position.js"></script>
 <script type="text/javascript" src="js/external/jquery.sortelements.js"></script>
 <script type="text/javascript" src="js/external/jquery.json.js"></script>
+<script type="text/javascript" src="js/external/jquery.scrollbarwidth.js"></script>
 <script type="text/javascript" src="js/external/rsh.js"></script>
 
 <!-- Disk Usage Reporting Scripts -->
 <script type="text/javascript" src="js/general.js"></script>
+<script type="text/javascript" src="js/jquery.scrollintoview.js"></script>
 <script type="text/javascript" src="js/jquery.ui.tree.js"></script>
 <script type="text/javascript" src="js/viewer.js"></script>
 
@@ -64,6 +66,10 @@
 	});
 	
 	$(function() {
+		
+		// Calculate the width (which caches it).
+		$.scrollbarWidth();
+		
 		var debugTimeout = 50;
 		$('#Loading').text('Loading Report Settings...');
 		

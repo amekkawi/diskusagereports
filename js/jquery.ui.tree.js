@@ -50,6 +50,8 @@ $.widget("ui.tree", {
 			}
 			
 			if (this.options.expandOnSelect) this.open(hash, li);
+			
+			$('#LeftColumnScroller').scrollIntoView(li);
 		}
 	},
 	
