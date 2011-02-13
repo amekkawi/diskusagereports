@@ -1,4 +1,3 @@
- * Scroll to tree nodes when they are not in view.
  * Allow for errors to be viewed in report.
  * Allow for other languages
  * Figure out a way to make sure 'File Types' list doesn't get too long.
@@ -6,6 +5,7 @@
  * Add paging to the file list.
  * Automatically skip tree view if it gets over a certian size.
  
+ X Scroll to tree nodes when they are not in view.
  X Allow directory tree to be resized.
  X Add byte/num sorting to the tree.
  X Sorting for 'Range' in file sizes tab seems to be wrong.
