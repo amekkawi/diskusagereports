@@ -29,6 +29,7 @@ $args = array(
 	'totalsdepth' => 6,
 	'top100depth' => 3,
 	'maxlinelength' => 1024,
+	'maxtreesize' => 800 * 1024,
 	'notree' => false,
 	'delim' => "\x00",
 	'ds' => DIRECTORY_SEPARATOR
@@ -56,22 +57,29 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 			$args['delim'] = $shifted = array_shift($cliargs);
 			break;
 		case '-t':
-			$args['totalsdepth'] = $shifted = array_shift($cliargs);
+			$args['totalsdepth'] = intval($shifted = array_shift($cliargs));
+			if (!preg_match('/^[0-9]+$/', $shifted)) echo "$cliarg must be followed by a number.\n"; exit(1);
 			break;
 		case '-nt':
 			$args['notree'] = true;
+			break;
+		case '-mt':
+			$args['maxtreesize'] = intval($shifted = array_shift($cliargs));
+			if (!preg_match('/^[0-9]+$/', $shifted)) echo "$cliarg must be followed by a number.\n"; exit(1);
 			break;
 		case '-ds':
 			$args['ds'] = $shifted = array_shift($cliargs);
 			break;
 		case '-td':
-			$args['top100depth'] = $shifted = array_shift($cliargs);
+			$args['top100depth'] = intval($shifted = array_shift($cliargs));
+			if (!preg_match('/^[0-9]+$/', $shifted)) echo "$cliarg must be followed by a number.\n"; exit(1);
 			break;
 		case '-n':
 			$args['name'] = $shifted = array_shift($cliargs);
 			break;
 		case '-l':
-			$args['maxlinelength'] = $shifted = array_shift($cliargs);
+			$args['maxlinelength'] = intval($shifted = array_shift($cliargs));
+			if (!preg_match('/^[0-9]+$/', $shifted)) echo "$cliarg must be followed by a number.\n"; exit(1);
 			break;
 		default:
 			$args['reportdir'] = $cliarg;
@@ -170,6 +178,7 @@ $fstat = fstat($fh);
 $dirStack = array();
 $dirLookup = array();
 $dirLookupStack = array();
+$dirLookupSize = 0;
 $errors = array();
 $relativePath = '';
 $root = null;
@@ -185,8 +194,6 @@ while (($line = fgets($fh, $args['maxlinelength']+2)) !== FALSE) {
 		$fpercent = floor($fread / $fstat['size'] * 100);
 		echo $fpercent . "% - " . number_format(memory_get_usage()) .  "\n";
 	}
-	
-	echo strlen($line)."\n";
 	
 	// Skip blank lines
 	if ($line == '') { }
@@ -217,7 +224,13 @@ while (($line = fgets($fh, $args['maxlinelength']+2)) !== FALSE) {
 		// Check if we have left the current directory in the stack.
 		while (count($dirStack) > 1 && $dirStack[count($dirStack)-1]['path'] != $split[COL_PARENT]) {
 			$pop = array_pop($dirStack);
-			array_pop($dirLookupStack);
+			$dlpop = array_pop($dirLookupStack);
+			
+			// Increment the directory lookup size.
+			$dirLookupSize += strlen(json_encode($dlpop));
+			if (!$args['notree'] && $dirLookupSize > $args['maxtreesize']) {
+				$args['notree'] = true;
+			}
 			
 			if (DEBUG) echo 'Exit Dir: ' . $pop['path'] . "\n";
 			
