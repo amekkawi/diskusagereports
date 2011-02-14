@@ -96,6 +96,7 @@ a {
 }
 
 #Dimmer {
+	display: none;
 	position: absolute;
 	width: 100%;
 	height: 100%;
@@ -147,6 +148,7 @@ a {
 }
 
 #Errors {
+	display: none;
 	position: absolute;
 	left: 0;
 	top: 0;
