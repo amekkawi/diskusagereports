@@ -70,45 +70,115 @@
 		// Calculate the width (which caches it).
 		$.scrollbarWidth();
 		
-		var debugTimeout = 50;
+		var settings,
+			ajaxStage,
+			debugTimeout = 50;
+		
 		$('#Loading').text('Loading Report Settings...');
 		
+		var finalSetup = function(directories){
+			$('#Loading').text('Displaying Report...');
+			setTimeout(function(){ // Debugging timeout
+				
+				document.viewer = new Viewer({
+					directories: directories,
+					settings: settings,
+					report: window.location.search.substring(1)
+				});
+				
+				document.viewer.display(dhtmlHistory.getCurrentLocation(), function(){
+					$('#Loading').hide();
+					$('#Columns').show();
+					
+					// Force a resize since the viewer is now displayed.
+					document.resizeWindow();
+					
+					$('#LeftColumnScroller').scrollIntoView($('#DirectoryTree li.selected'));
+				});
+			
+			}, debugTimeout); // Debugging timeout
+		};
+		
+		var skipDirectoryList = function(){
+			settings.directorytree = false;
+			if (document.xhr_directories) document.xhr_directories.abort();
+			$('#LeftColumn, #LeftColumnResizer').hide();
+			finalSetup(null);
+			return false;
+		};
+		
 		var ajaxErrorHandler = function(xhr, status, err){
+			var parts = [];
 			switch (status) {
 				case 'parsererror':
-					$('#Loading').append($('<div>').text('Error: Data is invalid or could not be parsed.'));
+					parts.push('Error: Data is invalid or could not be parsed. ');
+					if (ajaxStage == 'directories') {
+						parts.push($('<a href="#">Skip the Directory List</a>').click(skipDirectoryList));
+					}
 					break;
 				case 'timeout':
-					$('#Loading').append($('<div>').text('Error: Download took to long and timed out. Reload to try again.'));
+					parts.push('Error: Download took to long and timed out. Reload to try again');
+					if (ajaxStage == 'directories') {
+						parts.push(' or ');
+						parts.push($('<a href="#">skip the directory list</a>').click(skipDirectoryList));
+					}
+					parts.push('.');
 					break;
 				case 'error':
 					switch (xhr.status) {
 						case 404:
-							$('#Loading').append($('<div>').text('Error: Not found. The report may not exist.'));
+							parts.push('Error: Not found. ');
+							if (ajaxStage == 'directories') {
+								parts.push('The directory list may not exist. ');
+								if (ajaxStage == 'directories') {
+									parts.push($('<a href="#">Skip the Directory List</a>').click(skipDirectoryList));
+								}
+							}
+							else {
+								parts.push('The report may not exist.');
+							}
 							break;
 						case 401:
-							$('#Loading').append($('<div>').text('Error: A username and password is required. Reload to try again.'));
+							parts.push('Error: A username and password is required. Reload to try again.');
 							break;
 						default:
-							$('#Loading').append($('<div>').text('Error: An unknown error occurred (' + xhr.status + '). Reload to try again.'));
+							parts.push('Error: An unknown error occurred (' + xhr.status + '). Reload to try again');
+							if (ajaxStage == 'directories') {
+								parts.push(' or ');
+								parts.push($('<a href="#">skip the directory list</a>').click(skipDirectoryList));
+							}
+							parts.push('.');
 							$.dumpWindow(xhr);
 					}
 					break;
 				default:
-					$('#Loading').append($('<div>').text('Error: An unknown error occurred. Reload to try again.'));
+					parts.push('Error: An unknown error occurred. Reload to try again');
+					if (ajaxStage == 'directories') {
+						parts.push(' or ');
+						parts.push($('<a href="#">skip the directory list</a>').click(skipDirectoryList));
+					}
+					parts.push('.');
+			}
+			
+			var newMsg = $('<div>').appendTo($('#Loading'));
+			for (var i = 0; i < parts.length; i++) {
+				newMsg.append(parts[i]);
 			}
 		};
 		
 		setTimeout(function(){ // Debugging timeout
+			
+			ajaxStage = 'settings';
 		
 			// Load the settings file.
-			$.ajax({
+			document.xhr_settings = $.ajax({
 				cache: false,
 				url: document.reportsBaseURL + window.location.search.substring(1) + '/settings',
 				type: 'GET',
 				dataType: 'json',
 				error: ajaxErrorHandler,
-				success: function(settings, status, xhr){
+				success: function(data, status, xhr){
+					settings = data;
 					
 					if (settings.name) {
 						$('#Title > span').append(' for: ').append($('<b>').text(settings.name));
@@ -169,48 +239,39 @@
 					
 					$('#Created').text(' on ' + settings.created);
 					
-					var finalSetup = function(directories){
-						$('#Loading').text('Displaying Report...');
-						setTimeout(function(){ // Debugging timeout
-							
-							document.viewer = new Viewer({
-								directories: directories,
-								settings: settings,
-								report: window.location.search.substring(1)
-							});
-							
-							document.viewer.display(dhtmlHistory.getCurrentLocation(), function(){
-								$('#Loading').hide();
-								$('#Columns').show();
-								
-								// Force a resize since the viewer is now displayed.
-								document.resizeWindow();
-								
-								$('#LeftColumnScroller').scrollIntoView($('#DirectoryTree li.selected'));
-							});
-						
-						}, debugTimeout); // Debugging timeout
-					};
-					
 					if (settings.directorytree) {
 						$('#Loading').text('Loading Directory List for Report...');
 						
 						setTimeout(function(){ // Debugging timeout
 							
+							document.timeout_skip = setTimeout(function(){
+								$('#Loading').append($('<div id="DirectoryListSkip"></div>').text('Taking too long? ').append($('<a href="#">Skip the Directory List</a>').click(skipDirectoryList)));
+							}, 1000);
+							
+							ajaxStage = 'directories';
+							
 							// Load the directory lookup file.
-							$.ajax({
+							document.xhr_directories = $.ajax({
 								cache: false,
 								url: document.reportsBaseURL + window.location.search.substring(1) + '/directories',
 								type: 'GET',
 								dataType: 'json',
-								error: ajaxErrorHandler,
+								error: function(xhr, status, err) {
+									// If directorytree is false then the user is asking to skip it.
+									if (settings.directorytree)
+										ajaxErrorHandler(xhr, status, err);
+								},
 								success: function(directories, status, xhr){
 									if ($.isUndefined(directories[settings.root])) {
 										$('#Loading').append($('<div>').text('Error: The root directory could not be found in the directory list.'));
 									}
-									else {
-										finalSetup(directories)
+									else if (settings.directorytree) {
+										finalSetup(directories);
 									}
+								},
+								complete: function() {
+									if (document.timeout_skip) clearTimeout(document.timeout_skip);
+									$('#DirectoryListSkip').remove();
 								}
 							});
 							
@@ -264,8 +325,8 @@
 		
 		$(window)
 			.resize(function(){
-				if (document.resizeTimerID) clearTimeout(document.resizeTimerID);
-				document.resizeTimerID = setTimeout(function() {
+				if (document.timeout_resize) clearTimeout(document.timeout_resize);
+				document.timeout_resize = setTimeout(function() {
 					document.resizeWindow();
 				}, 100);
 			});
@@ -287,8 +348,8 @@
 			$(document).bind('mousemove.resizer', function(evMove){
 				$('#LeftColumn').width(Math.max(100, Math.min($('#Columns').width() - 200, origWidth + evMove.screenX - startX)));
 				
-				if (document.resizeTimerID) clearTimeout(document.resizeTimerID);
-				document.resizeTimerID = setTimeout(function() {
+				if (document.timeout_resize) clearTimeout(document.timeout_resize);
+				document.timeout_resize = setTimeout(function() {
 					document.resizeWindow();
 				}, 100);
 			});
