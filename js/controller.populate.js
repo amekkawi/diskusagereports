@@ -81,7 +81,7 @@ $.extend(Controller.prototype, {
 			this._displayTotalsTable($('#SubDirs'), subdirs, function(data, field) {
 				switch (field) {
 					case 'label':
-						if (data.isfiles) return '<i>Files in this Directory</i>';
+						if (data.isfiles) return '<i>Files in this directory</i>';
 						return '<a href="#' + self._createLocation({ hash: data.hash }).htmlencode() + '">' + data.name.htmlencode() + '</a>';
 					case 'sortlabel':
 						if (data.isfiles) return '';
