@@ -6,12 +6,6 @@
 
 <!-- Disk Usage Reports Version 1.0 Beta -->
 
-<script type="text/javascript">
-	// Path to the directory that contains the reports.
-	// Example: document.reportsBaseURL = '/path/to/me/';
-	document.reportsBaseURL = 'data/';
-</script>
-
 <link rel="shortcut icon" href="images/favicon.png" type="image/png" /> 
 <link href="css/jquery.ui.tree.css" type="text/css" rel="stylesheet" />
 <link href="css/layout.css" type="text/css" rel="stylesheet" />
@@ -27,17 +21,15 @@
 <script type="text/javascript" src="js/external/jquery.scrollbarwidth.js"></script>
 <script type="text/javascript" src="js/external/rsh.js"></script>
 
-<!-- Disk Usage Reporting Scripts -->
+<!-- Helpers & UIs -->
 <script type="text/javascript" src="js/general.js"></script>
 <script type="text/javascript" src="js/jquery.scrollintoview.js"></script>
 <script type="text/javascript" src="js/jquery.ui.tree.js"></script>
-<script type="text/javascript" src="js/viewer.js"></script>
 
-<style type="text/css">
-	tbody th {
-		text-align: right;
-	}
-</style>
+<!-- Controller -->
+<script type="text/javascript" src="js/controller.js"></script>
+<script type="text/javascript" src="js/controller.loading.js"></script>
+<script type="text/javascript" src="js/controller.populate.js"></script>
 
 <!-- Disk Usage Reporting Scripts -->
 <script type="text/javascript">
@@ -60,305 +52,25 @@
 		});
 	};
 	
-	// Set up history handling.
-	$(document).bind('dhtmlhistory', function(e, location, data) {
-		if (document.viewer) document.viewer.display(location);
-	});
-	
 	$(function() {
+		var controller = document.controller = new Controller();
 		
-		// Calculate the width (which caches it).
-		$.scrollbarWidth();
+		// Optional settings
+		// =============================================================
 		
-		var settings,
-			ajaxStage,
-			debugTimeout = 50;
-		
-		$('#Loading').text('Loading Report Settings...');
-		
-		var finalSetup = function(directories){
-			$('#Loading').text('Displaying Report...');
-			setTimeout(function(){ // Debugging timeout
-				
-				document.viewer = new Viewer({
-					directories: directories,
-					settings: settings,
-					report: window.location.search.substring(1)
-				});
-				
-				document.viewer.display(dhtmlHistory.getCurrentLocation(), function(){
-					$('#Loading').hide();
-					$('#Columns').show();
-					
-					// Force a resize since the viewer is now displayed.
-					document.resizeWindow();
-					
-					$('#LeftColumnScroller').scrollIntoView($('#DirectoryTree li.selected'));
-				});
-			
-			}, debugTimeout); // Debugging timeout
-		};
-		
-		var skipDirectoryList = function(){
-			settings.directorytree = false;
-			if (document.xhr_directories) document.xhr_directories.abort();
-			$('#LeftColumn, #LeftColumnResizer').hide();
-			finalSetup(null);
-			return false;
-		};
-		
-		var ajaxErrorHandler = function(xhr, status, err){
-			var parts = [];
-			switch (status) {
-				case 'parsererror':
-					parts.push('Error: Data is invalid or could not be parsed. ');
-					if (ajaxStage == 'directories') {
-						parts.push($('<a href="#">Skip the Directory List</a>').click(skipDirectoryList));
-					}
-					break;
-				case 'timeout':
-					parts.push('Error: Download took to long and timed out. Reload to try again');
-					if (ajaxStage == 'directories') {
-						parts.push(' or ');
-						parts.push($('<a href="#">skip the directory list</a>').click(skipDirectoryList));
-					}
-					parts.push('.');
-					break;
-				case 'error':
-					switch (xhr.status) {
-						case 404:
-							parts.push('Error: Not found. ');
-							if (ajaxStage == 'directories') {
-								parts.push('The directory list may not exist. ');
-								if (ajaxStage == 'directories') {
-									parts.push($('<a href="#">Skip the Directory List</a>').click(skipDirectoryList));
-								}
-							}
-							else {
-								parts.push('The report may not exist.');
-							}
-							break;
-						case 401:
-							parts.push('Error: A username and password is required. Reload to try again.');
-							break;
-						default:
-							parts.push('Error: An unknown error occurred (' + xhr.status + '). Reload to try again');
-							if (ajaxStage == 'directories') {
-								parts.push(' or ');
-								parts.push($('<a href="#">skip the directory list</a>').click(skipDirectoryList));
-							}
-							parts.push('.');
-							$.dumpWindow(xhr);
-					}
-					break;
-				default:
-					parts.push('Error: An unknown error occurred. Reload to try again');
-					if (ajaxStage == 'directories') {
-						parts.push(' or ');
-						parts.push($('<a href="#">skip the directory list</a>').click(skipDirectoryList));
-					}
-					parts.push('.');
-			}
-			
-			var newMsg = $('<div>').appendTo($('#Loading'));
-			for (var i = 0; i < parts.length; i++) {
-				newMsg.append(parts[i]);
-			}
-		};
-		
-		setTimeout(function(){ // Debugging timeout
-			
-			ajaxStage = 'settings';
-		
-			// Load the settings file.
-			document.xhr_settings = $.ajax({
-				cache: false,
-				url: document.reportsBaseURL + window.location.search.substring(1) + '/settings',
-				type: 'GET',
-				dataType: 'json',
-				error: ajaxErrorHandler,
-				success: function(data, status, xhr){
-					settings = data;
-					
-					if (settings.name) {
-						$('#Title > span').append(' for: ').append($('<b>').text(settings.name));
-					}
-					
-					if (settings.errors.length > 0) {
-						
-						// Display the number of errors.
-						$('#ErrorCount').text('Errors: ' + settings.errors.length).disableTextSelection().show();
-						
-						// Populate the error list.
-						for (var i = 0; i < settings.errors.length; i++) {
-							var detail = '',
-								errorTitle = 'Unknown Error (' + settings.errors[i] + ')';
-							
-							switch (settings.errors[i][0]) {
-								case 'invalidline':
-									errorTitle = 'Invalid Line - ';
-									switch (settings.errors[i][1]) {
-										case 'regex':
-											errorTitle += 'Wrong Format';
-											detail += '<div style="overflow: auto; width: 100%;">'+ settings.errors[i][2].htmlencode() +'</div>';
-											break;
-										case 'maxlinelength':
-											errorTitle += 'Line Too Long (' + settings.errors[i][2].length + ' characters)';
-											detail += '<div style="overflow: auto; width: 100%;">'+ settings.errors[i][2].htmlencode() +'</div>';
-											break;
-										case 'columncount':
-											errorTitle += 'Wrong Column Count (' + settings.errors[i][2].length + ')';
-											detail += '<table class="styledtable" border="1" cellspacing="0" cellpadding="4"><tbody><tr class="odd">';
-											for (var c = 0; c < settings.errors[i][2].length; c++) {
-												detail += '<td>' + settings.errors[i][2][c].htmlencode() + '</td>';
-											}
-											detail += '</tr></tbody></table>';
-											break;
-										case 'column':
-											errorTitle += 'Bad Value for Column \'' + settings.errors[i][2] + '\'';
-											detail += '<table class="styledtable" border="1" cellspacing="0" cellpadding="4"><tbody><tr class="odd">';
-											for (var c = 0; c < settings.errors[i][4].length; c++) {
-												detail += '<td ' + (c == settings.errors[i][3] ? ' style="background-color: #FF0;"' : '') + '>' + settings.errors[i][4][c].htmlencode() + '</td>';
-											}
-											detail += '</tr></tbody></table>';
-											break;
-										default:
-											errorTitle += 'Unknown Error (' + settings.errors[i][1] + ')';
-									}
-									errorTitle += ':';
-									break;
-								case 'writefail':
-									errorTitle = 'Error Writing File (' + settings.errors[i][2].htmlencode() + ') for:'
-									detail += '<div style="overflow: auto; width: 100%;">'+ settings.errors[i][1].htmlencode() +'</div>';
-									break;
-							}
-							var errorItem = $('<div>').addClass('errors-item').html('<b>' + errorTitle.htmlencode() + '</b>').appendTo($('#ErrorsList'));
-							if (detail != '') errorItem.append(detail);
-						}
-					}
-					
-					$('#Created').text(' on ' + settings.created);
-					
-					if (settings.directorytree) {
-						$('#Loading').text('Loading Directory List for Report...');
-						
-						setTimeout(function(){ // Debugging timeout
-							
-							document.timeout_skip = setTimeout(function(){
-								$('#Loading').append($('<div id="DirectoryListSkip"></div>').text('Taking too long? ').append($('<a href="#">Skip the Directory List</a>').click(skipDirectoryList)));
-							}, 1000);
-							
-							ajaxStage = 'directories';
-							
-							// Load the directory lookup file.
-							document.xhr_directories = $.ajax({
-								cache: false,
-								url: document.reportsBaseURL + window.location.search.substring(1) + '/directories',
-								type: 'GET',
-								dataType: 'json',
-								error: function(xhr, status, err) {
-									// If directorytree is false then the user is asking to skip it.
-									if (settings.directorytree)
-										ajaxErrorHandler(xhr, status, err);
-								},
-								success: function(directories, status, xhr){
-									if ($.isUndefined(directories[settings.root])) {
-										$('#Loading').append($('<div>').text('Error: The root directory could not be found in the directory list.'));
-									}
-									else if (settings.directorytree) {
-										finalSetup(directories);
-									}
-								},
-								complete: function() {
-									if (document.timeout_skip) clearTimeout(document.timeout_skip);
-									$('#DirectoryListSkip').remove();
-								}
-							});
-							
-						}, debugTimeout); // Debugging timeout
-					}
-					
-					else {
-						$('#LeftColumn, #LeftColumnResizer').hide();
-						finalSetup(null);
-					}
-				}
-			});
-		
-		}, debugTimeout); // Debugging timeout
+		// Path to the directory that contains the reports.
+		//controller.reportsBaseURL = '/path/to/report/data/';
 	
-		// Load the location on first load.
-		if (dhtmlHistory.isFirstLoad()) {
-			
-		}
+		// Override the bar colors for the 'total size' and 'total count' columns.
+		// The first array index represents the color for 0%. The last array item is for 100%.
+		//controller.gradient = [ 'green', 'yellow', 'orange', 'red' ];
 		
-		document.resizeWindow = function() {
-			var footerHeight = $('#Footer').outerHeight();
-			
-			// Set the correct height for the container.
-			var containerHeightDiff = $('#Container').outerHeight(true) - $('#Container').height();
-			$('#Container').height($('body').height() - containerHeightDiff - $('#Container').offset().top - footerHeight - 5);
-			
-			if ($('#Errors').is(':visible')) {
-				var errorsHeightDiff = $('#ErrorsInner').outerHeight(true) - $('#ErrorsInner').height();
-				$('#ErrorsInner').height($('#Errors').height() - errorsHeightDiff);
-				
-				var errorsScrollerHeightDiff = $('#ErrorsScroller').outerHeight(true) - $('#ErrorsScroller').height();
-				$('#ErrorsScroller').height($('#ErrorsInner').height() - errorsScrollerHeightDiff - $('#ErrorsScroller').position().top);
-			}
-				
-			if ($('#LeftColumn').is(':visible')) {
-				var leftColumnBorderHeightDiff = $('#LeftColumnBorder').outerHeight(true) - $('#LeftColumnBorder').height();
-				$('#LeftColumnBorder').height($('#LeftColumn').height() - leftColumnBorderHeightDiff);
-				
-				var leftColumnScrollerHeightDiff = $('#LeftColumnScroller').outerHeight(true) - $('#LeftColumnScroller').height();
-				$('#LeftColumnScroller').height($('#LeftColumnBorder').height() - $('#LeftColumnScroller').position().top - leftColumnScrollerHeightDiff);
-				
-				$('#LeftColumn').width(Math.max(100, Math.min($('#Columns').width() - 200, $('#LeftColumn').width())));
-			}
-			
-			if ($('#Report').is(':visible')) {
-				var reportHeightDiff = $('#Report').outerHeight(true) - $('#Report').height();
-				$('#Report').height($('#RightColumn').height() - reportHeightDiff - $('#Report').position().top);
-			}
-		};
+		// Override the normal way the report name is determined.
+		//controller.report = '<?php //echo $_GET['reportid']; ?>';
 		
-		$(window)
-			.resize(function(){
-				if (document.timeout_resize) clearTimeout(document.timeout_resize);
-				document.timeout_resize = setTimeout(function() {
-					document.resizeWindow();
-				}, 100);
-			});
+		// =============================================================
 		
-		document.resizeWindow();
-		
-		$('#ErrorCount').click(function() {
-			$('#Errors, #Dimmer').show();
-			document.resizeWindow();
-		});
-		$('#ErrorsTitle div').click(function() {
-			$('#Errors, #Dimmer').hide();
-		});
-		
-		$('#LeftColumnResizer').disableTextSelection().mousedown(function(evDown){
-			var startX = evDown.screenX;
-			var origWidth = $('#LeftColumn').width();
-			
-			$(document).bind('mousemove.resizer', function(evMove){
-				$('#LeftColumn').width(Math.max(100, Math.min($('#Columns').width() - 200, origWidth + evMove.screenX - startX)));
-				
-				if (document.timeout_resize) clearTimeout(document.timeout_resize);
-				document.timeout_resize = setTimeout(function() {
-					document.resizeWindow();
-				}, 100);
-			});
-			
-			$(document).one('mouseup', function(evUp){
-				//$('#LeftColumn').width(origWidth + evUp.screenX - startX);
-				$(document).unbind('mousemove.resizer');
-			})
-		});
+		controller.load();
 	});
 </script>
 </head>

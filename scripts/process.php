@@ -220,6 +220,15 @@ while (($line = fgets($fh, $args['maxlinelength']+2)) !== FALSE) {
 		array_push($errors, array('invalidline', 'column', 'name', COL_NAME, $split));
 	}
 	
+	elseif (json_encode($split[COL_PARENT]) == 'null') {
+		echo 'Invalid \'parent\' string: ' . $split[COL_PARENT] . "\n";
+		exit(1);
+	}
+	elseif (json_encode($split[COL_NAME]) == 'null') {
+		echo 'Invalid \'name\' string for parent \'' . $split[COL_PARENT] . '\': ' . $split[COL_NAME] . "\n";
+		exit(1);
+	}
+	
 	else {
 		// Check if we have left the current directory in the stack.
 		while (count($dirStack) > 1 && $dirStack[count($dirStack)-1]['path'] != $split[COL_PARENT]) {
@@ -335,7 +344,7 @@ while (($line = fgets($fh, $args['maxlinelength']+2)) !== FALSE) {
 			for ($i = 0; $i < count($dirStack); $i++) {
 				$relativePath = ConcatPath($args['ds'], $relativePath, $dirStack[$i]['name']);
 			}
-			$relativePath = substr($relativePath, 1);
+			$relativePath = substr($relativePath, strlen($args['ds']));
 		}
 		else {
 			//if (DEBUG) echo 'File:     ' . $split[COL_PARENT] . $args['ds'] . $split[COL_NAME] . "\n";
