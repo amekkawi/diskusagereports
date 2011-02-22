@@ -107,6 +107,7 @@ $.widget("ui.tree", {
 		
 		this._lastHash = null;
 		this._data = this.options.data;
+		this._filesData = [];
 		
 		if ($.isUndefined(this._data[this.options.root])) {
 			throw "root was not found in the provided directory data.";
@@ -122,6 +123,11 @@ $.widget("ui.tree", {
 			
 			if (li && $.isString(id) && id.indexOf(self.widgetBaseClass + '_') == 0) {
 				var hash = id.substring((self.widgetBaseClass + '_').length);
+				
+				if (hash.indexOf('files_') == 0) {
+					hash = hash.substring('files_'.length);
+					return;
+				}
 				
 				if (target.hasClass(self.widgetBaseClass + '-expander')) {
 					self.toggle(hash, li);
@@ -144,12 +150,17 @@ $.widget("ui.tree", {
 		var sorted = [],
 			self = this,
 			parentdata = this._data[parenthash],
-			subdirs = parentdata.subdirs;
+			subdirs = parentdata.subdirs,
+			subbytes = 0,
+			subnum = 0;
 		
 		for (var i = 0; i < subdirs.length; i++) {
 			var hash = $.isString(subdirs[i]) ? subdirs[i] : subdirs[i].hash;
 			var data = this._data[hash];
 			var html = this._createLI(hash, data.name, data.subdirs.length > 0 ? '' : this.widgetBaseClass + '-nosubdirs', this.options.getPrefix ? this.options.getPrefix(data, parentdata) : '');
+			
+			subbytes += parseInt(data.totalbytes);
+			subnum += parseInt(data.totalnum);
 			
 			var index = BinarySearch(sorted, data, function(needle, item, index) {
 				return self.options.comparator(needle, item[0]);
@@ -163,6 +174,15 @@ $.widget("ui.tree", {
 			}
 		}
 		
+		this._filesData[parenthash] = {
+			files: true,
+			name: '',
+			totalbytes: parseInt(parentdata.totalbytes) - subbytes,
+			totalnum: parseInt(parentdata.totalnum) - subnum
+		};
+		
+		sorted.push([null, this._createLI(parenthash, 'Files in this directory', this.widgetBaseClass + '-files ' + this.widgetBaseClass + '-nosubdirs', this.options.getPrefix ? this.options.getPrefix(this._filesData[parenthash], parentdata) : '', true)]);
+		
 		var finalHTML = '';
 		for (var i = 0; i < sorted.length; i++) {
 			finalHTML += sorted[i][1];
@@ -171,8 +191,8 @@ $.widget("ui.tree", {
 		return '<ul>' + finalHTML + '</ul>';
 	},
 	
-	_createLI: function(hash, name, classes, prefix) {
-		return '<li '+ ($.isString(classes) ? ' class="' + classes + '" ' : '') +' id="' + this.widgetBaseClass + '_' + hash.htmlencode() + '"><div class="' + this.widgetBaseClass + '-expander"><div class="' + this.widgetBaseClass + '-icon"><span class="' + this.widgetBaseClass + '-prefix">'+ ($.isString(prefix) && prefix != '' ? prefix.htmlencode() + ' ' : '') +'</span><span>' + name.htmlencode() + '</span></div></div></li>';
+	_createLI: function(hash, name, classes, prefix, isfiles) {
+		return '<li '+ ($.isString(classes) ? ' class="' + classes + '" ' : '') +' id="' + this.widgetBaseClass + '_' + (isfiles ? 'files_' : '') + hash.htmlencode() + '"><div class="' + this.widgetBaseClass + '-expander"><div class="' + this.widgetBaseClass + '-icon"><span class="' + this.widgetBaseClass + '-prefix">'+ ($.isString(prefix) && prefix != '' ? prefix.htmlencode() + ' ' : '') +'</span><span class="' + this.widgetBaseClass + '-label">' + name.htmlencode() + '</span></div></div></li>';
 	},
 	
 	resort: function(startUL) {
@@ -182,20 +202,24 @@ $.widget("ui.tree", {
 			stack = [ startUL ? startUL : $('>ul>li>ul', this.element).get(0) ];
 		
 		while ($.isDefined(ul = stack.pop())) {
-			var sorted = [], original = $('>li', ul);
+			var parentLi = $(ul).closest('li[id]', this.element),
+				parenthash = parentLi.size() ? parentLi.attr('id').substr((this.widgetBaseClass + '_').length) : '',
+				sorted = [],
+				li = $('>li', ul);
 			
-			$('>li', ul).each(function(){
+			li.each(function(){
 				var $this = $(this),
 					hash = $this.attr('id').substr((self.widgetBaseClass + '_').length),
 					data = self._data[hash];
 				
-				if (self.options.getPrefix) {
-					var parentLi = $this.parent().closest('li[id]', self.element);
-					if (parentLi.size()) {
-						var parenthash = parentLi.attr('id').substr((self.widgetBaseClass + '_').length);
-						var prefix = self.options.getPrefix(data, self._data[parenthash]);
-						$('span:eq(0)', $this).text($.isString(prefix) ? prefix + ' ' : '');
-					}
+				if ($this.hasClass(self.widgetBaseClass + '-files')) {
+					hash = hash.substr('files_'.length);
+					data = self._filesData[hash];
+				}
+				
+				if (self.options.getPrefix && parentLi.size()) {
+					var prefix = self.options.getPrefix(data, self._data[parenthash]);
+					$('span.' + self.widgetBaseClass + '-prefix', $this).text($.isString(prefix) ? prefix + ' ' : '');
 				}
 				
 				if ($this.hasClass(self.widgetBaseClass + '-open') && (subUL = $('>ul', $this))) {

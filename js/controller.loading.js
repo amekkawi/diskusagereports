@@ -274,6 +274,15 @@ $.extend(Controller.prototype, {
 								if (parseInt(a.totalnum) < parseInt(b.totalnum)) return -1 * modifier;
 								if (parseInt(a.totalnum) > parseInt(b.totalnum)) return 1 * modifier;
 							}
+							else if (a.files && !b.files) {
+								return 1 * modifier;
+							}
+							else if (!a.files && b.files) {
+								return -1 * modifier;
+							}
+							else if (a.files && b.files) {
+								return 0;
+							}
 							else {
 								if (a.name.toLowerCase() < b.name.toLowerCase()) return -1 * modifier;
 								if (a.name.toLowerCase() > b.name.toLowerCase()) return 1 * modifier;
@@ -288,8 +297,8 @@ $.extend(Controller.prototype, {
 					getPrefix: function(data, parentdata) {
 						if (!data || !parentdata || !self.options || self.options.treeSortBy == 'label') return null;
 						
-						var percent = Math.floor(data[self.options.treeSortBy == 'byte' ? 'totalbytes' : 'totalnum'] / parentdata[self.options.treeSortBy == 'byte' ? 'totalbytes' : 'totalnum'] * 100);
-						if (percent < 1) return null;
+						var percent = Math.round(data[self.options.treeSortBy == 'byte' ? 'totalbytes' : 'totalnum'] / parentdata[self.options.treeSortBy == 'byte' ? 'totalbytes' : 'totalnum'] * 100);
+						if (percent < 1) return '<1%';
 						else return percent + '%';
 					}
 				});

@@ -53,6 +53,17 @@
 	background-image: url(../images/folder-open.png);
 }
 
+.tree-sortedby-label .ui-tree li.ui-tree-files {
+	display: none;
+}
+
+.ui-tree li.ui-tree-files div.ui-tree-icon {
+	background-image: url(../images/files.png);
+}
+.ui-tree li.ui-tree-files span.ui-tree-label {
+	font-style: italic;
+}
+
 .ui-tree li.selected > div span {
 	background-color: #CCCCFF;
 	margin-left: -2px;
