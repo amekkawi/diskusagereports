@@ -251,10 +251,16 @@ $.Widget.prototype = {
 			}
 		}
 
+		// Make sure data is an array, and then copy
+		data = $.makeArray(data);
+		
 		this.element.trigger( event, data );
-
+		
+		// Add the event to the data array for when it is used in .apply().
+		data.splice(0, 0, event);
+		
 		return !( $.isFunction(callback) &&
-			callback.call( this.element[0], event, data ) === false ||
+			callback.apply( this.element[0], data ) === false ||
 			event.isDefaultPrevented() );
 	}
 };
