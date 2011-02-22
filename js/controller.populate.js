@@ -15,8 +15,6 @@ $.extend(Controller.prototype, {
 			$('#Num').text(AddCommas(this._data.num));
 			$('#TotalNum').text(AddCommas(this._data.totalnum));
 			
-			$('#Section_Message').hide().text('');
-			
 			$('#Sections')
 				.removeClass('totals-sortedby-label totals-sortedby-byte totals-sortedby-num files-sortedby-name files-sortedby-type files-sortedby-size files-sortedby-modified top100-sortedby-name top100-sortedby-type top100-sortedby-size top100-sortedby-modified top100-sortedby-path')
 				.addClass('totals-sortedby-' + this.options.totalsSortBy + ' files-sortedby-' + this.options.filesSortBy + ' top100-sortedby-' + this.options.top100SortBy)
@@ -26,6 +24,8 @@ $.extend(Controller.prototype, {
 			
 			if (this._lastSectionOptions != ''.concat(this.options.section, this.options.totalsSortBy, this.options.totalsSortRev, this.options.filesSortBy, this.options.filesSortRev, this.options.top100SortBy, this.options.top100SortRev)) {
 				this._lastSectionOptions = ''.concat(this.options.section, this.options.totalsSortBy, this.options.totalsSortRev, this.options.filesSortBy, this.options.filesSortRev, this.options.top100SortBy, this.options.top100SortRev)
+				
+				$('#Section_Message').hide().text('');
 				
 				switch (this.options.section) {
 					case 'modified':
