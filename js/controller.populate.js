@@ -74,7 +74,7 @@ $.extend(Controller.prototype, {
 		var subdirs = this._data.subdirs.slice(0);
 		subdirs.push({ isfiles: true, totalbytes: this._data.bytes, totalnum: this._data.num });
 		
-		if (this._data.totalnum == 0 && this._data.subdirs.length == 0) {
+		if (parseInt(this._data.totalnum) == 0 && this._data.subdirs.length == 0) {
 			$('#Section_Message').text('Neither this directory nor its sub directories contain files.').show();
 		}
 		else {
@@ -87,9 +87,9 @@ $.extend(Controller.prototype, {
 						if (data.isfiles) return '';
 						return data.name.toLowerCase();
 					case 'bytes':
-						return data.totalbytes;
+						return parseInt(data.totalbytes);
 					case 'num':
-						return data.totalnum;
+						return parseInt(data.totalnum);
 				}
 			}, true);
 			this._subdirsSection.show();
