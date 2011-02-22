@@ -181,8 +181,23 @@ $.widget("ui.tree", {
 			totalnum: parseInt(parentdata.totalnum) - subnum
 		};
 		
-		sorted.push([null, this._createLI(parenthash, 'Files in this directory', this.widgetBaseClass + '-files ' + this.widgetBaseClass + '-nosubdirs', this.options.getPrefix ? this.options.getPrefix(this._filesData[parenthash], parentdata) : '', true)]);
+		// Create the "Files in this directory" node.
+		var html = this._createLI(parenthash, 'Files in this directory', this.widgetBaseClass + '-files ' + this.widgetBaseClass + '-nosubdirs', this.options.getPrefix ? this.options.getPrefix(this._filesData[parenthash], parentdata) : '', true);
 		
+		// Determine where the "Files in this directory" node should go.
+		var index = BinarySearch(sorted, this._filesData[parenthash], function(needle, item, index) {
+			return self.options.comparator(needle, item[0]);
+		});
+		
+		// Insert the "Files in this directory" node.
+		if (index < 0) {
+			sorted.splice(Math.abs(index)-1, 0, [null, html]);
+		}
+		else {
+			sorted.splice(index, 0, [null, html]);
+		}
+		
+		// Mark the 'last' and 'lastdir' nodes.
 		if (sorted.length) {
 			var classIndex = sorted[sorted.length-1][1].indexOf(' class="');
 			sorted[sorted.length-1][1] = sorted[sorted.length-1][1].substring(0, classIndex + ' class="'.length) + this.widgetBaseClass + '-last ' + sorted[sorted.length-1][1].substring(classIndex + ' class="'.length);
