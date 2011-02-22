@@ -139,7 +139,7 @@ $.widget("ui.tree", {
 			}
 		});
 		
-		$elem.append('<ul>' + this._createLI(this.options.root, this._data[this.options.root].name, this.widgetBaseClass + '-root ' + this.widgetBaseClass + '-open') + '</ul>');
+		$elem.append('<ul class="' + this.widgetBaseClass + '-rootul">' + this._createLI(this.options.root, this._data[this.options.root].name, this.widgetBaseClass + '-root ' + this.widgetBaseClass + '-open') + '</ul>');
 		
 		$('#' + this.widgetBaseClass + '_' + this.options.root).append(this._createUL(this.options.root));
 	},
@@ -183,6 +183,16 @@ $.widget("ui.tree", {
 		
 		sorted.push([null, this._createLI(parenthash, 'Files in this directory', this.widgetBaseClass + '-files ' + this.widgetBaseClass + '-nosubdirs', this.options.getPrefix ? this.options.getPrefix(this._filesData[parenthash], parentdata) : '', true)]);
 		
+		if (sorted.length) {
+			var classIndex = sorted[sorted.length-1][1].indexOf(' class="');
+			sorted[sorted.length-1][1] = sorted[sorted.length-1][1].substring(0, classIndex + ' class="'.length) + this.widgetBaseClass + '-last ' + sorted[sorted.length-1][1].substring(classIndex + ' class="'.length);
+			
+			if (sorted[sorted.length-1][0] == null && sorted.length > 1) {
+				classIndex = sorted[sorted.length-1][1].indexOf(' class="');
+				sorted[sorted.length-2][1] = sorted[sorted.length-2][1].substring(0, classIndex + ' class="'.length) + this.widgetBaseClass + '-lastdir ' + sorted[sorted.length-2][1].substring(classIndex + ' class="'.length);
+			}
+		}
+		
 		var finalHTML = '';
 		for (var i = 0; i < sorted.length; i++) {
 			finalHTML += sorted[i][1];
@@ -192,7 +202,7 @@ $.widget("ui.tree", {
 	},
 	
 	_createLI: function(hash, name, classes, prefix, isfiles) {
-		return '<li '+ ($.isString(classes) ? ' class="' + classes + '" ' : '') +' id="' + this.widgetBaseClass + '_' + (isfiles ? 'files_' : '') + hash.htmlencode() + '"><div class="' + this.widgetBaseClass + '-expander"><div class="' + this.widgetBaseClass + '-icon"><span class="' + this.widgetBaseClass + '-prefix">'+ ($.isString(prefix) && prefix != '' ? prefix.htmlencode() + ' ' : '') +'</span><span class="' + this.widgetBaseClass + '-label">' + name.htmlencode() + '</span></div></div></li>';
+		return '<li '+ ($.isString(classes) ? ' class="' + classes + '" ' : '') +' id="' + this.widgetBaseClass + '_' + (isfiles ? 'files_' : '') + hash.htmlencode() + '"><div class="' + this.widgetBaseClass + '-linecover"><div class="' + this.widgetBaseClass + '-expander"><div class="' + this.widgetBaseClass + '-icon"><span class="' + this.widgetBaseClass + '-prefix">'+ ($.isString(prefix) && prefix != '' ? prefix.htmlencode() + ' ' : '') +'</span><span class="' + this.widgetBaseClass + '-label">' + name.htmlencode() + '</span></div></div></div></li>';
 	},
 	
 	resort: function(startUL) {
@@ -206,6 +216,8 @@ $.widget("ui.tree", {
 				parenthash = parentLi.size() ? parentLi.attr('id').substr((this.widgetBaseClass + '_').length) : '',
 				sorted = [],
 				li = $('>li', ul);
+			
+			li.removeClass(this.widgetBaseClass + '-last ' + this.widgetBaseClass + '-lastdir');
 			
 			li.each(function(){
 				var $this = $(this),
@@ -237,6 +249,13 @@ $.widget("ui.tree", {
 					sorted.splice(index, 0, [data, this]);
 				}
 			});
+			
+			if (sorted.length) {
+				var last = $(sorted[sorted.length-1][1]).addClass(this.widgetBaseClass + '-last');
+				if (sorted.length > 1 && last.hasClass(this.widgetBaseClass + '-files')) {
+					$(sorted[sorted.length-2][1]).addClass(this.widgetBaseClass + '-lastdir');
+				}
+			}
 			
 			$(ul).append($($.map(sorted, function(item){ return item[1]; })));
 		}
