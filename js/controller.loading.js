@@ -257,8 +257,9 @@ $.extend(Controller.prototype, {
 				self._tree = $('#DirectoryTree').tree({
 					data: self.directories,
 					root: self.settings.root,
-					selection: function(e, hash) {
-						self.setOptions({ hash: hash });
+					selection: function(e, hash, files) {
+						if (files) self.setOptions({ hash: hash, section: 'files' });
+						else self.setOptions({ hash: hash });
 					},
 					comparator: function(a, b) {
 						

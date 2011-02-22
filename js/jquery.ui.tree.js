@@ -114,10 +114,10 @@ $.widget("ui.tree", {
 		}
 		
 		$elem.click(function(eo) {
-			var id, li, target = $(eo.target);
+			var id, li, target = $(eo.target), files = false;
 			
-			if (target.closest('div.' + self.widgetBaseClass + '-expander').size() > 0) {
-				li = target.closest('li');
+			if (target.closest('div.' + self.widgetBaseClass + '-expander', self.element).size() > 0) {
+				li = target.closest('li', self.element);
 				id = li.attr('id');
 			}
 			
@@ -126,7 +126,8 @@ $.widget("ui.tree", {
 				
 				if (hash.indexOf('files_') == 0) {
 					hash = hash.substring('files_'.length);
-					return;
+					files = true;
+					li = null;
 				}
 				
 				if (target.hasClass(self.widgetBaseClass + '-expander')) {
@@ -134,7 +135,7 @@ $.widget("ui.tree", {
 				}
 				else {
 					self.select(hash, li);
-					self._trigger('selection', {}, [ hash ]);
+					self._trigger('selection', {}, [ hash, files ]);
 				}
 			}
 		});
