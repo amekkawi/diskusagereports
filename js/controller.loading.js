@@ -298,9 +298,9 @@ $.extend(Controller.prototype, {
 					getPrefix: function(data, parentdata) {
 						if (!data || !parentdata || !self.options || self.options.treeSortBy == 'label') return null;
 						
-						var percent = Math.round(data[self.options.treeSortBy == 'byte' ? 'totalbytes' : 'totalnum'] / parentdata[self.options.treeSortBy == 'byte' ? 'totalbytes' : 'totalnum'] * 100);
+						var percent = data[self.options.treeSortBy == 'byte' ? 'totalbytes' : 'totalnum'] / parentdata[self.options.treeSortBy == 'byte' ? 'totalbytes' : 'totalnum'] * 100;
 						if (percent < 1) return '<1%';
-						else return percent + '%';
+						else return Math.round(percent) + '%';
 					}
 				});
 			}
