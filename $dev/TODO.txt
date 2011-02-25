@@ -1,7 +1,7 @@
  * Allow for other languages
- * Allow for directory list to be skipped if it takes too long to download.
  * Add paging to the file list and file type list.
  
+ X Allow for directory list to be skipped if it takes too long to download.
  X Automatically skip tree view if it gets over a certian size.
  X Allow for errors to be viewed in report.
  X Scroll to tree nodes when they are not in view.
