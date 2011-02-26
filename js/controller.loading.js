@@ -251,7 +251,7 @@ $.extend(Controller.prototype, {
 					
 					$(document).one('mouseup', function(evUp){
 						$(document).unbind('mousemove.resizer');
-					})
+					});
 				});
 				
 				self._tree = $('#DirectoryTree').tree({
