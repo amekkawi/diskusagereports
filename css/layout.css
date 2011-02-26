@@ -313,7 +313,7 @@ tbody th {
 
 #Tabs li.selected {
 	cursor: default;
-	text-decoration: none !important;
+	text-decoration: none;
 	background-color: #F7F6F0;
 	background-image: none;
 	color: #000;
@@ -407,6 +407,45 @@ tbody th {
 #DirectoryTree {
 	padding: 8px;
 	padding-top: 5px;
+}
+
+.pager {
+	display: block;
+}
+
+.pager-top {
+	margin-bottom: 4px;
+}
+
+.pager-bottom {
+	margin-top: 4px;
+}
+
+.pager a, .pager-range {
+	float: left;
+	display: block;
+	padding: 6px;
+	margin-left: 4px;
+	text-decoration: none;
+	border: 1px solid #F7F6F0;
+}
+.pager a:hover {
+	cursor: pointer;
+	background-color: #EDEAD9;
+	border: 1px solid #B5AA88;
+}
+
+.pager .pager-next {
+	background-image: url(../images/rightarrow.png);
+	background-repeat: no-repeat;
+	background-position: right center;
+	padding-right: 22px;
+}
+.pager .pager-prev {
+	background-image: url(../images/leftarrow.png);
+	background-repeat: no-repeat;
+	background-position: left center;
+	padding-left: 22px;
 }
 
 #Section_Message {

@@ -25,6 +25,9 @@ Controller = function() {
 	// Set the report's name, which determines the path to find the report data.
 	this.report = window.location.search.substring(1);
 	
+	// Set the maximum number of rows per page.
+	this.pageMax = 10;
+	
 	// Calculate the width (which caches it).
 	$.scrollbarWidth();
 	
@@ -63,7 +66,8 @@ $.extend(Controller.prototype, {
 		top100SortBy: 'size',
 		top100SortRev: true,
 		treeSortBy: 'label',
-		treeSortRev: false
+		treeSortRev: false,
+		page: 1
 	},
 	
 	load: function() {
@@ -223,6 +227,9 @@ $.extend(Controller.prototype, {
 		if (location.dsr && location.dsr.match(/^[01]$/)) {
 			opts.treeSortRev = location.dsr == '1';
 		}
+		if (location.p && location.p.match(/^[0-9]+$/)) {
+			opts.page = parseInt(location.p);
+		}
 		
 		return opts;
 	},
@@ -238,7 +245,8 @@ $.extend(Controller.prototype, {
 			+ '&bsb=' + escape(opts.top100SortBy)
 			+ '&bsr=' + escape(opts.top100SortRev ? '1' : '0')
 			+ '&dsb=' + escape(opts.treeSortBy)
-			+ '&dsr=' + escape(opts.treeSortRev ? '1' : '0');
+			+ '&dsr=' + escape(opts.treeSortRev ? '1' : '0')
+			+ '&p=' + escape(opts.page);
 	},
 	
 	resizeWindow: function() {

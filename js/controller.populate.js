@@ -22,8 +22,8 @@ $.extend(Controller.prototype, {
 				[(this.options.filesSortRev ? 'add' : 'remove') + 'Class']('files-sortrev')
 				[(this.options.top100SortRev ? 'add' : 'remove') + 'Class']('top100-sortrev');
 			
-			if (this._lastSectionOptions != ''.concat(this.options.section, this.options.totalsSortBy, this.options.totalsSortRev, this.options.filesSortBy, this.options.filesSortRev, this.options.top100SortBy, this.options.top100SortRev)) {
-				this._lastSectionOptions = ''.concat(this.options.section, this.options.totalsSortBy, this.options.totalsSortRev, this.options.filesSortBy, this.options.filesSortRev, this.options.top100SortBy, this.options.top100SortRev)
+			if (this._lastSectionOptions != ''.concat(this.options.section, this.options.totalsSortBy, this.options.totalsSortRev, this.options.filesSortBy, this.options.filesSortRev, this.options.top100SortBy, this.options.top100SortRev, this.options.page)) {
+				this._lastSectionOptions = ''.concat(this.options.section, this.options.totalsSortBy, this.options.totalsSortRev, this.options.filesSortBy, this.options.filesSortRev, this.options.top100SortBy, this.options.top100SortRev, this.options.page);
 				
 				$('#Section_Message').hide().text('');
 				
@@ -259,15 +259,38 @@ $.extend(Controller.prototype, {
 			}
 		}
 		
+		// Determine the rows that will be shown (if not all of them).
+		var iStart = 0, iEnd = rows.length;
+		if (rows.length > this.pageMax) {
+			iStart = (this.options.page - 1) * this.pageMax;
+			iEnd = Math.min(rows.length, this.options.page * this.pageMax);
+			this._displayPager(rows.length);
+		}
+		
+		// Create the final HTML for the report.
 		var finalHTML = '';
-		for (var i = 0; i < rows.length; i++) {
+		for (var i = iStart; i < iEnd; i++) {
 			finalHTML += '<tr class="' + (i % 2 == 0 ? 'odd' : 'even') + '">' + rows[i][2] + '</tr>';
 		}
 		
+		// Display the report.
 		tbody.html(finalHTML);
 		
+		// Add the totals to the footer.
 		$('td:eq(1)', tfoot).text(FormatBytes(totalBytes) + ' (' + AddCommas(totalBytes) + ')');
 		$('td:eq(2)', tfoot).text(AddCommas(totalNum));
+	},
+	
+	_displayPager: function(length) {
+		$('.pager').show();
+		
+		// Make sure the current page is valid.
+		this.options.page = Math.max(1, Math.min(Math.ceil(length / this.pageMax), this.options.page));
+		
+		$('.pager-prev').attr('href', '#' + this._createLocation({ page: Math.max(1, this.options.page - 1) }));
+		$('.pager-next').attr('href', '#' + this._createLocation({ page: Math.min(Math.ceil(length / this.pageMax), this.options.page + 1) }));
+		
+		$('.pager-range').text(((this.options.page - 1) * this.pageMax + 1) + ' to ' + Math.min(length, this.options.page * this.pageMax) + ' of ' + length);
 	},
 	
 	_displayFiles: function() {
@@ -333,8 +356,16 @@ $.extend(Controller.prototype, {
 				}
 			}
 			
+			// Determine the rows that will be shown (if not all of them).
+			var iStart = 0, iEnd = rows.length;
+			if (rows.length > this.pageMax) {
+				iStart = (this.options.page - 1) * this.pageMax;
+				iEnd = Math.min(rows.length, this.options.page * this.pageMax);
+				this._displayPager(rows.length);
+			}
+			
 			var finalHTML = '';
-			for (var i = 0; i < rows.length; i++) {
+			for (var i = iStart; i < iEnd; i++) {
 				finalHTML += '<tr class="' + (i % 2 == 0 ? 'odd' : 'even') + '">' + rows[i][2] + '</tr>';
 			}
 			
