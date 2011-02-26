@@ -169,6 +169,10 @@ $.extend(Controller.prototype, {
 				}
 			},
 			complete: function() {
+				
+				// Reset the page, unless this is the first load.
+				if (self._lastHash != null) self.options.page = 1;
+				
 				self._lastHash = self.options.hash;
 				
 				// Reset the section so it is freshly loaded.
