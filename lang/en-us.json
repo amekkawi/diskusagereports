@@ -60,6 +60,7 @@
 	"top_100_header_modified": "Modified",
 	"top_100_header_path": "Path",
 	
+	"unknown_file_type": "Unknown",
 	"table_footer_total": "Total",
 	
 	"footer": "Report generated using {1}. Language: {2}.",

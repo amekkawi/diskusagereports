@@ -14,9 +14,9 @@ $.extend(Controller.prototype, {
 				$('#Path').append(this._data.name.htmlencode());
 				
 				$('#DirSummary').html(
-						this.translate('total_size', FormatBytes(this._data.totalbytes), FormatBytes(this._data.bytes))
-						+ '<br/>'
-						+ this.translate('total_files', AddCommas(this._data.totalnum), AddCommas(this._data.num))
+					this.translate('total_size', FormatBytes(this._data.totalbytes), FormatBytes(this._data.bytes))
+					+ '<br/>'
+					+ this.translate('total_files', AddCommas(this._data.totalnum), AddCommas(this._data.num))
 				);
 				
 				$('#Sections')
@@ -76,13 +76,13 @@ $.extend(Controller.prototype, {
 		subdirs.push({ isfiles: true, totalbytes: this._data.bytes, totalnum: this._data.num });
 		
 		if (parseInt(this._data.totalnum) == 0 && this._data.subdirs.length == 0) {
-			$('#Section_Message').text('Neither this directory nor its sub directories contain files.').show();
+			$('#Section_Message').html(this.translate('notice_no_files_incl_sub')).show();
 		}
 		else {
 			this._displayTotalsTable($('#SubDirs'), subdirs, function(data, field) {
 				switch (field) {
 					case 'label':
-						if (data.isfiles) return '<i>Files in this directory</i>';
+						if (data.isfiles) return '<i>' + self.translate('contents_files_in_this_directory') + '</i>';
 						return '<a href="#' + self._createLocation({ hash: data.hash }, 'contents').htmlencode() + '">' + data.name.htmlencode() + '</a>';
 					case 'sortlabel':
 						if (data.isfiles) return '';
@@ -106,10 +106,10 @@ $.extend(Controller.prototype, {
 		$('> div', this._sections).hide();
 		
 		if (!this._data.modified) {
-			$('#Section_Message').text('This information is not available at this directory depth.').show();
+			$('#Section_Message').html(this.translate('notice_no_info_at_depth')).show();
 		}
 		else if (this._data.modified.length == 0) {
-			$('#Section_Message').text('Neither this directory nor its sub directories contain files.').show();
+			$('#Section_Message').html(this.translate('notice_no_files_incl_sub')).show();
 		}
 		else {
 			this._displayTotalsTable($('#Modified'), this._data.modified, function(data, field, key) {
@@ -137,16 +137,16 @@ $.extend(Controller.prototype, {
 		$('> div', this._sections).hide();
 		
 		if (!this._data.types) {
-			$('#Section_Message').text('This information is not available at this directory depth.').show();
+			$('#Section_Message').html(this.translate('notice_no_info_at_depth')).show();
 		}
 		else if (this._data.types.length == 0) {
-			$('#Section_Message').text('Neither this directory nor its sub directories contain files.').show();
+			$('#Section_Message').html(this.translate('notice_no_files_incl_sub')).show();
 		}
 		else {
 			this._displayTotalsTable($('#Types'), this._data.types, function(data, field, key) {
 				switch (field) {
 					case 'label':
-						return key == '' ? '<i>Unknown</i>' : key.htmlencode();
+						return key == '' ? '<i>' + self.translate('unknown_file_type') + '</i>' : key.htmlencode();
 					case 'sortlabel':
 						return key.toLowerCase();
 					case 'bytes':
@@ -168,10 +168,10 @@ $.extend(Controller.prototype, {
 		$('> div', this._sections).hide();
 		
 		if (!this._data.types) {
-			$('#Section_Message').text('This information is not available at this directory depth.').show();
+			$('#Section_Message').html(this.translate('notice_no_info_at_depth')).show();
 		}
 		else if (this._data.sizes.length == 0) {
-			$('#Section_Message').text('Neither this directory nor its sub directories contain files.').show();
+			$('#Section_Message').html(this.translate('notice_no_files_incl_sub')).show();
 		}
 		else {
 			this._displayTotalsTable($('#Sizes'), this._data.sizes, function(data, field, key) {
@@ -326,7 +326,7 @@ $.extend(Controller.prototype, {
 		$('> div', this._sections).hide();
 		
 		if (this._data.files.length == 0) {
-			$('#Section_Message').text('This directory does not contain files.').show();
+			$('#Section_Message').html(this.translate('notice_no_files')).show();
 		}
 		else {
 			var tbody = $('#Files > tbody').empty();
@@ -341,7 +341,7 @@ $.extend(Controller.prototype, {
 				
 				var extData = '', ext = data[key].name.toLowerCase().split('.');
 				if (ext.length > 1) ext = (extData = ext[ext.length-1]).htmlencode();
-				else ext = "<i>Unknown</i>";
+				else ext = "<i>" + this.translate('unknown_file_type') + "</i>";
 				
 				var sortValue = data[key].name.toLowerCase();
 				switch (this.options.filesSortBy) {
@@ -411,10 +411,10 @@ $.extend(Controller.prototype, {
 		$('> div', this._sections).hide();
 		
 		if (!this._data.top100) {
-			$('#Section_Message').text('This information is not available at this directory depth.').show();
+			$('#Section_Message').html(this.translate('notice_no_info_at_depth')).show();
 		}
 		else if (this._data.top100.length == 0) {
-			$('#Section_Message').text('Neither this directory nor its sub directories contain files.').show();
+			$('#Section_Message').html(this.translate('notice_no_files_incl_sub')).show();
 		}
 		else {
 			var tbody = $('#Top100 > tbody').empty();
