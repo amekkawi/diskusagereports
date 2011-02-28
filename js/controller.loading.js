@@ -83,11 +83,8 @@ $.extend(Controller.prototype, {
 	_processSettings: function() {
 		var self = this;
 		
-		if (this.settings.name) {
-			$('#Title > span').append(' for: ').append($('<b>').text(this.settings.name));
-		}
-		
-		$('#Created').text(' on ' + this.settings.created);
+		this._languageChangeStatic('title');
+		this._languageChangeStatic('footer');
 		
 		this._processErrors();
 		
