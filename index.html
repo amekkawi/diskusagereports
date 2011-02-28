@@ -30,6 +30,7 @@
 <script type="text/javascript" src="js/controller.js"></script>
 <script type="text/javascript" src="js/controller.loading.js"></script>
 <script type="text/javascript" src="js/controller.populate.js"></script>
+<script type="text/javascript" src="js/controller.language.js"></script>
 
 <!-- Disk Usage Reporting Scripts -->
 <script type="text/javascript">
@@ -71,8 +72,18 @@
 		// Change the maximum number of rows displayed at once in a table.
 		//controller.pageMax = 100;
 		
-		// =============================================================
+		// Add additional languages. You must include the respective language JSON files in the 'lang' directory.
+		// Use ./lang/translate.html to create these files.
+		//controller.addLanguage('de');  
 		
+		// Change the default language that is used if the language passed via setLanguage() is not supported.
+		//controller.defaultLanguage = 'en-us';
+		
+		// Pass the browser's Accept-Language header to determine their preferred language.
+		//controller.setLanguage('<?php echo $_GET['HTTP_ACCEPT_LANGUAGE']; ?>');
+		
+		// =============================================================
+			
 		controller.load();
 	});
 </script>
