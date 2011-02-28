@@ -4,26 +4,26 @@ $.extend(Controller.prototype, {
 	
 	_populateReport: function() {
 		if (this._data) {
-			$('#Path').empty();
-			for (var i = 0; i < this._data.parents.length; i++) {
-				$('#Path').append($('<a>').attr('href', '#' + this._createLocation({ hash: this._data.parents[i].hash }, 'path')).text(this._data.parents[i].name)).append(' ' + this.settings.ds.htmlencode() + ' ');
-			}
-			$('#Path').append(this._data.name.htmlencode());
-			
-			$('#Bytes').text(FormatBytes(this._data.bytes));
-			$('#TotalBytes').text(FormatBytes(this._data.totalbytes));
-			$('#Num').text(AddCommas(this._data.num));
-			$('#TotalNum').text(AddCommas(this._data.totalnum));
-			
-			$('#Sections')
-				.removeClass('totals-sortedby-label totals-sortedby-byte totals-sortedby-num files-sortedby-name files-sortedby-type files-sortedby-size files-sortedby-modified top100-sortedby-name top100-sortedby-type top100-sortedby-size top100-sortedby-modified top100-sortedby-path')
-				.addClass('totals-sortedby-' + this.options.totalsSortBy + ' files-sortedby-' + this.options.filesSortBy + ' top100-sortedby-' + this.options.top100SortBy)
-				[(this.options.totalsSortRev ? 'add' : 'remove') + 'Class']('totals-sortrev')
-				[(this.options.filesSortRev ? 'add' : 'remove') + 'Class']('files-sortrev')
-				[(this.options.top100SortRev ? 'add' : 'remove') + 'Class']('top100-sortrev');
-			
 			if (this._lastSectionOptions != ''.concat(this.options.section, this.options.totalsSortBy, this.options.totalsSortRev, this.options.filesSortBy, this.options.filesSortRev, this.options.top100SortBy, this.options.top100SortRev, this.options.page)) {
 				this._lastSectionOptions = ''.concat(this.options.section, this.options.totalsSortBy, this.options.totalsSortRev, this.options.filesSortBy, this.options.filesSortRev, this.options.top100SortBy, this.options.top100SortRev, this.options.page);
+				
+				$('#Path').empty();
+				for (var i = 0; i < this._data.parents.length; i++) {
+					$('#Path').append($('<a>').attr('href', '#' + this._createLocation({ hash: this._data.parents[i].hash }, 'path')).text(this._data.parents[i].name)).append(' ' + this.settings.ds.htmlencode() + ' ');
+				}
+				$('#Path').append(this._data.name.htmlencode());
+				
+				$('#Bytes').text(FormatBytes(this._data.bytes));
+				$('#TotalBytes').text(FormatBytes(this._data.totalbytes));
+				$('#Num').text(AddCommas(this._data.num));
+				$('#TotalNum').text(AddCommas(this._data.totalnum));
+				
+				$('#Sections')
+					.removeClass('totals-sortedby-label totals-sortedby-byte totals-sortedby-num files-sortedby-name files-sortedby-type files-sortedby-size files-sortedby-modified top100-sortedby-name top100-sortedby-type top100-sortedby-size top100-sortedby-modified top100-sortedby-path')
+					.addClass('totals-sortedby-' + this.options.totalsSortBy + ' files-sortedby-' + this.options.filesSortBy + ' top100-sortedby-' + this.options.top100SortBy)
+					[(this.options.totalsSortRev ? 'add' : 'remove') + 'Class']('totals-sortrev')
+					[(this.options.filesSortRev ? 'add' : 'remove') + 'Class']('files-sortrev')
+					[(this.options.top100SortRev ? 'add' : 'remove') + 'Class']('top100-sortrev');
 				
 				$('#Section_Message').hide().text('');
 				
@@ -55,12 +55,12 @@ $.extend(Controller.prototype, {
 			}
 		}
 		
-		$('#LeftColumn')
-			.removeClass('tree-sortedby-label tree-sortedby-byte tree-sortedby-num')
-			.addClass('tree-sortedby-' + this.options.treeSortBy)
-			[(this.options.treeSortRev ? 'add' : 'remove') + 'Class']('tree-sortrev');
-		
 		if (this.directories && this._lastTreeOptions != ''.concat(this.options.treeSortBy, this.options.treeSortRev)) {
+			$('#LeftColumn')
+				.removeClass('tree-sortedby-label tree-sortedby-byte tree-sortedby-num')
+				.addClass('tree-sortedby-' + this.options.treeSortBy)
+				[(this.options.treeSortRev ? 'add' : 'remove') + 'Class']('tree-sortrev');
+			
 			this._lastTreeOptions = ''.concat(this.options.treeSortBy, this.options.treeSortRev);
 			this._tree.tree('resort');
 		}
