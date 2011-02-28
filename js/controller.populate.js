@@ -298,9 +298,9 @@ $.extend(Controller.prototype, {
 			[ this.options.page == lastPage ? 'addClass' : 'removeClass' ]('disabled')
 			.attr('href', '#' + this._createLocation({ page: Math.min(lastPage, this.options.page + 1) }, 'pager'));
 		
-		$('.pager-range').text(((this.options.page - 1) * this.pageMax + 1) + ' to ' + Math.min(length, this.options.page * this.pageMax) + ' of ' + length);
+		$('.pager-range').html(this.translate('displayed_rows', (this.options.page - 1) * this.pageMax + 1, Math.min(length, this.options.page * this.pageMax), length));
 		
-		$('.pager-pages').html('<span>Page:</span>');
+		$('.pager-pages').html('<span>' + this.translate('page_list_label') + ':</span>');
 		
 		// Add a link for the first page.
 		if (this.options.page > 5) {
