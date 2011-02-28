@@ -321,25 +321,6 @@ $.extend(Controller.prototype, {
 				$('#LeftColumnScroller').scrollIntoView($('#DirectoryTree li.selected'));
 			});
 			
-			// Debug
-			return;
-			
-			document.viewer = new Viewer({
-				directories: directories,
-				settings: self.settings,
-				report: window.location.search.substring(1)
-			});
-			
-			document.viewer.display(dhtmlHistory.getCurrentLocation(), function(){
-				$('#Loading').hide();
-				$('#Columns').show();
-				
-				// Force a resize since the viewer is now displayed.
-				self.resizeWindow();
-				
-				$('#LeftColumnScroller').scrollIntoView($('#DirectoryTree li.selected'));
-			});
-		
 		}, this._debugTimeout); // Debugging timeout
 	},
 	
