@@ -40,6 +40,14 @@ Controller = function() {
 			}, 100);
 		});
 	
+	$('.pager, #Sections').click(function(ev) {
+		var anchor = $(ev.target).closest('a');
+		if (anchor.size() && $.isString(anchor.attr('href'))) {
+			self.setOptions(self._parseLocation(anchor.attr('href')));
+			return false;
+		}
+	});
+	
 	// Initial adjustments to height.
 	this.resizeWindow();
 };
@@ -81,7 +89,7 @@ $.extend(Controller.prototype, {
 	
 	setLocation: function(location, completeFn) {
 		// Parse the new location.
-		this.options = this._parseLocation(location);
+		this.options = $.extend({}, this.defaultOptions, this._parseLocation(location));
 		
 		// View the root hash if hash is not set.
 		if (!this.options.hash) {
@@ -194,11 +202,12 @@ $.extend(Controller.prototype, {
 	_parseLocation: function(location) {
 		// Make sure the location is an array.
 		if ($.isString(location)) {
+			if (location.indexOf('#') == 0) location = location.substring(1);
 			location = location.parseQS();
 		}
 		
 		// Reset options to defaults.
-		var opts = $.extend({}, this.defaultOptions);
+		var opts = {};
 	
 		// Validate and set options.
 		if (location.h && location.h.match(/^[a-f0-9]{32}$/i)) {
@@ -238,19 +247,31 @@ $.extend(Controller.prototype, {
 		return opts;
 	},
 	
-	_createLocation: function(options) {
-		var opts = $.extend({}, this.options, options);
-		return 'h=' + escape(opts.hash)
-			+ '&s=' + escape(opts.section)
-			+ '&tsb=' + escape(opts.totalsSortBy)
-			+ '&tsr=' + escape(opts.totalsSortRev ? '1' : '0')
-			+ '&fsb=' + escape(opts.filesSortBy)
-			+ '&fsr=' + escape(opts.filesSortRev ? '1' : '0')
-			+ '&bsb=' + escape(opts.top100SortBy)
-			+ '&bsr=' + escape(opts.top100SortRev ? '1' : '0')
-			+ '&dsb=' + escape(opts.treeSortBy)
-			+ '&dsr=' + escape(opts.treeSortRev ? '1' : '0')
-			+ '&p=' + escape(opts.page);
+	_createLocation: function(options, type) {
+		var opts = $.extend({}, this.options, options),
+			hash = section = totalsSort = filesSort = top100Sort = treeSort = page = true;
+		
+		switch (type) {
+			case 'path':
+			case 'contents':
+			case 'top100':
+				page = false;
+			case 'pager':
+				treeSort = false;
+				break;
+		}
+		
+		return ((hash ? '&h=' + escape(opts.hash) : '')
+			+ (section ? '&s=' + escape(opts.section) : '')
+			+ (totalsSort ? '&tsb=' + escape(opts.totalsSortBy) : '')
+			+ (totalsSort ? '&tsr=' + escape(opts.totalsSortRev ? '1' : '0') : '')
+			+ (filesSort ? '&fsb=' + escape(opts.filesSortBy) : '')
+			+ (filesSort ? '&fsr=' + escape(opts.filesSortRev ? '1' : '0') : '')
+			+ (top100Sort ? '&bsb=' + escape(opts.top100SortBy) : '')
+			+ (top100Sort ? '&bsr=' + escape(opts.top100SortRev ? '1' : '0') : '')
+			+ (treeSort ? '&dsb=' + escape(opts.treeSortBy) : '')
+			+ (treeSort ? '&dsr=' + escape(opts.treeSortRev ? '1' : '0') : '')
+			+ (page ? '&p=' + escape(opts.page) : '')).substring(1);
 	},
 	
 	resizeWindow: function() {

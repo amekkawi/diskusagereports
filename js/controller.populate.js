@@ -6,7 +6,7 @@ $.extend(Controller.prototype, {
 		if (this._data) {
 			$('#Path').empty();
 			for (var i = 0; i < this._data.parents.length; i++) {
-				$('#Path').append($('<a>').attr('href', '#' + this._createLocation({ hash: this._data.parents[i].hash })).text(this._data.parents[i].name)).append(' ' + this.settings.ds.htmlencode() + ' ');
+				$('#Path').append($('<a>').attr('href', '#' + this._createLocation({ hash: this._data.parents[i].hash }, 'path')).text(this._data.parents[i].name)).append(' ' + this.settings.ds.htmlencode() + ' ');
 			}
 			$('#Path').append(this._data.name.htmlencode());
 			
@@ -82,7 +82,7 @@ $.extend(Controller.prototype, {
 				switch (field) {
 					case 'label':
 						if (data.isfiles) return '<i>Files in this directory</i>';
-						return '<a href="#' + self._createLocation({ hash: data.hash }).htmlencode() + '">' + data.name.htmlencode() + '</a>';
+						return '<a href="#' + self._createLocation({ hash: data.hash }, 'contents').htmlencode() + '">' + data.name.htmlencode() + '</a>';
 					case 'sortlabel':
 						if (data.isfiles) return '';
 						return data.name.toLowerCase();
@@ -287,8 +287,8 @@ $.extend(Controller.prototype, {
 		// Make sure the current page is valid.
 		this.options.page = Math.max(1, Math.min(Math.ceil(length / this.pageMax), this.options.page));
 		
-		$('.pager-prev').attr('href', '#' + this._createLocation({ page: Math.max(1, this.options.page - 1) }));
-		$('.pager-next').attr('href', '#' + this._createLocation({ page: Math.min(Math.ceil(length / this.pageMax), this.options.page + 1) }));
+		$('.pager-prev').attr('href', '#' + this._createLocation({ page: Math.max(1, this.options.page - 1) }, 'pager'));
+		$('.pager-next').attr('href', '#' + this._createLocation({ page: Math.min(Math.ceil(length / this.pageMax), this.options.page + 1) }, 'pager'));
 		
 		$('.pager-range').text(((this.options.page - 1) * this.pageMax + 1) + ' to ' + Math.min(length, this.options.page * this.pageMax) + ' of ' + length);
 	},
@@ -425,7 +425,7 @@ $.extend(Controller.prototype, {
 				html += '<td align="center">' + ext + '</td>';
 				html += '<td align="right">' + FormatBytes(data[key].size) + '</td>';
 				html += '<td>' + data[key].date + ' ' + data[key].time + '</td>';
-				html += '<td><a href="#' + this._createLocation({ hash: data[key].hash, section: 'files' }).htmlencode() + '">' + data[key].path.replace(new RegExp(RegExp.escape(this.settings.ds), 'g'), this.settings.ds+' ').htmlencode() + '</a></td>';
+				html += '<td><a href="#' + this._createLocation({ hash: data[key].hash, section: 'files' }, 'top100').htmlencode() + '">' + data[key].path.replace(new RegExp(RegExp.escape(this.settings.ds), 'g'), this.settings.ds+' ').htmlencode() + '</a></td>';
 				
 				var index = BinarySearch(rows, [ sortValue, data[key].name ], function(needle, item, index) {
 					var modifier = self.options.top100SortRev ? -1 : 1;
