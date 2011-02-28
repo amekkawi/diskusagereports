@@ -82,6 +82,9 @@ $.extend(Controller.prototype, {
 		var self = this;
 		$('#Loading').text('Loading Report Settings...');
 		
+		// Set the initial language text.
+		this._languageLoad();
+		
 		setTimeout(function(){
 			self._downloadSettings();
 		}, this._debugTimeout);
