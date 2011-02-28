@@ -8,14 +8,14 @@ $.extend(Controller.prototype, {
 			case 'parsererror':
 				parts.push('Error: Data is invalid or could not be parsed. ');
 				if (this._ajaxStage == 'directories') {
-					parts.push($('<a href="#">Skip the Directory List</a>').click(function(){ self._skipDirectoryList.apply(self, arguments); return false; }));
+					parts.push($('<span class="link">Skip the Directory List</span>').click(function(){ self._skipDirectoryList.apply(self, arguments); return false; }));
 				}
 				break;
 			case 'timeout':
 				parts.push('Error: Download took to long and timed out. Reload to try again');
 				if (this._ajaxStage == 'directories') {
 					parts.push(' or ');
-					parts.push($('<a href="#">skip the directory list</a>').click(function(){ self._skipDirectoryList.apply(self, arguments); return false; }));
+					parts.push($('<span class="link">skip the directory list</span>').click(function(){ self._skipDirectoryList.apply(self, arguments); return false; }));
 				}
 				parts.push('.');
 				break;
@@ -26,7 +26,7 @@ $.extend(Controller.prototype, {
 						if (this._ajaxStage == 'directories') {
 							parts.push('The directory list may not exist. ');
 							if (this._ajaxStage == 'directories') {
-								parts.push($('<a href="#">Skip the Directory List</a>').click(function(){ self._skipDirectoryList.apply(self, arguments); return false; }));
+								parts.push($('<span class="link">Skip the Directory List</span>').click(function(){ self._skipDirectoryList.apply(self, arguments); return false; }));
 							}
 						}
 						else {
@@ -40,7 +40,7 @@ $.extend(Controller.prototype, {
 						parts.push('Error: An unknown error occurred (' + xhr.status + '). Reload to try again');
 						if (this._ajaxStage == 'directories') {
 							parts.push(' or ');
-							parts.push($('<a href="#">skip the directory list</a>').click(function(){ self._skipDirectoryList.apply(self, arguments); return false; }));
+							parts.push($('<span class="link">skip the directory list</span>').click(function(){ self._skipDirectoryList.apply(self, arguments); return false; }));
 						}
 						parts.push('.');
 						$.dumpWindow(xhr);
@@ -50,7 +50,7 @@ $.extend(Controller.prototype, {
 				parts.push('Error: An unknown error occurred. Reload to try again');
 				if (this._ajaxStage == 'directories') {
 					parts.push(' or ');
-					parts.push($('<a href="#">skip the directory list</a>').click(function(){ self._skipDirectoryList.apply(self, arguments); return false; }));
+					parts.push($('<span class="link">skip the directory list</span>').click(function(){ self._skipDirectoryList.apply(self, arguments); return false; }));
 				}
 				parts.push('.');
 		}
@@ -180,7 +180,7 @@ $.extend(Controller.prototype, {
 				$('<div id="DirectoryListSkip"></div>')
 					.text('Taking too long? ')
 					.append(
-						$('<a href="#">Skip the Directory List</a>')
+						$('<span class="link">Skip the Directory List</span>')
 						.click(function(){ self._skipDirectoryList.apply(self, arguments); return false; })
 					)
 			);

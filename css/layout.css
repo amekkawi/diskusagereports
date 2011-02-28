@@ -19,6 +19,12 @@ a {
 	color: #00F;
 }
 
+.link {
+	color: #00F;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
 tbody th {
 	text-align: right;
 }
