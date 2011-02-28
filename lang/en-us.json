@@ -1,0 +1,68 @@
+{
+	"language_name": "English (US)",
+	
+	"title": "Disk Usage Report",
+	"title_with_name": "Disk Usage Report for: <b>{1}<b>",
+	
+	"tree_header_name": "Name",
+	"tree_header_size": "Size",
+	"tree_header_count": "Count",
+	
+	"tree_files_in_this_directory": "Files in this directory",
+	
+	"total_size": "Total Size: {1} ({2} in this directory alone)",
+	"total_files": "Total Files: {1} ({2} in this directory alone)",
+	
+	"tab_contents": "Contents",
+	"tab_file_list": "File List",
+	"tab_last_modified": "Last Modified",
+	"tab_file_sizes": "File Sizes",
+	"tab_file_types": "File Types",
+	"tab_top_100": "Top 100",
+	
+	"notice_no_files": "This directory does not contain files.",
+	"notice_no_files_incl_sub": "Neither this directory nor its sub directories contain files.",
+	"notice_no_info_at_depth": "This information is not available at this directory depth.",
+	
+	"prev_page_button": "Prev",
+	"next_page_button": "Next",
+	
+	"displayed_rows": "{1} to {2} of {3}",
+	
+	"page_list_label": "Page",
+	
+	"contents_header_name": "Name",
+	"contents_header_total_size": "Total Size",
+	"contents_header_file_count": "File Count",
+	
+	"contents_files_in_this_directory": "Files in this directory",
+	
+	"file_list_header_name": "Name",
+	"file_list_header_type": "Type",
+	"file_list_header_size": "Size",
+	"file_list_header_modified": "Modified",
+	
+	"last_modified_header_age": "Age",
+	"last_modified_header_total_size": "Total Size",
+	"last_modified_header_file_count": "File Count",
+	
+	"file_sizes_header_range": "Range",
+	"file_sizes_header_total_size": "Total Size",
+	"file_sizes_header_file_count": "File Count",
+	
+	"file_types_header_extension": "Extension",
+	"file_types_header_total_size": "Total Size",
+	"file_types_header_file_count": "File Count",
+	
+	"top_100_header_name": "Name",
+	"top_100_header_type": "Type",
+	"top_100_header_size": "Size",
+	"top_100_header_modified": "Modified",
+	"top_100_header_path": "Path",
+	
+	"table_footer_total": "Total",
+	
+	"footer": "Report generated using {1}. Language: {2}.",
+	"footer_with_created": "Report generated on {3} using {1}. Language: {2}."
+
+}
