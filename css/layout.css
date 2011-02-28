@@ -427,31 +427,61 @@ tbody th {
 	margin-top: 4px;
 }
 
-.pager a, .pager-range {
+.pager a, .pager span {
 	float: left;
 	display: block;
 	padding: 6px;
 	margin-left: 4px;
+}
+.pager span {
+	padding: 7px;
+}
+.pager a {
 	text-decoration: none;
 	border: 1px solid #F7F6F0;
 }
 .pager a:hover {
 	cursor: pointer;
 	background-color: #EDEAD9;
-	border: 1px solid #B5AA88;
+	border-color: #B5AA88;
 }
 
-.pager .pager-next {
+.pager a.pager-next {
 	background-image: url(../images/rightarrow.png);
 	background-repeat: no-repeat;
 	background-position: right center;
 	padding-right: 22px;
 }
-.pager .pager-prev {
+.pager a.pager-prev {
 	background-image: url(../images/leftarrow.png);
 	background-repeat: no-repeat;
 	background-position: left center;
 	padding-left: 22px;
+}
+
+.pager a.disabled {
+	border-color: #F7F6F0;
+	background-color: transparent;
+	cursor: default;
+	color: #666;
+}
+.pager a.pager-prev.disabled {
+	background-image: url(../images/leftarrow-disabled.png);
+}
+.pager a.pager-next.disabled {
+	background-image: url(../images/rightarrow-disabled.png);
+}
+
+.pager span.pager-pages {
+	padding: 0;
+}
+.pager-pages a, .pager-pages span {
+	margin-left: 0;
+}
+.pager-pages a.selected {
+	border-color: #F7F6F0;
+	background-color: #2D6395;
+	color: #FFF;
 }
 
 #Section_Message {

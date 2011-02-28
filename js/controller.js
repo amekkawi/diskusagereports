@@ -26,7 +26,7 @@ Controller = function() {
 	this.report = window.location.search.substring(1);
 	
 	// Set the maximum number of rows per page.
-	this.pageMax = 10;
+	this.pageMax = 100;
 	
 	// Calculate the width (which caches it).
 	$.scrollbarWidth();

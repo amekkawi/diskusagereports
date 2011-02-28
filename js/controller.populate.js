@@ -284,13 +284,39 @@ $.extend(Controller.prototype, {
 	_displayPager: function(length) {
 		$('.pager').show();
 		
-		// Make sure the current page is valid.
-		this.options.page = Math.max(1, Math.min(Math.ceil(length / this.pageMax), this.options.page));
+		var lastPage = Math.ceil(length / this.pageMax);
 		
-		$('.pager-prev').attr('href', '#' + this._createLocation({ page: Math.max(1, this.options.page - 1) }, 'pager'));
-		$('.pager-next').attr('href', '#' + this._createLocation({ page: Math.min(Math.ceil(length / this.pageMax), this.options.page + 1) }, 'pager'));
+		// Make sure the current page is valid.
+		this.options.page = Math.max(1, Math.min(lastPage, this.options.page));
+		
+		$('.pager-prev')
+			[ this.options.page == 1 ? 'addClass' : 'removeClass' ]('disabled')
+			.attr('href', '#' + this._createLocation({ page: Math.max(1, this.options.page - 1) }, 'pager'));
+		
+		$('.pager-next')
+			[ this.options.page == lastPage ? 'addClass' : 'removeClass' ]('disabled')
+			.attr('href', '#' + this._createLocation({ page: Math.min(lastPage, this.options.page + 1) }, 'pager'));
 		
 		$('.pager-range').text(((this.options.page - 1) * this.pageMax + 1) + ' to ' + Math.min(length, this.options.page * this.pageMax) + ' of ' + length);
+		
+		$('.pager-pages').html('<span>Page:</span>');
+		
+		// Add a link for the first page.
+		if (this.options.page > 5) {
+			$('.pager-pages').append($('<a href="#' + this._createLocation({ page: 1 }, 'pager').htmlencode() + '">1</a>'));
+			if (this.options.page > 6) $('.pager-pages').append($('<span>...</span>'));
+		}
+		
+		// Add links for the pages near the current one.
+		for (var i = Math.max(1, this.options.page - 4); i <= Math.min(this.options.page + 4, lastPage); i++) {
+			$('.pager-pages').append($('<a class="' + (this.options.page == i ? 'selected' : '') + '" href="#' + this._createLocation({ page: i }, 'pager').htmlencode() + '">' + i + '</a>'));
+		}
+		
+		// Add a link for the last page.
+		if (this.options.page < lastPage - 4) {
+			if (this.options.page < lastPage - 5) $('.pager-pages').append($('<span>...</span>'));
+			$('.pager-pages').append($('<a href="#' + this._createLocation({ page: lastPage }, 'pager').htmlencode() + '">' + lastPage + '</a>'));
+		}
 	},
 	
 	_displayFiles: function() {
@@ -447,8 +473,16 @@ $.extend(Controller.prototype, {
 				}
 			}
 			
+			// Determine the rows that will be shown (if not all of them).
+			var iStart = 0, iEnd = rows.length;
+			if (rows.length > this.pageMax) {
+				iStart = (this.options.page - 1) * this.pageMax;
+				iEnd = Math.min(rows.length, this.options.page * this.pageMax);
+				this._displayPager(rows.length);
+			}
+			
 			var finalHTML = '';
-			for (var i = 0; i < rows.length; i++) {
+			for (var i = iStart; i < iEnd; i++) {
 				finalHTML += '<tr class="' + (i % 2 == 0 ? 'odd' : 'even') + '">' + rows[i][2] + '</tr>';
 			}
 			
