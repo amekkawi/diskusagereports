@@ -349,22 +349,22 @@ $.extend(Controller.prototype, {
 		$('#Tabs li').disableTextSelection();
 		
 		$('#Tab_SubDirs').click(function(){
-			self.setOptions({ 'section': 'subdirs' });
+			self.setOptions({ page: 1, 'section': 'subdirs' });
 		});
 		$('#Tab_Modified').click(function(){
-			self.setOptions({ 'section': 'modified' });
+			self.setOptions({ page: 1, 'section': 'modified' });
 		});
 		$('#Tab_Types').click(function(){
-			self.setOptions({ 'section': 'types' });
+			self.setOptions({ page: 1, 'section': 'types' });
 		});
 		$('#Tab_Sizes').click(function(){
-			self.setOptions({ 'section': 'sizes' });
+			self.setOptions({ page: 1, 'section': 'sizes' });
 		});
 		$('#Tab_Files').click(function(){
-			self.setOptions({ 'section': 'files' });
+			self.setOptions({ page: 1, 'section': 'files' });
 		});
 		$('#Tab_Top100').click(function(){
-			self.setOptions({ 'section': 'top100' });
+			self.setOptions({ page: 1, 'section': 'top100' });
 		});
 	},
 	
@@ -372,26 +372,26 @@ $.extend(Controller.prototype, {
 		var self = this;
 		
 		$('#Sections .totals-sortby-label').disableTextSelection().click(function() {
-			self.setOptions({ totalsSortBy: 'label', totalsSortRev: self.options.totalsSortBy == 'label' ? !self.options.totalsSortRev : false });
+			self.setOptions({ page: 1, totalsSortBy: 'label', totalsSortRev: self.options.totalsSortBy == 'label' ? !self.options.totalsSortRev : false });
 		});
 		$('#Sections .totals-sortby-byte').disableTextSelection().click(function() {
-			self.setOptions({ totalsSortBy: 'byte', totalsSortRev: self.options.totalsSortBy == 'byte' ? !self.options.totalsSortRev : true });
+			self.setOptions({ page: 1, totalsSortBy: 'byte', totalsSortRev: self.options.totalsSortBy == 'byte' ? !self.options.totalsSortRev : true });
 		});
 		$('#Sections .totals-sortby-num').disableTextSelection().click(function() {
-			self.setOptions({ totalsSortBy: 'num', totalsSortRev: self.options.totalsSortBy == 'num' ? !self.options.totalsSortRev : true });
+			self.setOptions({ page: 1, totalsSortBy: 'num', totalsSortRev: self.options.totalsSortBy == 'num' ? !self.options.totalsSortRev : true });
 		});
 
 		$('#Files-SortBy-name').disableTextSelection().click(function() {
-			self.setOptions({ filesSortBy: 'name', filesSortRev: self.options.filesSortBy == 'name' ? !self.options.filesSortRev : false });
+			self.setOptions({ page: 1, filesSortBy: 'name', filesSortRev: self.options.filesSortBy == 'name' ? !self.options.filesSortRev : false });
 		});
 		$('#Files-SortBy-type').disableTextSelection().click(function() {
-			self.setOptions({ filesSortBy: 'type', filesSortRev: self.options.filesSortBy == 'type' ? !self.options.filesSortRev : false });
+			self.setOptions({ page: 1, filesSortBy: 'type', filesSortRev: self.options.filesSortBy == 'type' ? !self.options.filesSortRev : false });
 		});
 		$('#Files-SortBy-size').disableTextSelection().click(function() {
-			self.setOptions({ filesSortBy: 'size', filesSortRev: self.options.filesSortBy == 'size' ? !self.options.filesSortRev : true });
+			self.setOptions({ page: 1, filesSortBy: 'size', filesSortRev: self.options.filesSortBy == 'size' ? !self.options.filesSortRev : true });
 		});
 		$('#Files-SortBy-modified').disableTextSelection().click(function() {
-			self.setOptions({ filesSortBy: 'modified', filesSortRev: self.options.filesSortBy == 'modified' ? !self.options.filesSortRev : false });
+			self.setOptions({ page: 1, filesSortBy: 'modified', filesSortRev: self.options.filesSortBy == 'modified' ? !self.options.filesSortRev : false });
 		});
 
 		$('#Top100-SortBy-name').disableTextSelection().click(function() {
