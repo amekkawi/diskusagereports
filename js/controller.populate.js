@@ -13,10 +13,11 @@ $.extend(Controller.prototype, {
 				}
 				$('#Path').append(this._data.name.htmlencode());
 				
-				$('#Bytes').text(FormatBytes(this._data.bytes));
-				$('#TotalBytes').text(FormatBytes(this._data.totalbytes));
-				$('#Num').text(AddCommas(this._data.num));
-				$('#TotalNum').text(AddCommas(this._data.totalnum));
+				$('#DirSummary').html(
+						this.translate('total_size', FormatBytes(this._data.totalbytes), FormatBytes(this._data.bytes))
+						+ '<br/>'
+						+ this.translate('total_files', AddCommas(this._data.totalnum), AddCommas(this._data.num))
+				);
 				
 				$('#Sections')
 					.removeClass('totals-sortedby-label totals-sortedby-byte totals-sortedby-num files-sortedby-name files-sortedby-type files-sortedby-size files-sortedby-modified top100-sortedby-name top100-sortedby-type top100-sortedby-size top100-sortedby-modified top100-sortedby-path')
