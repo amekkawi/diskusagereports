@@ -84,10 +84,10 @@ $.extend(Controller.prototype, {
 	_languageChangeStatic: function(part) {
 		if (!part || part == 'title') {
 			if (this.settings && this.settings.name) {
-				$('#Title').html(this.translate('title_with_name', this.settings.name.htmlencode()));
+				$('#Title').html(this.translate('title_with_name', this.settings.name.htmlencode())).show();
 			}
 			else {
-				$('#Title').html(this.translate('title'));
+				$('#Title').html(this.translate('title')).show();
 			}
 		}
 		
@@ -152,6 +152,9 @@ $.extend(Controller.prototype, {
 				this.settings ? this.settings.created.htmlencode() : null
 			));
 		}
+		
+		// Resize window in case the header was previously hidden.
+		this.resizeWindow();
 	}
 });
 

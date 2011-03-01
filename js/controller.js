@@ -80,10 +80,12 @@ $.extend(Controller.prototype, {
 	
 	load: function() {
 		var self = this;
-		$('#Loading').text('Loading Report Settings...');
 		
 		// Set the initial language text.
+		// Also makes the header/footer visible.
 		this._languageLoad();
+		
+		$('#Loading').text('Loading Report Settings...');
 		
 		setTimeout(function(){
 			self._downloadSettings();
