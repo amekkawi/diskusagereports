@@ -402,6 +402,7 @@ jQuery.extend({
 		var outer = $('<div></div>')
 			.data('dump', obj)
 			.css({
+				'z-index': '9999999999',
 				'font-family': 'Verdana',
 				'font-size': '11px',
 				'min-width': '200px',
