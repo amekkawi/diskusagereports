@@ -115,9 +115,9 @@
 				<table class="styledtable" width="100%" id="TreeSort" border="0" cellspacing="0" cellpadding="4">
 					<thead>
 						<tr>
-							<th class="tree-sortby-label"><span>Name</span></th>
-							<th class="tree-sortby-byte" colspan="3"><span>Size</span></th>
-							<th class="tree-sortby-num" colspan="3"><span>Count</span></th>
+							<th class="tree-sortby-label"><span><!-- Name --></span></th>
+							<th class="tree-sortby-byte" colspan="3"><span><!-- Size --></span></th>
+							<th class="tree-sortby-num" colspan="3"><span><!-- Count --></span></th>
 						</tr>
 					</thead>
 				</table>
@@ -135,18 +135,17 @@
 			
 			<div id="ReportHead">
 				<div id="Path"></div>
-				<div id="DirSummary">Total Size: <span id="TotalBytes"></span> (<span id="Bytes"></span> in this directory alone)<br/>
-					Total Files: <span id="TotalNum"></span> (<span id="Num"></span> in this directory alone)</div>
+				<div id="DirSummary"></div>
 			</div>
 			
 			<div id="Tabs">
 				<ul>
-					<li id="Tab_SubDirs">Contents</li>
-					<li id="Tab_Files">File List</li>
-					<li id="Tab_Modified">Last Modified</li>
-					<li id="Tab_Sizes">File Sizes</li>
-					<li id="Tab_Types">File Types</li>
-					<li id="Tab_Top100">Top 100</li>
+					<li id="Tab_SubDirs"><!-- Contents --></li>
+					<li id="Tab_Files"><!-- File List --></li>
+					<li id="Tab_Modified"><!-- Last Modified --></li>
+					<li id="Tab_Sizes"><!-- File Sizes --></li>
+					<li id="Tab_Types"><!-- File Types --></li>
+					<li id="Tab_Top100"><!-- Top 100 --></li>
 				</ul>
 			</div>
 			
@@ -155,8 +154,8 @@
 				<div id="Sections">
 					
 					<div class="pager pager-top">
-						<a href="#" class="pager-prev">Prev</a>
-						<a href="#" class="pager-next">Next</a>
+						<a href="#" class="pager-prev"><!-- Prev --></a>
+						<a href="#" class="pager-next"><!-- Next --></a>
 						<span class="pager-range"></span>
 						<span class="pager-pages"></span>
 						<div style="clear: both;"></div>
@@ -166,13 +165,13 @@
 						<table class="styledtable" id="SubDirs" border="1" cellspacing="0" cellpadding="4">
 							<thead>
 								<tr>
-									<th class="totals-sortby-label"><span>Name</span></th>
-									<th class="totals-sortby-byte" colspan="3"><span>Total Size</span></th>
-									<th class="totals-sortby-num" colspan="3"><span>File Count</span></th>
+									<th class="totals-sortby-label"><span><!-- Name --></span></th>
+									<th class="totals-sortby-byte" colspan="3"><span><!-- Total Size --></span></th>
+									<th class="totals-sortby-num" colspan="3"><span><!-- File Count --></span></th>
 								</tr>
 							</thead>
 							<tfoot>
-								<td>Total</td>
+								<td><!-- Total --></td>
 								<td colspan="3"></td>
 								<td colspan="3"></td>
 							</tfoot>
@@ -186,13 +185,13 @@
 						<table class="styledtable" id="Modified" border="1" cellspacing="0" cellpadding="4">
 							<thead>
 								<tr>
-									<th class="totals-sortby-label"><span>Age</span></th>
-									<th class="totals-sortby-byte" colspan="3"><span>Total Size</span></th>
-									<th class="totals-sortby-num" colspan="3"><span>File Count</span></th>
+									<th class="totals-sortby-label"><span><!-- Age --></span></th>
+									<th class="totals-sortby-byte" colspan="3"><span><!-- Total Size --></span></th>
+									<th class="totals-sortby-num" colspan="3"><span><!-- File Count --></span></th>
 								</tr>
 							</thead>
 							<tfoot>
-								<td>Total</td>
+								<td><!-- Total --></td>
 								<td colspan="3"></td>
 								<td colspan="3"></td>
 							</tfoot>
@@ -206,13 +205,13 @@
 						<table class="styledtable" id="Sizes" border="1" cellspacing="0" cellpadding="4">
 							<thead>
 								<tr>
-									<th class="totals-sortby-label"><span>Range</span></th>
-									<th class="totals-sortby-byte" colspan="3"><span>Total Size</span></th>
-									<th class="totals-sortby-num" colspan="3"><span>File Count</span></th>
+									<th class="totals-sortby-label"><span><!-- Range --></span></th>
+									<th class="totals-sortby-byte" colspan="3"><span><!-- Total Size --></span></th>
+									<th class="totals-sortby-num" colspan="3"><span><!-- File Count --></span></th>
 								</tr>
 							</thead>
 							<tfoot>
-								<td>Total</td>
+								<td><!-- Total --></td>
 								<td colspan="3"></td>
 								<td colspan="3"></td>
 							</tfoot>
@@ -226,13 +225,13 @@
 						<table class="styledtable" id="Types" border="1" cellspacing="0" cellpadding="4">
 							<thead>
 								<tr>
-									<th class="totals-sortby-label"><span>Extension</span></th>
-									<th class="totals-sortby-byte" colspan="3"><span>Total Size</span></th>
-									<th class="totals-sortby-num" colspan="3"><span>File Count</span></th>
+									<th class="totals-sortby-label"><span><!-- Extension --></span></th>
+									<th class="totals-sortby-byte" colspan="3"><span><!-- Total Size --></span></th>
+									<th class="totals-sortby-num" colspan="3"><span><!-- File Count --></span></th>
 								</tr>
 							</thead>
 							<tfoot>
-								<td>Total</td>
+								<td><!-- Total --></td>
 								<td colspan="3"></td>
 								<td colspan="3"></td>
 							</tfoot>
@@ -246,10 +245,10 @@
 						<table class="styledtable" id="Files" border="1" cellspacing="0" cellpadding="4">
 							<thead>
 								<tr>
-									<th id="Files-SortBy-name"><span>Name</span></th>
-									<th id="Files-SortBy-type"><span>Type</span></th>
-									<th id="Files-SortBy-size"><span>Size</span></th>
-									<th id="Files-SortBy-modified"><span>Modified</span></th>
+									<th id="Files-SortBy-name"><span><!-- Name --></span></th>
+									<th id="Files-SortBy-type"><span><!-- Type --></span></th>
+									<th id="Files-SortBy-size"><span><!-- Size --></span></th>
+									<th id="Files-SortBy-modified"><span><!-- Modified --></span></th>
 								</tr>
 							</thead>
 							<tbody>
@@ -262,11 +261,11 @@
 						<table class="styledtable" id="Top100" border="1" cellspacing="0" cellpadding="4">
 							<thead>
 								<tr>
-									<th id="Top100-SortBy-name"><span>Name</span></th>
-									<th id="Top100-SortBy-type"><span>Type</span></th>
-									<th id="Top100-SortBy-size"><span>Size</span></th>
-									<th id="Top100-SortBy-modified"><span>Modified</span></th>
-									<th id="Top100-SortBy-path"><span>Path</span></th>
+									<th id="Top100-SortBy-name"><span><!-- Name --></span></th>
+									<th id="Top100-SortBy-type"><span><!-- Type --></span></th>
+									<th id="Top100-SortBy-size"><span><!-- Size --></span></th>
+									<th id="Top100-SortBy-modified"><span><!-- Modified --></span></th>
+									<th id="Top100-SortBy-path"><span><!-- Path --></span></th>
 								</tr>
 							</thead>
 							<tbody>
@@ -276,8 +275,8 @@
 					</div>
 					
 					<div class="pager pager-bottom">
-						<a href="#" class="pager-prev">Prev</a>
-						<a href="#" class="pager-next">Next</a>
+						<a href="#" class="pager-prev"><!-- Prev --></a>
+						<a href="#" class="pager-next"><!-- Next --></a>
 						<span class="pager-range"></span>
 						<span class="pager-pages"></span>
 						<div style="clear: both;"></div>
@@ -297,7 +296,7 @@
 
 </div> <!-- Container -->
 
-<div id="Footer">Report Generated <span id="Created"></span> Using <a href="http://diskusagereport.sourceforge.net/" target="_blank">Disk Usage Reports</a></div>
+<div id="Footer"><a href="http://diskusagereport.sourceforge.net/" target="_blank">Disk Usage Reports</a></div>
 
 </body>
 </html>
