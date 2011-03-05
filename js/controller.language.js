@@ -12,7 +12,6 @@ $.extend(Controller.prototype, {
 	_languages: { },
 	
 	translate: function() {
-		//$.dumpWindow(arguments);
 		arguments = $.makeArray(arguments);
 		
 		var key = arguments.shift(),
@@ -147,9 +146,9 @@ $.extend(Controller.prototype, {
 		
 		if (!part || part == 'footer') {
 			$('#Footer').html(this.translate(this.settings ? 'footer_with_created' : 'footer',
+				this.settings ? this.settings.created.htmlencode() : null,
 				'<a target="_blank" href="http://diskusagereport.sourceforge.net/">Disk Usage Reports</a>',
-				this._languages[this.language].language_name,
-				this.settings ? this.settings.created.htmlencode() : null
+				this._languages[this.language].language_name
 			));
 		}
 		
