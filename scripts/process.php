@@ -208,7 +208,7 @@ while (($line = fgets($fh, $args['maxlinelength']+2)) !== FALSE) {
 	}
 	
 	// Split the line and validate its length;
-	elseif (count($split = explode($args['delim'], rtrim($line, "\n\r"), 8)) != 7) {
+	elseif (count($split = explode($args['delim'], rtrim($line, "\n\r"))) != 7) {
 		array_push($errors, array('invalidline', 'columncount', $split));
 	}
 	
