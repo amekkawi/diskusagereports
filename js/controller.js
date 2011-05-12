@@ -147,25 +147,25 @@ $.extend(Controller.prototype, {
 				
 				switch (status) {
 					case 'parsererror':
-						$('#Error').text('Error: Data for this directory is invalid or could not be parsed.');
+						$('#Error').html(self.translate('hash_parse_error'));
 						break;
 					case 'timeout':
-						$('#Error').text('Error: Download took to long and timed out. Reload to try again.');
+						$('#Error').html(self.translate('hash_timeout_error'));
 						break;
 					case 'error':
 						switch (xhr.status) {
 							case 404:
-								$('#Error').text('Error: Not found. The data for this directory may be missing.');
+								$('#Error').html(self.translate('hash_notfound_error'));
 								break;
 							case 401:
-								$('#Error').text('Error: A username and password is required. Reload to try again.');
+								$('#Error').html(self.translate('hash_username_error'));
 								break;
 							default:
-								$('#Error').text('Error: An unknown error occurred (HTTP Status ' + xhr.status + '). Reload to try again.');
+								$('#Error').html(self.translate('hash_unknown_error', xhr.status+''));
 						}
 						break;
 					default:
-						$('#Error').text('Error: An unknown error occurred. Reload to try again.');
+						$('#Error').html(self.translate('hash_unknown_error', status+''));
 				}
 				
 				// Attempt to select the tree node.

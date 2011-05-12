@@ -92,5 +92,11 @@
 	"table_footer_total": "Total",
 	
 	"footer": "Report generated using {2}. Language: {3}.",
-	"footer_with_created": "Report generated on {1} using {2}. Language: {3}."
+	"footer_with_created": "Report generated on {1} using {2}. Language: {3}.",
+	
+	"hash_parse_error": "Error: Data directory is invalid or could not be parsed.",
+	"hash_timeout_error": "Error: Directory data took too long to download and timed out. Reload to try again.",
+	"hash_notfound_error": "Error: Directory data not found. The data for this directory may be missing.",
+	"hash_username_error": "Error: A username and password is required. Reload to try again.",
+	"hash_unknown_error": "Error: An unknown error occurred (status: {1}). Reload to try again."
 }
