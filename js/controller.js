@@ -79,17 +79,26 @@ $.extend(Controller.prototype, {
 	},
 	
 	load: function() {
-		var self = this;
+		var self = this, langResult;
 		
-		// Set the initial language text.
-		// Also makes the header/footer visible.
-		this._languageLoad();
+		// Set the default language.
+		this.addLanguage(this.defaultLanguage);
 		
-		$('#Loading').text('Loading Report Settings...');
+		// Set the language, if it wasn't set (or failed to set) in index.html.
+		// Note: Also makes the header/footer visible.
+		if (!this.language) langResult = this.setLanguage(this.defaultLanguage);
 		
-		setTimeout(function(){
-			self._downloadSettings();
-		}, this._debugTimeout);
+		// Fail if the language has still not been set.
+		if (!this.language) {
+			$('#Loading').text('Language file could not be loaded: ' + langResult);
+		}
+		else {
+			$('#Loading').html(this.translate('loading_settings'));
+			
+			setTimeout(function(){
+				self._downloadSettings();
+			}, this._debugTimeout);
+		}
 	},
 	
 	setLocation: function(location, completeFn) {
