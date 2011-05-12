@@ -117,6 +117,7 @@ $.extend(Controller.prototype, {
 	},
 	
 	_processErrors: function() {
+		var self = this;
 		if (this.settings.errors.length > 0) {
 			
 			// Add a button that displays errors counts and shows error messages on click.
@@ -136,48 +137,59 @@ $.extend(Controller.prototype, {
 			
 			// Populate the error list.
 			for (var i = 0; i < this.settings.errors.length; i++) {
-				var detail = '',
-					errorTitle = 'Unknown Error (' + this.settings.errors[i] + ')';
+				var detail = '', errorTitle = ''; //Unknown Error (' + this.settings.errors[i] + ')';
 				
-				switch (this.settings.errors[i][0]) {
-					case 'invalidline':
-						errorTitle = 'Invalid Line - ';
-						switch (this.settings.errors[i][1]) {
-							case 'regex':
-								errorTitle += 'Wrong Format';
-								detail += '<div style="overflow: auto; width: 100%;">'+ this.settings.errors[i][2].htmlencode() +'</div>';
-								break;
-							case 'maxlinelength':
-								errorTitle += 'Line Too Long (' + this.settings.errors[i][2].length + ' characters)';
-								detail += '<div style="overflow: auto; width: 100%;">'+ this.settings.errors[i][2].htmlencode() +'</div>';
-								break;
-							case 'columncount':
-								errorTitle += 'Wrong Column Count (' + this.settings.errors[i][2].length + ')';
-								detail += '<table class="styledtable" border="1" cellspacing="0" cellpadding="4"><tbody><tr class="odd">';
-								for (var c = 0; c < this.settings.errors[i][2].length; c++) {
-									detail += '<td>' + this.settings.errors[i][2][c].htmlencode() + '</td>';
-								}
-								detail += '</tr></tbody></table>';
-								break;
-							case 'column':
-								errorTitle += 'Bad Value for Column \'' + this.settings.errors[i][2] + '\'';
-								detail += '<table class="styledtable" border="1" cellspacing="0" cellpadding="4"><tbody><tr class="odd">';
-								for (var c = 0; c < this.settings.errors[i][4].length; c++) {
-									detail += '<td ' + (c == this.settings.errors[i][3] ? ' style="background-color: #FF0;"' : '') + '>' + this.settings.errors[i][4][c].htmlencode() + '</td>';
-								}
-								detail += '</tr></tbody></table>';
-								break;
-							default:
-								errorTitle += 'Unknown Error (' + this.settings.errors[i][1] + ')';
-						}
-						errorTitle += ':';
-						break;
-					case 'writefail':
-						errorTitle = 'Error Writing File (' + this.settings.errors[i][2].htmlencode() + ') for:';
-						detail += '<div style="overflow: auto; width: 100%;">'+ this.settings.errors[i][1].htmlencode() +'</div>';
-						break;
+				if ($.isString(this.settings.errors[i])) {
+					errorTitle = this.translate('unknown_processing_error', this.settings.errors[i]);
 				}
-				var errorItem = $('<div>').addClass('errors-item').html('<b>' + errorTitle.htmlencode() + '</b>').appendTo($('#ErrorsList'));
+				else {
+					switch (this.settings.errors[i][0]) {
+						case 'invalidline':
+							//errorTitle = 'Invalid Line - ';
+							switch (this.settings.errors[i][1]) {
+								case 'regex':
+									//errorTitle += 'Wrong Format';
+									errorTitle = this.translate('invalidline_error_regex');
+									detail += '<div style="overflow: auto; width: 100%;">'+ this.settings.errors[i][2].htmlencode() +'</div>';
+									break;
+								case 'maxlinelength':
+									//errorTitle += 'Line Too Long (' + this.settings.errors[i][2].length + ' characters)';
+									errorTitle = this.translate('invalidline_error_maxlinelength', this.settings.errors[i][2].length+'');
+									detail += '<div style="overflow: auto; width: 100%;">'+ this.settings.errors[i][2].htmlencode() +'</div>';
+									break;
+								case 'columncount':
+									//errorTitle += 'Wrong Column Count (' + this.settings.errors[i][2].length + ')';
+									errorTitle = this.translate('invalidline_error_columncount', this.settings.errors[i][2].length+'');
+									detail += '<table class="styledtable" border="1" cellspacing="0" cellpadding="4"><tbody><tr class="odd">';
+									for (var c = 0; c < this.settings.errors[i][2].length; c++) {
+										detail += '<td>' + this.settings.errors[i][2][c].htmlencode() + '</td>';
+									}
+									detail += '</tr></tbody></table>';
+									break;
+								case 'column':
+									//errorTitle += 'Bad Value for Column \'' +  + '\'';
+									errorTitle = this.translate('invalidline_error_column', this.settings.errors[i][2]);
+									detail += '<table class="styledtable" border="1" cellspacing="0" cellpadding="4"><tbody><tr class="odd">';
+									for (var c = 0; c < this.settings.errors[i][4].length; c++) {
+										detail += '<td ' + (c == this.settings.errors[i][3] ? ' style="background-color: #FF0;"' : '') + '>' + this.settings.errors[i][4][c].htmlencode() + '</td>';
+									}
+									detail += '</tr></tbody></table>';
+									break;
+								default:
+									//errorTitle += 'Unknown Error (' +  + ')';
+									errorTitle = this.translate('invalidline_error_unknown', this.settings.errors[i][1]);
+							}
+							//errorTitle += ':';
+							break;
+						case 'writefail':
+							errorTitle = this.translate('writefail_error', this.settings.errors[i][2]);
+							//errorTitle = 'Error Writing File (' + this.settings.errors[i][2].htmlencode() + ') for:';
+							detail += '<div style="overflow: auto; width: 100%;">'+ this.settings.errors[i][1].htmlencode() +'</div>';
+							break;
+					}
+				}
+				
+				var errorItem = $('<div>').addClass('errors-item').html($('<b>').html(errorTitle)).appendTo($('#ErrorsList'));
 				if (detail != '') errorItem.append(detail);
 			}
 		}

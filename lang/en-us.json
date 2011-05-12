@@ -98,5 +98,13 @@
 	"hash_timeout_error": "Error: Directory data took too long to download and timed out. Reload to try again.",
 	"hash_notfound_error": "Error: Directory data not found. The data for this directory may be missing.",
 	"hash_username_error": "Error: A username and password is required. Reload to try again.",
-	"hash_unknown_error": "Error: An unknown error occurred (status: {1}). Reload to try again."
+	"hash_unknown_error": "Error: An unknown error occurred (status: {1}). Reload to try again.",
+	
+	"invalidline_error_regex": "Invalid Line - Wrong Format:",
+	"invalidline_error_maxlinelength": "Invalid Line - Line Too Long ({1}):",
+	"invalidline_error_columncount": "Invalid Line - Wrong Column Count ({1}):",
+	"invalidline_error_column": "Invalid Line - Bad Value for Column '{1}':",
+	"invalidline_error_unknown": "Invalid Line - Unknown Error: {1}",
+	"unknown_processing_error": "Unknown Error: {1}",
+	"writefail_error": "Error Writing File ({1}) for:"
 }
