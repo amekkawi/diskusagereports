@@ -15,25 +15,64 @@ $.extend(Controller.prototype, {
 		arguments = $.makeArray(arguments);
 		
 		var key = arguments.shift(),
-			str = this._languages[this.language][key];
+			str = this._languages[this.language][key],
+			parts = [], isTextOnly = true,
+			argIndex, lastIndex = 0, match, re = new RegExp('{([0-9])}', 'g');
 		
+		// Throw an error because the key does not exist.
 		if (!$.isString(str)) {
-			// TODO: Throw an error because the key does not exist.
+			throw "'" + key + "' does not exist in language file.";
 		}
 		else {
+			// TODO: Remove toUpperCase() debug code.
 			str = str.toUpperCase();
 			
-			for (var i = 0; i < arguments.length; i++) {
-				if (str.indexOf('{' + (i+1) + '}') < 0) {
-					// TODO: Throw an error because {N} does not exist.
+			// Find all replacements in the string.
+			while (match = re.exec(str)) {
+				
+				// Add any text between the last match and this one.
+				if (lastIndex < match.index) {
+					parts.push(document.createTextNode(str.substring(lastIndex, match.index)));
+				}
+				
+				argIndex = parseInt(match[1]) - 1;
+				
+				if (!arguments[argIndex]) {
+					throw 'Replacement not passed to Controller.translate() for ' + match[0] + ' in ' + key;
+				}
+				else if ($.isString(arguments[argIndex])) {
+					parts.push(document.createTextNode(arguments[argIndex]));
+				}
+				else if (arguments[argIndex].toArray) {
+					parts.push.apply(parts, arguments[argIndex].toArray());
+					isTextOnly = false;
 				}
 				else {
-					str = str.replace(new RegExp(RegExp.escape('{' + (i+1) + '}'), 'g'), arguments[i]);
+					throw 'Invalid argument for Controller.translate(). Must be string or jQuery object.';
 				}
+				
+				lastIndex = re.lastIndex;
 			}
 			
-			return str;
+			if (lastIndex != str.length) {
+				parts.push(document.createTextNode(str.substr(lastIndex)));
+			}
+			
+			if (isTextOnly) {
+				var retStr = '';
+				for (var i = 0; i < parts.length; i++) {
+					retStr += parts[i].textContent;
+				}
+				return retStr;
+			}
+			else {			
+				return $(parts);
+			}
 		}
+	},
+	
+	isLanguageSupported: function(lang) {
+		return $.isDefined(this._languages[lang.toLowerCase()]);
 	},
 	
 	addLanguage: function(lang) {
@@ -42,17 +81,16 @@ $.extend(Controller.prototype, {
 	},
 	
 	setLanguage: function(lang) {
-		var self = this;
+		var self = this, result = true;
 		
 		lang = lang.toLowerCase();
 		
-		// Throw an error if the language is not supported.
-		if (!this._languages[lang]) {
-			// TODO
+		// Mark the language as unsupported.
+		if (!this.isLanguageSupported(lang)) {
+			result = "Unsupported language: " + lang;
 		}
 		else {
-			// TODO: Support 'Accept-Language' header syntax.
-			this.language = lang;
+			// TODO: Support 'Accept-Language' header syntax by processing lang to fall back from something like 'eng-us' to 'eng'.
 			
 			// Retrieve the language data if it has not been loaded.
 			if (this._languages[lang] == 'load') {
@@ -61,9 +99,10 @@ $.extend(Controller.prototype, {
 					async: false,
 					dataType: 'json',
 					error: function(xhr, msg, ex) {
-						alert("Failed to load (" + msg + "): " + lang);
+						result = "Failed to load language file (" + msg + "): " + 'lang/' + lang + '.json';
 					},
 					success: function(data) {
+						self.language = lang;
 						self._languages[lang] = data;
 						self._languageChangeStatic();
 					}
@@ -73,17 +112,14 @@ $.extend(Controller.prototype, {
 				this._languageChangeStatic();
 			}
 		}
-	},
-	
-	_languageLoad: function() {
-		this.addLanguage(this.defaultLanguage);
-		if (!this.language) this.setLanguage(this.defaultLanguage);
+		
+		return result;
 	},
 	
 	_languageChangeStatic: function(part) {
 		if (!part || part == 'title') {
 			if (this.settings && this.settings.name) {
-				$('#Title').html(this.translate('title_with_name', this.settings.name.htmlencode())).show();
+				$('#Title').html(this.translate('title_with_name', $('<b>').text(this.settings.name))).show();
 			}
 			else {
 				$('#Title').html(this.translate('title')).show();
@@ -147,7 +183,7 @@ $.extend(Controller.prototype, {
 		if (!part || part == 'footer') {
 			$('#Footer').html(this.translate(this.settings ? 'footer_with_created' : 'footer',
 				this.settings ? this.settings.created.htmlencode() : null,
-				'<a target="_blank" href="http://diskusagereport.sourceforge.net/">Disk Usage Reports</a>',
+				$('<a target="_blank" href="http://diskusagereport.sourceforge.net/">Disk Usage Reports</a>'),
 				this._languages[this.language].language_name
 			));
 		}
