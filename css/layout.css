@@ -61,6 +61,10 @@ tbody th {
 	background-position: 16px 11px;
 	background-color: #FFF;
 	overflow: hidden;
+	
+	-webkit-border-radius: 15px;
+	-moz-border-radius: 15px;
+	border-radius: 15px;
 }
 
 #ErrorCount {
