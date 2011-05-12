@@ -6,58 +6,72 @@ $.extend(Controller.prototype, {
 		var parts = [], self = this;
 		switch (status) {
 			case 'parsererror':
-				parts.push('Error: Data is invalid or could not be parsed. ');
 				if (this._ajaxStage == 'directories') {
-					parts.push($('<span class="link">Skip the Directory List</span>').click(function(){ self._skipDirectoryList.apply(self, arguments); return false; }));
+					$('#Loading').append($('<div>').html(this.translate('parse_error_skip_dirs',
+						$('<span class="link"></span>')
+							.html(this.translate('parse_error_skip_dirs_link'))
+							.click(function(){ self._skipDirectoryList.apply(self, arguments); return false; })
+					)));
+				}
+				else {
+					$('#Loading').append($('<div>').html(this.translate('parse_error')));
 				}
 				break;
 			case 'timeout':
-				parts.push('Error: Download took to long and timed out. Reload to try again');
 				if (this._ajaxStage == 'directories') {
-					parts.push(' or ');
-					parts.push($('<span class="link">skip the directory list</span>').click(function(){ self._skipDirectoryList.apply(self, arguments); return false; }));
+					$('#Loading').append($('<div>').html(this.translate('timeout_error_skip_dirs',
+						$('<span class="link"></span>')
+							.html(this.translate('timeout_error_skip_dirs_link'))
+							.click(function(){ self._skipDirectoryList.apply(self, arguments); return false; })
+					)));
 				}
-				parts.push('.');
+				else {
+					$('#Loading').append($('<div>').html(this.translate('timeout_error')));
+				}
 				break;
 			case 'error':
 				switch (xhr.status) {
 					case 404:
-						parts.push('Error: Not found. ');
 						if (this._ajaxStage == 'directories') {
-							parts.push('The directory list may not exist. ');
-							if (this._ajaxStage == 'directories') {
-								parts.push($('<span class="link">Skip the Directory List</span>').click(function(){ self._skipDirectoryList.apply(self, arguments); return false; }));
-							}
+							$('#Loading').append($('<div>').html(this.translate('directory_notfound_error',
+								$('<span class="link"></span>')
+									.html(this.translate('directory_notfound_error_link'))
+									.click(function(){ self._skipDirectoryList.apply(self, arguments); return false; })
+							)));
 						}
 						else {
-							parts.push('The report may not exist.');
+							$('#Loading').append($('<div>').html(this.translate('settings_notfound_error')));
 						}
 						break;
 					case 401:
-						parts.push('Error: A username and password is required. Reload to try again.');
+						$('#Loading').append($('<div>').html(this.translate('username_required')));
 						break;
 					default:
-						parts.push('Error: An unknown error occurred (' + xhr.status + '). Reload to try again');
 						if (this._ajaxStage == 'directories') {
-							parts.push(' or ');
-							parts.push($('<span class="link">skip the directory list</span>').click(function(){ self._skipDirectoryList.apply(self, arguments); return false; }));
+							$('#Loading').append($('<div>').html(this.translate('directory_unknown_status_error',
+								xhr.status+'',
+								$('<span class="link"></span>')
+									.html(this.translate('directory_unknown_status_error_link'))
+									.click(function(){ self._skipDirectoryList.apply(self, arguments); return false; })
+							)));
 						}
-						parts.push('.');
-						$.dumpWindow(xhr);
+						else {
+							$('#Loading').append($('<div>').html(this.translate('unknown_status_error', xhr.status+'')));
+						}
 				}
 				break;
 			default:
-				parts.push('Error: An unknown error occurred. Reload to try again');
 				if (this._ajaxStage == 'directories') {
-					parts.push(' or ');
-					parts.push($('<span class="link">skip the directory list</span>').click(function(){ self._skipDirectoryList.apply(self, arguments); return false; }));
+					$('#Loading').append($('<div>').html(this.translate('directory_unknown_status_error',
+						status+'',
+						$('<span class="link"></span>')
+							.html(this.translate('directory_unknown_status_error_link'))
+							.click(function(){ self._skipDirectoryList.apply(self, arguments); return false; })
+					)));
 				}
-				parts.push('.');
-		}
-		
-		var newMsg = $('<div>').appendTo($('#Loading'));
-		for (var i = 0; i < parts.length; i++) {
-			newMsg.append(parts[i]);
+				else {
+					$('#Loading').append($('<div>').html(this.translate('unknown_status_error', status+'')));
+				}
 		}
 	},
 	
@@ -89,7 +103,7 @@ $.extend(Controller.prototype, {
 		this._processErrors();
 		
 		if (this.settings.directorytree) {
-			$('#Loading').text('Loading Directory List for Report...');
+			$('#Loading').html(this.translate('loading_directories'));
 			
 			setTimeout(function(){
 				self._downloadDirectories();
@@ -159,7 +173,7 @@ $.extend(Controller.prototype, {
 						errorTitle += ':';
 						break;
 					case 'writefail':
-						errorTitle = 'Error Writing File (' + this.settings.errors[i][2].htmlencode() + ') for:'
+						errorTitle = 'Error Writing File (' + this.settings.errors[i][2].htmlencode() + ') for:';
 						detail += '<div style="overflow: auto; width: 100%;">'+ this.settings.errors[i][1].htmlencode() +'</div>';
 						break;
 				}
@@ -173,14 +187,11 @@ $.extend(Controller.prototype, {
 		var self = this;
 		
 		this._timeout_skip = setTimeout(function(){
-			$('#Loading').append(
-				$('<div id="DirectoryListSkip"></div>')
-					.text('Taking too long? ')
-					.append(
-						$('<span class="link">Skip the Directory List</span>')
-						.click(function(){ self._skipDirectoryList.apply(self, arguments); return false; })
-					)
-			);
+			$('#Loading').append($('<div>').html(self.translate('directory_skip',
+				$('<span class="link"></span>')
+					.html(self.translate('directory_skip_link'))
+					.click(function(){ self._skipDirectoryList.apply(self, arguments); return false; })
+			)));
 		}, 5000);
 		
 		this._ajaxStage = 'directories';
@@ -200,7 +211,11 @@ $.extend(Controller.prototype, {
 				self.directories = directories;
 				
 				if ($.isUndefined(directories[self.settings.root])) {
-					$('#Loading').append($('<div>').text('Error: The root directory could not be found in the directory list.'));
+					$('#Loading').append($('<div>').html(self.translate('directory_root_notfound',
+						$('<span class="link"></span>')
+							.html(self.translate('directory_root_notfound_link'))
+							.click(function(){ self._skipDirectoryList.apply(self, arguments); return false; })
+					)));
 				}
 				else if (self.settings.directorytree) {
 					self._finalSetup();
@@ -223,7 +238,7 @@ $.extend(Controller.prototype, {
 	_finalSetup: function() {
 		var self = this;
 		
-		$('#Loading').text('Displaying Report...');
+		$('#Loading').html(this.translate('displaying_report'));
 		
 		setTimeout(function(){ // Debugging timeout
 			self._setupTabs();
