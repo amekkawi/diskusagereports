@@ -25,7 +25,7 @@ $.extend(Controller.prototype, {
 		}
 		else {
 			// TODO: Remove toUpperCase() debug code.
-			str = str.toUpperCase();
+			//str = str.toUpperCase();
 			
 			// Find all replacements in the string.
 			while (match = re.exec(str)) {
