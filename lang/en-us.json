@@ -2,7 +2,35 @@
 	"language_name": "English (US)",
 	
 	"title": "Disk Usage Report",
-	"title_with_name": "Disk Usage Report for: <b>{1}<b>",
+	"title_with_name": "Disk Usage Report for: {1}",
+	
+	"loading_settings": "Loading Report Settings...",
+	"loading_directories": "Loading Directory List for Report...",
+	"displaying_report": "Displaying Report...",
+	
+	"directory_skip": "Taking too long? {1}.",
+	"directory_skip_link": "Skip the Directory List",
+	
+	"directory_root_notfound": "Error: The root directory could not be found in the directory list. {1}?",
+	"directory_root_notfound_link": "Skip the directory list",
+	
+	"parse_error": "Error: Data is invalid or could not be parsed.",
+	"parse_error_skip_dirs": "Error: Data is invalid or could not be parsed. {1}.",
+	"parse_error_skip_dirs_link": "Skip the Directory List",
+	
+	"timeout_error": "Error: Download took to long and timed out. Reload to try again.",
+	"timeout_error_skip_dirs": "Error: Download took to long and timed out. Reload to try again or {1}.",
+	"timeout_error_skip_dirs_link": "skip the directory list",
+	
+	"settings_notfound_error": "Error: Not found. The report may not exist.",
+	"directory_notfound_error": "Error: The directory list is missing. {1}?",
+	"directory_notfound_error_link": "Skip the directory list",
+	
+	"username_required": "Error: A username and password is required. Reload to try again.",
+	
+	"directory_unknown_status_error": "An unknown error occurred (status: {1}). Reload to try again or {2}.",
+	"directory_unknown_status_error_link": "skip the directory list",
+	"unknown_status_error": "Error: An unknown error occurred (status: {1}). Reload to try again.",
 	
 	"tree_header_name": "Name",
 	"tree_header_size": "Size",
@@ -63,7 +91,6 @@
 	"unknown_file_type": "Unknown",
 	"table_footer_total": "Total",
 	
-	"footer": "Report generated using {1}. Language: {2}.",
+	"footer": "Report generated using {2}. Language: {3}.",
 	"footer_with_created": "Report generated on {1} using {2}. Language: {3}."
-
 }
