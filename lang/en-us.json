@@ -4,6 +4,9 @@
 	"title": "Disk Usage Report",
 	"title_with_name": "Disk Usage Report for: {1}",
 	
+	"errors_title": "Errors While Processing Report",
+	"errors_close": "Close",
+	
 	"loading_settings": "Loading Report Settings...",
 	"loading_directories": "Loading Directory List for Report...",
 	"displaying_report": "Displaying Report...",

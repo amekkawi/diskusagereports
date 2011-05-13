@@ -120,10 +120,17 @@ $.extend(Controller.prototype, {
 		if (!part || part == 'title') {
 			if (this.settings && this.settings.name) {
 				$('#Title').html(this.translate('title_with_name', $('<b>').text(this.settings.name))).show();
+				document.title = this.translate('title_with_name', this.settings.name);
 			}
 			else {
 				$('#Title').html(this.translate('title')).show();
+				document.title = this.translate('title');
 			}
+		}
+		
+		if (!part || part == 'errors') {
+			$('#ErrorsTitle span').html(this.translate('errors_title'));
+			$('#ErrorsTitle div').html(this.translate('errors_close'));
 		}
 		
 		if (!part || part == 'tree') {
