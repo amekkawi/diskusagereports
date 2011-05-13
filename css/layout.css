@@ -30,6 +30,7 @@ a {
 	background-color: #FFF;
 	text-align: center;
 	font-size: 24px;
+	margin-top: 8px;
 }
 
 tbody th {
@@ -161,6 +162,7 @@ tbody th {
 }
 
 #Container {
+	display: none;
 	position: relative;
 	background-color: #3980ac;
 	background-image: url(../images/contents-background.png);

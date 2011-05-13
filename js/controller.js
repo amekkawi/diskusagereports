@@ -5,6 +5,8 @@ var Controller;
 Controller = function() {
 	var self = this;
 	
+	$('#Container').show();
+	
 	// Used to determine change in value.
 	this._lastHash = null;
 	this._lastSection = null;
