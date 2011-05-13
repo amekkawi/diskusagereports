@@ -63,7 +63,7 @@ $.extend(Controller.prototype, {
 			default:
 				if (this._ajaxStage == 'directories') {
 					$('#Loading').append($('<div>').html(this.translate('directory_unknown_status_error',
-						status
+						status,
 						$('<span class="link"></span>')
 							.html(this.translate('directory_unknown_status_error_link'))
 							.click(function(){ self._skipDirectoryList.apply(self, arguments); return false; })
