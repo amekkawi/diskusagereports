@@ -37,11 +37,11 @@ $.extend(Controller.prototype, {
 				
 				argIndex = parseInt(match[1]) - 1;
 				
-				if (!arguments[argIndex]) {
+				if ($.isUndefined(arguments[argIndex])) {
 					throw 'Replacement not passed to Controller.translate() for ' + match[0] + ' in ' + key;
 				}
-				else if ($.isString(arguments[argIndex])) {
-					parts.push(document.createTextNode(arguments[argIndex]));
+				else if ($.isString(arguments[argIndex]) || $.isNumber(arguments[argIndex])) {
+					parts.push(document.createTextNode(arguments[argIndex]+''));
 				}
 				else if (arguments[argIndex].toArray) {
 					parts.push.apply(parts, arguments[argIndex].toArray());
