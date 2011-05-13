@@ -161,11 +161,11 @@ $.extend(Controller.prototype, {
 								$('#Error').html(self.translate('hash_username_error'));
 								break;
 							default:
-								$('#Error').html(self.translate('hash_unknown_error', xhr.status+''));
+								$('#Error').html(self.translate('hash_unknown_error', xhr.status));
 						}
 						break;
 					default:
-						$('#Error').html(self.translate('hash_unknown_error', status+''));
+						$('#Error').html(self.translate('hash_unknown_error', status));
 				}
 				
 				// Attempt to select the tree node.

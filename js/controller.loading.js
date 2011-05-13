@@ -49,7 +49,7 @@ $.extend(Controller.prototype, {
 					default:
 						if (this._ajaxStage == 'directories') {
 							$('#Loading').append($('<div>').html(this.translate('directory_unknown_status_error',
-								xhr.status+'',
+								xhr.status,
 								$('<span class="link"></span>')
 									.html(this.translate('directory_unknown_status_error_link'))
 									.click(function(){ self._skipDirectoryList.apply(self, arguments); return false; })
@@ -63,14 +63,14 @@ $.extend(Controller.prototype, {
 			default:
 				if (this._ajaxStage == 'directories') {
 					$('#Loading').append($('<div>').html(this.translate('directory_unknown_status_error',
-						status+'',
+						status
 						$('<span class="link"></span>')
 							.html(this.translate('directory_unknown_status_error_link'))
 							.click(function(){ self._skipDirectoryList.apply(self, arguments); return false; })
 					)));
 				}
 				else {
-					$('#Loading').append($('<div>').html(this.translate('unknown_status_error', status+'')));
+					$('#Loading').append($('<div>').html(this.translate('unknown_status_error', status)));
 				}
 		}
 	},
@@ -154,12 +154,12 @@ $.extend(Controller.prototype, {
 									break;
 								case 'maxlinelength':
 									//errorTitle += 'Line Too Long (' + this.settings.errors[i][2].length + ' characters)';
-									errorTitle = this.translate('invalidline_error_maxlinelength', this.settings.errors[i][2].length+'');
+									errorTitle = this.translate('invalidline_error_maxlinelength', this.settings.errors[i][2].length);
 									detail += '<div style="overflow: auto; width: 100%;">'+ this.settings.errors[i][2].htmlencode() +'</div>';
 									break;
 								case 'columncount':
 									//errorTitle += 'Wrong Column Count (' + this.settings.errors[i][2].length + ')';
-									errorTitle = this.translate('invalidline_error_columncount', this.settings.errors[i][2].length+'');
+									errorTitle = this.translate('invalidline_error_columncount', this.settings.errors[i][2].length);
 									detail += '<table class="styledtable" border="1" cellspacing="0" cellpadding="4"><tbody><tr class="odd">';
 									for (var c = 0; c < this.settings.errors[i][2].length; c++) {
 										detail += '<td>' + this.settings.errors[i][2][c].htmlencode() + '</td>';
