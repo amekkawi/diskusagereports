@@ -40,7 +40,7 @@ $args = array(
 );
 
 $cliargs = array_slice($_SERVER['argv'], 1);
-$syntax = "Syntax: php process.php [options] <reportdir> [<filelist>]\nSee http://diskusagereport.sourceforge.net/docs/ for help.\n";
+$syntax = "Syntax: php process.php [options] <reportdir> [<filelist>]\nSee http://diskusagereport.sf.net/docs/ for help.\n";
 
 // Process command line arguments.
 while (!is_null($cliarg = array_shift($cliargs))) {
