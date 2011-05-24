@@ -11,8 +11,11 @@ define('LARGE_INT', defined('PHP_INT_MAX') && strlen(PHP_INT_MAX.'') > 14);
 define('DEBUG', FALSE);
 
 // Backwards compatibility includes.
-if(!function_exists('json_encode') ) {
+if(!function_exists('json_encode')) {
 	require_once('inc/json_encode.php');
+}
+if(!function_exists('file_put_contents')) {
+	require_once('inc/file_put_contents.php');
 }
 
 // Make sure this is being run from the command line.
@@ -26,7 +29,7 @@ $args = array(
 	'name' => null,
 	'filelist' => null,
 	'reportdir' => null,
-	'timezone' => @date_default_timezone_get(), //'America/New_York',
+	'timezone' => function_exists('date_default_timezone_get') ? @date_default_timezone_get() : 'America/New_York',
 	'totalsdepth' => 6,
 	'top100depth' => 3,
 	'maxlinelength' => 1024,
@@ -204,7 +207,7 @@ while (($line = fgets($fh, $args['maxlinelength']+2)) !== FALSE) {
 	$fread += strlen($line);
 	$line = trim($line);
 	
-	if (DEBUG && $fstat['size'] > 0 && $fpercent != floor($fread / $fstat['size'] * 100)) {
+	if (DEBUG && function_exists('memory_get_usage') && $fstat['size'] > 0 && $fpercent != floor($fread / $fstat['size'] * 100)) {
 		$fpercent = floor($fread / $fstat['size'] * 100);
 		echo $fpercent . "% - " . number_format(memory_get_usage()) .  "\n";
 	}
