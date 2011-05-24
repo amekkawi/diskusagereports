@@ -1,5 +1,14 @@
 <?php
 
+/* 
+ * Copyright (c) 2011 AndrŽ Mekkawi <contact@andremekkawi.com>
+ * 
+ * LICENSE
+ * 
+ * This source file is subject to the MIT license in the file LICENSE.txt.
+ * The license is also available at http://diskusagereports.sf.net/license.htm
+ */
+
 // export TZ=UTC; find "DIRECTORYNAME" -type d -or -type f -printf '%y %TY-%Tm-%Td %TT %s %d %h %f\n' > "OUTFILENAME"; unset TZ
 // cat diskusage-gs.txt | sed -En -e 's/^d/&/p' -e 's/^f.+\.(jpg)$/&/p' | php scripts/process.php ../diskusage-data/test2
 // php scripts/find.php `pwd` | sed -E -e 's/^.*\.svn.*$//' -e 's/^.*diskusage-[a-z0-9]+\.txt.*$//' -e 's/^.*\.settings.*$//' -e 's/^.*\$dev.*$//' -e 's/^.*\.DS_Store.*$//' -e 's/^.*\.tmp_.*$//' -e '/^$/d' | php scripts/process.php -n "Disk Usage Reports Code" ../diskusage-data/test2

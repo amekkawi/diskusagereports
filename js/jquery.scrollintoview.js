@@ -1,5 +1,10 @@
-/**
- * @author amekkawi
+/* 
+ * Copyright (c) 2011 André Mekkawi <contact@andremekkawi.com>
+ * 
+ * LICENSE
+ * 
+ * This source file is subject to the MIT license in the file LICENSE.txt.
+ * The license is also available at http://diskusagereports.sf.net/license.htm
  */
 
 ;(function($) {
