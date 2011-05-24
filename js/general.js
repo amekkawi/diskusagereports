@@ -38,12 +38,6 @@ String.prototype.parseQS = function() {
 	return result;
 };
 
-function ArrayFlip(arr) {
-    var key, flipped = { };
-    for (key in arr) flipped[arr[key]] = key;
-    return flipped;
-}
-
 function FormatBytes(bytes, forceBytes) {
 	var byteText = AddCommas(bytes+'') + ' bytes';
 	if (bytes >= 1000 * 1024 * 1024) {
@@ -70,52 +64,6 @@ function AddCommas(nStr) {
 		x1 = x1.replace(rgx, '$1' + ',' + '$2');
 	}
 	return x1 + x2;
-}
-
-function ArrayFlip(arr) {
-	var key, result = {};
-	for (key in arr) result[arr[key]] = key;
-	return result;
-};
-
-function GetCenteredRectangle(cWidth, cHeight, iWidth, iHeight) {
-	var left = 0;
-	var top = 0;
-	var width = iWidth;
-	var height = iHeight;
-	
-	if (cWidth < iWidth) {
-		width = cWidth;
-	}
-	else if (cWidth - iWidth > 0) {
-		left = Math.floor((cWidth - iWidth) / 2);
-	}
-	
-	if (cHeight < iHeight) {
-		height = cHeight;
-	}
-	else if (cHeight - iHeight > 0) {
-		top = Math.floor((cHeight - iHeight) / 2);
-	}
-	
-	return { left: left, top: top, width: width, height: height };
-}
-
-function GetProportionalSize(cWidth, cHeight, iWidth, iHeight, expand) {
-	var scaledHeight = Math.max(Math.min(cHeight, 1), Math.floor((iHeight * cWidth) / iWidth));
-	var scaledWidth = Math.max(Math.min(cWidth, 1), Math.floor((iWidth * cHeight) / iHeight));
-	
-	if ($.isUndefined(expand)) expand = false;
-	
-	if (!expand && iWidth <= cWidth && iHeight <= cHeight) {
-		return { width: iWidth, height: iHeight };
-	}
-	else if (scaledHeight <= cHeight) {
-		return { width: cWidth, height: scaledHeight };
-	}
-	else {
-		return { width: scaledWidth, height: cHeight };
-	}
 }
 
 function BinarySearch(haystack, needle, comparator) {
@@ -168,10 +116,6 @@ jQuery.fn.extend({
 		}
 		
 		return false;
-		//$.dump($this.parent().parent(), true);
-	},
-	dimensions: function() {
-		return $.dimensions(this);
 	},
 	disableTextSelection: function() {
 		return this
@@ -256,146 +200,6 @@ jQuery.extend({
 			}
 		}
 		return str;
-	},
-	
-	uniqueArray: function(values, sorted) {
-		var lookup = new Array();
-		var result = new Array();
-		
-		for (var key in values) {
-			if (!jQuery.isObject(values[key]) && typeof lookup[values[key]] == 'undefined') {
-				lookup[values[key]] = true;
-				if (!sorted) result[result.length] = values[key];
-			}
-		}
-		
-		if (sorted) {
-			var keys = new Array();
-			for (var key in lookup) {
-				if (jQuery.isBoolean(lookup[key])) {
-					keys[keys.length] = key;
-				}
-			}
-			return keys;
-		}
-		else {
-			return result;
-		}
-	},
-	
-	isValidDate: function(y_or_str, m, d) {
-		// Handle the first argument being a string.
-		if ($.isString(y_or_str) && y_or_str.match(/^[0-9]{4}[-\/][0-9]{2}[-\/][0-9]{2}$/)) {
-			m = parseInt(y_or_str.substring(5, 7));
-			d = parseInt(y_or_str.substring(8, 10));
-			y_or_str = parseInt(y_or_str.substring(0, 4));
-		}
-		
-		if ($.isNumber(y_or_str) && $.isNumber(m) && $.isNumber(d)) {
-			var date = new Date(new Date(y_or_str, m - 1, d).getTime());
-			return (y_or_str + '/' + m + '/' + d) === (date.getFullYear() + '/' + (date.getMonth()+1) + '/' + date.getDate());
-		}
-		else {
-			return false;
-		}
-	},
-	
-	validateDate: function(y, m ,d) {
-		var returnformat = 'full';
-		if (!m) { d = m = 1; returnformat = 'year'; }
-		else if (!d) { d = 1; returnformat = 'month'; }
-		
-		// Make sure all passed values are strings and are cleaned up.
-		y = (y + '').replace(/^0+/, '');
-		m = (m + '').replace(/^0+/, '');
-		d = (d + '').replace(/^0+/, '');
-		
-		// Create a date string an validate it.
-		var str = y + "/" + m + "/" + d;
-		if (!str.match(/^\d{4}\/\d{1,2}\/\d{1,2}$/)) return false;
-		
-		// Change the passed values to numbers.
-		y = parseInt(y); m = parseInt(m); d = parseInt(d);
-		
-		// Parse the string and return false if it is NaN.
-		var p = Date.parse(str);
-		if (isNaN(p)) return false;
-		
-		// Create a new date and verify that the parts match the passed arguments.
-		var dt = new Date(p);
-		if (dt.getFullYear() == y && dt.getMonth() + 1 == m && dt.getDate() == d) {
-			
-			// Return the validated parts of the date.
-			if (returnformat == 'year') {
-				return { year: y };
-			}
-			if (returnformat == 'month') {
-				return { year: y, month: m };
-			}
-			else {
-				return { year: y, month: m, day: d };
-			}
-		}
-		else {
-			return false;
-		}
-	},
-	
-	dump: function(obj, floatingWindow) {
-		var msg = "";
-		
-		var undefinedList = "";
-		var functionsList = "";
-		var objectsList = "";
-		
-		// Go through all the properties of the passed-in object
-		for (var i in obj) {
-			if ($.isUndefined(obj[i])) {
-				if (undefinedList != '') undefinedList += ', ';
-				undefinedList += i;
-			}
-			else if ($.isFunction(obj[i])) {
-				if (functionsList != '') functionsList += ', ';
-				functionsList += i;
-			}
-			else if ($.isObject(obj[i])) {
-				if (objectsList != '') objectsList += ', ';
-				objectsList += i;
-			}
-			else {
-				msg += i + ": " + obj[i] + "\n";
-			}
-		}
-		msg += "\nFunctions: " + functionsList;
-		msg += "\n\nObjects: " + objectsList;
-		msg += "\n\nUndefined: " + undefinedList;
-		
-		if (floatingWindow) {
-			var outer = $('<div></div>')
-				.css({
-					position: 'absolute',
-					top: '20px',
-					left: '20px',
-					border: '1px solid #F00',
-					'background-color': '#FFF',
-					padding: '2px' });
-			var close = $('<div>Close</div>')
-				.css({
-					'margin-bottom': '1px',
-					'background-color': '#EEE',
-					padding: '5px',
-					cursor: 'pointer' })
-				.appendTo(outer).click(function(){
-					$(this).parent().remove();
-				});
-			var textarea = $('<textarea readonly="readonly"></textarea>')
-				.css({ width: '500px', height: '300px' })
-				.val(msg)
-				.appendTo(outer);
-			$('body').append(outer);
-		}
-		
-		return msg;
 	},
 	
 	dumpWindow: function(obj) {
@@ -568,91 +372,5 @@ jQuery.extend({
 		$('body').append(outer);
 		
 		//return msg;
-	},
-	
-	dimensions: function(top, left) {
-		var win = $(window), result = { };
-		
-		if ($.isJQuery(top) || $.isElement(top)) {
-			// Set the values from an element.
-			var $elem = $(top);
-			$.extend(result, $elem.offset());
-			result.width = $elem.outerWidth();
-			result.height = $elem.outerHeight();
-		}
-		else {
-			// Set the initial values from a point.
-			result.top = top;
-			result.left = left;
-			result.width = 0;
-			result.height = 0;
-		}
-		
-		result.right = result.left + result.width;
-		result.bottom = result.top + result.height;
-		result.center = { top: (result.top + result.height) / 2, left: (result.left + result.width) / 2 };
-		
-		// Viewport
-		result.viewport = {
-			above: result.top - win.scrollTop(),
-			below: win.height() - (result.top - win.scrollTop()) - result.height,
-			left: result.left - win.scrollLeft(),
-			right: win.width() - (result.left - win.scrollLeft()) - result.width
-		};
-			
-		// Round all values
-		for (var key in result) {
-			if ($.isNumber(result[key]))
-				result[key] = Math.round(result[key]);
-			else
-				for (var subkey in result[key])
-					result[key][subkey] = Math.round(result[key][subkey]);
-		}
-		
-		return result;
-	}
-});
-
-function Queue(fifo) {
-	this.nextID = 0;
-	this.arr = [];
-	this.fifo = fifo == true;
-}
-$.extend(Queue.prototype, {
-	queue: function(obj, fn) {
-		new Mutex(new QueueCmd(obj, fn, this), "queue");
-	},
-	dequeue: function(fn) {
-		new Mutex(new QueueCmd(null, fn, this), "dequeue");
-	},
-	clear: function(fn) {
-		new Mutex(new QueueCmd(null, fn, this), "clear");
-	},
-	size: function(fn) {
-		new Mutex(new QueueCmd(null, fn, this), "size");
-	}
-});
-
-function QueueCmd(obj, fn, queue) {
-	this.id = ++queue.nextID;
-	this.q = queue;
-	this.obj = obj;
-	this.fn = fn;
-}
-$.extend(QueueCmd.prototype, {
-	queue: function() {
-		this.q.arr.push(this.obj);
-		if ($.isFunction(this.fn)) this.fn();
-	},
-	dequeue: function() {
-		var obj = this.q.fifo ? this.q.arr.pop() : this.q.arr.shift();
-		if ($.isFunction(this.fn)) this.fn(obj);
-	},
-	clear: function() {
-		this.q.arr = [];
-		if ($.isFunction(this.fn)) this.fn();
-	},
-	size: function() {
-		if ($.isFunction(this.fn)) this.fn(this.q.arr.length);
 	}
 });
