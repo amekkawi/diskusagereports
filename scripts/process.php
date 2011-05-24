@@ -17,7 +17,8 @@ if(!function_exists('json_encode') ) {
 
 // Make sure this is being run from the command line.
 if (!isset($_SERVER['argc'])) {
-	echo "Must be run from the command line.\n"; exit(1);
+	echo "Must be run from the command line.\n";
+	exit(1);
 }
 
 // Default arguments.
@@ -89,22 +90,33 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 	
 	// If we shifted and found nothing, output an error.
 	if (is_null($shifted)) {
-		echo "Missing value after argument $cliarg\n".$syntax; exit(1);
+		echo "Missing value after argument $cliarg\n".$syntax;
+		exit(1);
 	}
 }
 
 // Check required arguments.
 if (is_null($args['reportdir'])) {
-	echo "reportdir argument is missing\n".$syntax; exit(1);
+	echo "reportdir argument is missing\n".$syntax;
+	exit(1);
 }
 if (!is_null($args['filelist']) && !is_file($args['filelist'])) {
-	echo "The <fileslist> does not exist or is not a file.\n"; exit(1);
+	echo "The '".$args['filelist']."' does not exist or is not a file.\n";
+	exit(1);
 }
 
 // Verify the report directory is valid.
-if (!is_dir($args['reportdir'])) {
-	echo "The <reportdir> does not exist or is not a directory.\n"; exit(1);
+if (file_exists($args['reportdir'])) {
+	if (!is_dir($args['reportdir'])) {
+		echo "The report directory '".$args['reportdir']."' exists and is not a directory.\n";
+		exit(1);
+	}
 }
+elseif (!mkdir($args['reportdir'])) {
+	echo "The report directory '".$args['reportdir']."' could not be created.\n";
+	exit(1);
+}
+
 
 // Read the file list from STDIN if it was not specified.
 if (is_null($args['filelist'])) {
@@ -122,7 +134,8 @@ define('COL_NAME', 6);
 
 // Set the timezone.
 if (!(function_exists("date_default_timezone_set") ? @(date_default_timezone_set($args['timezone'])) : @(putenv("TZ=".$args['timezone'])))) {
-	echo "'timezone' config was set to an invalid identifier."; exit(1);
+	echo "'timezone' config was set to an invalid identifier.";
+	exit(1);
 }
 
 // Labels for size ranges.
@@ -168,7 +181,8 @@ $modifiedGroups = array(
 
 // Attempt to open the file list.
 if (($fh = fopen($args['filelist'], 'r')) === FALSE) {
-	echo "Failed to open <fileslist> for reading.\n"; exit(1);
+	echo "Failed to open '".$args['filelist']."' for reading.\n";
+	exit(1);
 }
 
 // Get details about the file.
