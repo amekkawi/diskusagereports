@@ -6,7 +6,7 @@
  * LICENSE
  * 
  * This source file is subject to the MIT license in the file LICENSE.txt.
- * The license is also available at http://diskusagereport.sf.net/license.htm
+ * The license is also available at http://diskusagereport.sf.net/license.html
  */
 
 // export TZ=UTC; find "DIRECTORYNAME" -type d -or -type f -printf '%y %TY-%Tm-%Td %TT %s %d %h %f\n' > "OUTFILENAME"; unset TZ
