@@ -66,7 +66,7 @@ Controller = function() {
 $.extend(Controller.prototype, {
 	
 	_ajaxStage: null,
-	_debugTimeout: 150,
+	_debugTimeout: 50,
 	
 	// Directory lookup.
 	directories: null,
