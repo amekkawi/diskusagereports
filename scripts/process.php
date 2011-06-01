@@ -281,6 +281,13 @@ while (($line = fgets($fh, $args['maxlinelength']+2)) !== FALSE) {
 			$path = $pop['path'];
 			unset($pop['path']);
 			
+			// Create a relative path to be used by 'top 100'.
+			$relativePath = '';
+			for ($i = 0; $i < count($dirStack); $i++) {
+				$relativePath = ConcatPath($args['ds'], $relativePath, $dirStack[$i]['name']);
+			}
+			$relativePath = substr($relativePath, strlen($args['ds']));
+			
 			// Save the directory data.
 			if (file_put_contents(ConcatPath($args['ds'], $args['reportdir'], md5($path)), json_encode($pop)) === FALSE) {
 				echo 'Failed to write: ' . ConcatPath($args['ds'], $args['reportdir'], md5($path)) . "\n";
