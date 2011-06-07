@@ -55,7 +55,7 @@ Controller = function() {
 		var anchor = $(ev.target).closest('a');
 		if (anchor.size() && $.isString(anchor.attr('href'))) {
 			self.setOptions(self._parseLocation(anchor.attr('href')));
-			return false;
+			ev.preventDefault();
 		}
 	});
 	
@@ -230,6 +230,7 @@ $.extend(Controller.prototype, {
 	_parseLocation: function(location) {
 		// Make sure the location is an array.
 		if ($.isString(location)) {
+			if (location.indexOf('http://') == 0 && location.indexOf('#') >= 0) location = location.substring(location.indexOf('#'));
 			if (location.indexOf('#') == 0) location = location.substring(1);
 			location = location.parseQS();
 		}
