@@ -227,7 +227,7 @@ if ('pushState' in window.history) {
 		},
 		
 		nativeUpdate: function(token) {
-			window.history.pushState(null, null, window.location.pathname + '#' + this.encodeFragment(token));
+			window.history.pushState(null, null, window.location.pathname + window.location.search + '#' + this.encodeFragment(token));
 		}
 	});
 }
