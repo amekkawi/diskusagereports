@@ -178,12 +178,12 @@ var Timer = {
 			}
 			
 			self.newItemOnEvent(token);
-		}
+		};
 		
 		var checkHistoryCycle = function() {
 			window.setTimeout(checkHistoryCycle, 250);
 			checkHistory();
-		}
+		};
 		
 		// Kick off the timer.
 		checkHistoryCycle();
