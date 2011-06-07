@@ -484,7 +484,7 @@ else if ($.browser.mozilla && $.browser.version.indexOf('1.8') == 0) {
 /*
  * Fall back to timer if onhashchange is not supported
  */
-else if ('onhashchange' in window) {
+else if (!('onhashchange' in window)) {
 	$.extend(History.prototype, Timer);
 }
 
