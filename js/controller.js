@@ -61,6 +61,9 @@ Controller = function() {
 	
 	// Initial adjustments to height.
 	this.resizeWindow();
+	
+	// Create the history helper.
+	$.history = new History();
 };
 
 $.extend(Controller.prototype, {
@@ -127,7 +130,7 @@ $.extend(Controller.prototype, {
 	setOptions: function(options, skipHistory) {
 		$.extend(this.options, options);
 		if (!skipHistory) {
-			dhtmlHistory.add(this._createLocation(this.options), null);
+			$.history.newItem(this._createLocation(this.options));
 		}
 		this.displayReport();
 	},

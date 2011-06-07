@@ -339,12 +339,12 @@ $.extend(Controller.prototype, {
 			}
 			
 			// Set up history handling.
-			$(document).bind('dhtmlhistory', function(e, location, data) {
-				self.setLocation(location);
+			$.history.addHandler(function(token){
+				self.setLocation(token);
 			});
 			
 			// Set the starting location.
-			self.setLocation(dhtmlHistory.getCurrentLocation(), function(){
+			self.setLocation($.history.getToken(), function(){
 				$('#Loading').hide();
 				$('#Columns').show();
 				
