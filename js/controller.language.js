@@ -99,19 +99,27 @@ $.extend(Controller.prototype, {
 			
 			// Retrieve the language data if it has not been loaded.
 			if (this._languages[lang] == 'load') {
-				$.ajax({
-					url: 'lang/' + lang + '.json',
-					async: false,
-					dataType: 'json',
-					error: function(xhr, msg, ex) {
-						result = "Failed to load language file (" + msg + "): " + 'lang/' + lang + '.json';
-					},
-					success: function(data) {
-						self.language = lang;
-						self._languages[lang] = data;
-						self._languageChangeStatic();
-					}
-				});
+				try {
+					$.ajax({
+						url: 'lang/' + lang + '.json',
+						async: false,
+						dataType: 'json',
+						error: function(xhr, msg, ex) {
+							result = 'Failed to load language file (' + msg + '): lang/' + lang + '.json';
+						},
+						success: function(data) {
+							if (data) {
+								self.language = lang;
+								self._languages[lang] = data;
+								self._languageChangeStatic();
+							}
+						}
+					});
+				}
+				catch (e) {
+					// TODO: Handle exception when data is viewed via 'file:///' protocol.
+					return 'Failed to load language file (AJAX exception): lang/' + lang + '.json';
+				}
 			}
 			else {
 				this._languageChangeStatic();
