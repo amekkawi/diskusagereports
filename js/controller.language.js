@@ -46,7 +46,7 @@ $.extend(Controller.prototype, {
 				
 				argIndex = parseInt(match[1]) - 1;
 				
-				if ($.isUndefined(arguments[argIndex])) {
+				if ($.isUndefined(arguments[argIndex]) || arguments[argIndex] == null) {
 					throw 'Replacement not passed to Controller.translate() for ' + match[0] + ' in ' + key;
 				}
 				else if ($.isString(arguments[argIndex]) || $.isNumber(arguments[argIndex])) {
@@ -68,11 +68,7 @@ $.extend(Controller.prototype, {
 			}
 			
 			if (isTextOnly) {
-				var retStr = '';
-				for (var i = 0; i < parts.length; i++) {
-					retStr += parts[i].textContent;
-				}
-				return retStr;
+				return $(parts).text();
 			}
 			else {			
 				return $(parts);
