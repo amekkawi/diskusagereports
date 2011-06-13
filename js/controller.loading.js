@@ -70,16 +70,31 @@ $.extend(Controller.prototype, {
 				}
 				break;
 			default:
-				if (this._ajaxStage == 'directories') {
-					$('#Loading').append($('<div>').html(this.translate('directory_unknown_status_error',
-						status,
-						$('<span class="link"></span>')
-							.html(this.translate('directory_unknown_status_error_link'))
-							.click(function(){ self._skipDirectoryList.apply(self, arguments); return false; })
-					)));
+				// Show 'not found' errors if it seems we are accessing the report via file:///
+				if (!status && xhr.status == 0 && window.location.protocol == 'file:') {
+					if (this._ajaxStage == 'directories') {
+						$('#Loading').append($('<div>').html(this.translate('directory_notfound_error',
+							$('<span class="link"></span>')
+								.html(this.translate('directory_notfound_error_link'))
+								.click(function(){ self._skipDirectoryList.apply(self, arguments); return false; })
+						)));
+					}
+					else {
+						$('#Loading').append($('<div>').html(this.translate('settings_notfound_error')));
+					}
 				}
 				else {
-					$('#Loading').append($('<div>').html(this.translate('unknown_status_error', status)));
+					if (this._ajaxStage == 'directories') {
+						$('#Loading').append($('<div>').html(this.translate('directory_unknown_status_error',
+							!status ? 'N/A' : status,
+							$('<span class="link"></span>')
+								.html(this.translate('directory_unknown_status_error_link'))
+								.click(function(){ self._skipDirectoryList.apply(self, arguments); return false; })
+						)));
+					}
+					else {
+						$('#Loading').append($('<div>').html(this.translate('unknown_status_error', !status ? 'N/A' : status)));
+					}
 				}
 		}
 	},
@@ -111,7 +126,10 @@ $.extend(Controller.prototype, {
 		
 		this._processErrors();
 		
-		if (this.settings.directorytree) {
+		// Disable for old browser versions.
+		var disableTree = ($.browser.msie && $.browser.version.match(/^[67]\./) != null);
+		
+		if (this.settings.directorytree && !disableTree) {
 			$('#Loading').html(this.translate('loading_directories'));
 			
 			setTimeout(function(){
