@@ -70,6 +70,7 @@ $.extend(Controller.prototype, {
 	
 	_ajaxStage: null,
 	_debugTimeout: 50,
+	_preLoad: true,
 	
 	// Directory lookup.
 	directories: null,
@@ -93,26 +94,28 @@ $.extend(Controller.prototype, {
 	},
 	
 	load: function() {
-		var self = this, langResult;
+		var self = this;
+		
+		// Mark that load() has been called.
+		this._preLoad = false;
 		
 		// Set the default language.
 		this.addLanguage(this.defaultLanguage);
 		
-		// Set the language, if it wasn't set (or failed to set) in index.html.
+		// Set the language.
 		// Note: Also makes the header/footer visible.
-		if (!this.language) langResult = this.setLanguage(this.defaultLanguage);
-		
-		// Fail if the language has still not been set.
-		if (!this.language) {
-			$('#Loading').text('Language file could not be loaded: ' + langResult);
-		}
-		else {
-			$('#Loading').html(this.translate('loading_settings'));
-			
-			setTimeout(function(){
-				self._downloadSettings();
-			}, this._debugTimeout);
-		}
+		this.setLanguage(!this.language ? this.defaultLanguage : this.language, function(result) {
+			if (result === true) {
+				$('#Loading').html(self.translate('loading_settings'));
+				
+				setTimeout(function(){
+					self._downloadSettings();
+				}, self._debugTimeout);
+			}
+			else {
+				$('#Loading').text('Language file could not be loaded: ' + result);
+			}
+		});
 	},
 	
 	setLocation: function(location, completeFn) {

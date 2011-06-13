@@ -23,6 +23,10 @@ $.extend(Controller.prototype, {
 	translate: function() {
 		arguments = $.makeArray(arguments);
 		
+		if (!this._languages[this.language]) {
+			throw "The language file for '" + this.language + "' has not been loaded.";
+		}
+		
 		var key = arguments.shift(),
 			str = this._languages[this.language][key],
 			parts = [], isTextOnly = true,
@@ -80,53 +84,59 @@ $.extend(Controller.prototype, {
 		return $.isDefined(this._languages[lang.toLowerCase()]);
 	},
 	
+	isLanguageLoaded: function(lang) {
+		return this.isLanguageSupported(lang) && this._languages[lang] != 'load';
+	},
+	
 	addLanguage: function(lang) {
 		if ($.isUndefined(this._languages[lang.toLowerCase()]))
 			this._languages[lang.toLowerCase()] = 'load';
 	},
 	
-	setLanguage: function(lang) {
-		var self = this, result = true;
+	setLanguage: function(lang, returnFn) {
+		var self = this;
 		
 		lang = lang.toLowerCase();
 		
 		// Mark the language as unsupported.
 		if (!this.isLanguageSupported(lang)) {
-			result = "Unsupported language: " + lang;
+			if ($.isFunction(returnFn)) returnFn("Unsupported language: " + lang);
 		}
 		else {
 			// TODO: Support 'Accept-Language' header syntax by processing lang to fall back from something like 'eng-us' to 'eng'.
 			
 			// Retrieve the language data if it has not been loaded.
-			if (this._languages[lang] == 'load') {
+			if (this._preLoad) {
+				this.language = lang;
+			}
+			else if (this._languages[lang] == 'load') {
 				try {
 					$.ajax({
 						url: 'lang/' + lang + '.json',
-						async: false,
 						dataType: 'json',
 						error: function(xhr, msg, ex) {
-							result = 'Failed to load language file (' + msg + '): lang/' + lang + '.json';
+							if ($.isFunction(returnFn)) returnFn('Failed to load language file (' + msg + '): lang/' + lang + '.json');
 						},
 						success: function(data) {
 							if (data) {
 								self.language = lang;
 								self._languages[lang] = data;
 								self._languageChangeStatic();
+								if ($.isFunction(returnFn)) returnFn(true);
 							}
 						}
 					});
 				}
 				catch (e) {
 					// TODO: Handle exception when data is viewed via 'file:///' protocol.
-					return 'Failed to load language file (AJAX exception): lang/' + lang + '.json';
+					if ($.isFunction(returnFn)) returnFn('Failed to load language file (AJAX exception): lang/' + lang + '.json');
 				}
 			}
 			else {
 				this._languageChangeStatic();
+				if ($.isFunction(returnFn)) returnFn(true);
 			}
 		}
-		
-		return result;
 	},
 	
 	_languageChangeStatic: function(part) {
