@@ -132,6 +132,15 @@ jQuery.fn.extend({
 });
 
 jQuery.extend({
+	getArrayKeys: function(arr) {
+		var keys = new Array();
+		if ($.isObject(arr) || $.isArray(arr)) {
+			for (var key in arr) {
+				keys.push(key);
+			}
+		}
+		return keys;
+	},
 	isJQuery: function(obj) {
 		return obj instanceof jQuery;
 	},
