@@ -102,50 +102,74 @@ $.extend(Controller.prototype, {
 		
 		// Set the lang to the first supported langauge match.
 		// Otherwise set it to the language default.
-		lang = matches.length ? matches[0].lang : this.defaultLanguage;
+		var lang = matches.length ? matches[0].lang : this.defaultLanguage;
+		
+		// Retrieve the language data if it has not been loaded.
+		if (this._preLoad) {
+			this.language = lang;
+		}
+		else {
+			this.loadLanguage(lang, function(ret, message){
+				if (ret) {
+					self.language = lang;
+					self._languageChangeStatic();
+				}
+				
+				returnFn(ret, message);
+			});
+		}
+	},
+	
+	loadLanguage: function(lang, returnFn) {
+		var self = this;
 		
 		// Return that the language is unsupported.
 		if (!this.isSupportedLanguage(lang)) {
 			if ($.isFunction(returnFn))
-				returnFn("Unsupported language: " + lang);
+				returnFn(false, 'Unsupported language: ' + lang);
 		}
-		else {
-			// Retrieve the language data if it has not been loaded.
-			if (this._preLoad) {
-				this.language = lang;
-			}
-			else if (this._languages[lang] == 'load') {
-				try {
-					$.ajax({
-						url: 'lang/' + lang + '.json',
-						dataType: 'json',
-						error: function(xhr, msg, ex) {
-							if ($.isFunction(returnFn))
-								returnFn('Failed to load language file (' + msg + '): lang/' + lang + '.json');
-						},
-						success: function(data) {
-							if (data) {
-								self.language = lang;
-								self._languages[lang] = data;
-								self._languageChangeStatic();
-								
+		
+		// Retrieve the language data if it has not been loaded.
+		else if (this._languages[lang] == 'load') {
+			try {
+				if (this._langXHR) this._langXHR.abort();
+				this._langXHR = $.ajax({
+					url: 'lang/' + lang + '.json',
+					dataType: 'json',
+					error: function(xhr, status, ex) {
+						if (status == 'abort') return;
+						
+						if ($.isFunction(returnFn))
+							returnFn(false, 'Failed to load language file (' + status + '): lang/' + lang + '.json');
+					},
+					success: function(data, status, xhr) {
+						if (data) {
+							if ($.isString(data['extends'])) {
+								self.loadLanguage(data['extends'], function(ret, message){
+									self._languages[lang] = $.extend({}, self._languages[data['extends']], data);
+									returnFn(ret, message);
+								});
+							}
+							else {
 								if ($.isFunction(returnFn))
+									self._languages[lang] = data;
 									returnFn(true);
 							}
 						}
-					});
-				}
-				catch (e) {
-					// TODO: Handle exception when data is viewed via 'file:///' protocol.
-					if ($.isFunction(returnFn))
-						returnFn('Failed to load language file (AJAX exception): lang/' + lang + '.json');
-				}
+					}
+				});
 			}
-			else {
-				this._languageChangeStatic();
+			catch (e) {
+				// TODO: Handle exception when data is viewed via 'file:///' protocol.
 				if ($.isFunction(returnFn))
-					returnFn(true);
+					returnFn(false, 'Failed to load language file (AJAX exception): lang/' + lang + '.json');
 			}
+		}
+		
+		// The data has already been loaded.
+		else {
+			if ($.isFunction(returnFn))
+				returnFn(true);
 		}
 	},
 	

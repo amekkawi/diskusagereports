@@ -120,8 +120,8 @@ $.extend(Controller.prototype, {
 		
 		// Set the language.
 		// Note: Also makes the header/footer visible.
-		this.setLanguage(!this.language ? this.defaultLanguage : this.language, function(result) {
-			if (result === true) {
+		this.setLanguage(!this.language ? this.defaultLanguage : this.language, function(ret, message) {
+			if (ret) {
 				$('#Loading').html(self.translate('loading_settings'));
 				
 				setTimeout(function(){
@@ -129,7 +129,7 @@ $.extend(Controller.prototype, {
 				}, self._debugTimeout);
 			}
 			else {
-				$('#Loading').text('Language file could not be loaded: ' + result);
+				$('#Loading').text('Language file could not be loaded: ' + message);
 			}
 		});
 	},
