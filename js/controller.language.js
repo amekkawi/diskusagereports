@@ -177,11 +177,11 @@ $.extend(Controller.prototype, {
 		if (!part || part == 'title') {
 			if (this.settings && this.settings.name) {
 				$('#Title').html(this.translate('title_with_name', $('<b>').text(this.settings.name))).show();
-				document.title = this.translate('title_with_name', this.settings.name);
+				document.title = this.translate('doctitle_with_name', this.settings.name);
 			}
 			else {
 				$('#Title').html(this.translate('title')).show();
-				document.title = this.translate('title');
+				document.title = this.translate('doctitle');
 			}
 		}
 		
@@ -248,7 +248,7 @@ $.extend(Controller.prototype, {
 			$('#Footer').html(this.translate(this.settings ? 'footer_with_created' : 'footer',
 				this.settings ? this.settings.created.htmlencode() : null,
 				$('<a target="_blank" href="http://diskusagereport.sourceforge.net/">Disk Usage Reports</a>'),
-				this._languages[this.language].language_name
+				$('<span id="ChangeLanguage">').text(this._languages[this.language].language_name)
 			));
 		}
 		
