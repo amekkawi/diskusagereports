@@ -80,31 +80,36 @@ $.extend(Controller.prototype, {
 		}
 	},
 	
-	isLanguageSupported: function(lang) {
+	isSupportedLanguage: function(lang) {
 		return $.isDefined(this._languages[lang.toLowerCase()]);
 	},
 	
 	isLanguageLoaded: function(lang) {
-		return this.isLanguageSupported(lang) && this._languages[lang] != 'load';
+		return this.isSupportedLanguage(lang) && this._languages[lang] != 'load';
 	},
 	
 	addLanguage: function(lang) {
-		if ($.isUndefined(this._languages[lang.toLowerCase()]))
-			this._languages[lang.toLowerCase()] = 'load';
+		if ($.isString(lang)) lang = [ lang ];
+		
+		for (var i = 0; i < lang.length; i++)
+			if ($.isUndefined(this._languages[lang[i].toLowerCase()]))
+				this._languages[lang[i].toLowerCase()] = 'load';
 	},
 	
-	setLanguage: function(lang, returnFn) {
-		var self = this;
+	setLanguage: function(rules, returnFn) {
+		var self = this,
+			matches = this.matchSupportedLanguagesToRules(rules);
 		
-		lang = lang.toLowerCase();
+		// Set the lang to the first supported langauge match.
+		// Otherwise set it to the language default.
+		lang = matches.length ? matches[0].lang : this.defaultLanguage;
 		
-		// Mark the language as unsupported.
-		if (!this.isLanguageSupported(lang)) {
-			if ($.isFunction(returnFn)) returnFn("Unsupported language: " + lang);
+		// Return that the language is unsupported.
+		if (!this.isSupportedLanguage(lang)) {
+			if ($.isFunction(returnFn))
+				returnFn("Unsupported language: " + lang);
 		}
 		else {
-			// TODO: Support 'Accept-Language' header syntax by processing lang to fall back from something like 'eng-us' to 'eng'.
-			
 			// Retrieve the language data if it has not been loaded.
 			if (this._preLoad) {
 				this.language = lang;
@@ -115,26 +120,31 @@ $.extend(Controller.prototype, {
 						url: 'lang/' + lang + '.json',
 						dataType: 'json',
 						error: function(xhr, msg, ex) {
-							if ($.isFunction(returnFn)) returnFn('Failed to load language file (' + msg + '): lang/' + lang + '.json');
+							if ($.isFunction(returnFn))
+								returnFn('Failed to load language file (' + msg + '): lang/' + lang + '.json');
 						},
 						success: function(data) {
 							if (data) {
 								self.language = lang;
 								self._languages[lang] = data;
 								self._languageChangeStatic();
-								if ($.isFunction(returnFn)) returnFn(true);
+								
+								if ($.isFunction(returnFn))
+									returnFn(true);
 							}
 						}
 					});
 				}
 				catch (e) {
 					// TODO: Handle exception when data is viewed via 'file:///' protocol.
-					if ($.isFunction(returnFn)) returnFn('Failed to load language file (AJAX exception): lang/' + lang + '.json');
+					if ($.isFunction(returnFn))
+						returnFn('Failed to load language file (AJAX exception): lang/' + lang + '.json');
 				}
 			}
 			else {
 				this._languageChangeStatic();
-				if ($.isFunction(returnFn)) returnFn(true);
+				if ($.isFunction(returnFn))
+					returnFn(true);
 			}
 		}
 	},
@@ -220,6 +230,109 @@ $.extend(Controller.prototype, {
 		
 		// Resize window in case the header was previously hidden.
 		this.resizeWindow();
+	},
+	
+	getSupportedLanguages: function() {
+		return $.getArrayKeys(this._languages);
+	},
+	
+	parseAcceptLanguage: function(rules) {
+		// Remove whitespace and split into rules.
+		rules = rules.toLowerCase().replace(/\s/g, '').split(',');
+		
+		for (var i = rules.length - 1; i >= 0; i--) {
+			var split = rules[i].match(/^(([a-z]{1,8})(-([a-z]{1,8}))?)(;q=((1(\.[0]{1,3})?)|(0(\.[0-9]{1,3})?)))?$/i);
+			// 1 = full language tag
+			// 2 = primary language tag
+			// 4 = secondary language tag
+			// 6 = quality
+			
+			if (split) {
+				rules[i] = { order: i, full: split[1], primary: split[2], secondary: split[4] ? split[4] : null, quality: isNaN(split[6]) ? 1 : parseFloat(split[6]) };
+			}
+			else {
+				rules.splice(i, 1);
+			}
+		}
+		
+		this.sortLanguageRules(rules);
+		
+		return rules;
+	},
+	
+	sortLanguageRules: function(rules) {
+		rules.sort(function(a,b){
+			var acomp = a.lang ? a.lang == a.full ? 0 : 1 : 0;
+			var bcomp = b.lang ? b.lang == b.full ? 0 : 1 : 0;
+			if (a.order == b.order && acomp != bcomp) {
+				return acomp - bcomp;
+			}
+			else if (a.quality == 0 || b.quality == 0 || a.quality == b.quality) {
+				return a.order  - b.order;
+			}
+			else {
+				return b.quality - a.quality;
+			}
+		});
+	},
+	
+	parseLanguageTag: function(lang) {
+		var match = lang.replace(/\s/g, '').match(/^(([a-z]{1,8})(-([a-z]{1,8}))?)$/i);
+		if (match)
+			return { full: match[1], primary: match[2], secondary: match[4] ? match[4] : null };
+		else
+			return false;
+	},
+	
+	determineRuleForLanguage: function(rules, lang) {
+		var langMatch = this.parseLanguageTag(lang),
+			ret = false;
+		
+		if (langMatch !== false) {
+			for (var i = 0; i < rules.length; i++) {
+				// The rule is an exact match.
+				if (rules[i].full == langMatch.full) {
+					return rules[i];
+				}
+				
+				// The primary part of the language tag matches.
+				else if (rules[i].primary == langMatch.primary) {
+					// Our first partial match. 
+					if (ret === false) {
+						ret = rules[i];
+					}
+					// Only override the current partial match if it is more general.
+					// Ex: For the lang 'en-xx', 'en' would override 'en-yy', but not vise vera.
+					else if (ret.secondary != null && rules[i].secondary == null) {
+						ret = rules[i];
+					}
+				}
+			}
+		}
+		return ret;
+	},
+	
+	matchSupportedLanguagesToRules: function(rules) {
+		var supported = this.getSupportedLanguages();
+		
+		// Parse the rules as an Accept-Language header if it is a string.
+		if ($.isString(rules)) rules = this.parseAcceptLanguage(rules);
+		
+		// Go through the list of supported languages and determine what matches the language rules.
+		for (var i = supported.length - 1; i >= 0; i--) {
+			var matchedRule = this.determineRuleForLanguage(rules, supported[i]);
+			if (matchedRule === false || matchedRule.quality == 0) {
+				supported.splice(i, 1);
+			}
+			else {
+				supported[i] = $.extend({ lang: supported[i] }, matchedRule);
+			}
+			
+		}
+		
+		this.sortLanguageRules(supported);
+		
+		return supported;
 	}
 });
 
