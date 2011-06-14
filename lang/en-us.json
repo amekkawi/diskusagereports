@@ -4,6 +4,9 @@
 	"title": "Disk Usage Report",
 	"title_with_name": "Disk Usage Report for: {1}",
 	
+	"doctitle": "Disk Usage Report",
+	"doctitle_with_name": "{1} | Disk Usage Report",
+	
 	"errors_title": "Errors While Processing Report",
 	"errors_close": "Close",
 	
