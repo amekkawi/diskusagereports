@@ -14,6 +14,9 @@ var Controller;
 Controller = function() {
 	var self = this;
 	
+	// Add the built-in languages.
+	this.addLanguage([ 'en-us' ]);
+	
 	$('#Container').show();
 	
 	// Used to determine change in value.
@@ -99,7 +102,7 @@ $.extend(Controller.prototype, {
 		// Mark that load() has been called.
 		this._preLoad = false;
 		
-		// Set the default language.
+		// Make sure the default language is added.
 		this.addLanguage(this.defaultLanguage);
 		
 		// Set the language.
