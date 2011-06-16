@@ -1,0 +1,65 @@
+#ui-dialog-dimmer {
+	display: none;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0,0,0,0.5);
+	top: 0;
+	left: 0;
+	z-index: 90000;
+}
+
+.ui-dialog {
+	position: absolute;
+	display: block;
+	z-index: 90001;
+	
+	border: 10px solid #333;
+	background-color: #CCC;
+	
+	margin: 35px;
+	
+	left: 0;
+	top: 0;
+}
+
+.ui-dialog.ui-dialog-has-shadow {
+	-moz-box-shadow: 2px 2px 20px rgba(0,0,0,.75);
+	-webkit-box-shadow: 2px 2px 20px rgba(0,0,0,0.75);
+	box-shadow: 2px 2px 20px rgba(0,0,0,0.75);
+}
+
+.ui-dialog.ui-dialog-has-rounded-borders {
+	-webkit-border-radius: 15px;
+	-moz-border-radius: 15px;
+	border-radius: 15px;
+}
+
+.ui-dialog-scroller {
+	overflow: auto;
+	padding: 12px;
+}
+
+.ui-dialog-contents {
+	float: left;
+}
+
+.ui-dialog-title {
+	padding: 0 8px 8px;
+	font-size: 20px;
+	font-weight: bold;
+	color: #FFF;
+	background-color: #333;
+}
+
+.ui-dialog-close {
+	position: absolute;
+	cursor: pointer;
+	right: -16px;
+	top: -16px;
+	width: 32px;
+	height: 32px;
+	background-image: url(../images/close.png);
+	background-position: center center;
+	background-repeat: no-repeat;
+}
