@@ -67,12 +67,22 @@ Controller = function() {
 			}, 100);
 		});
 	
-	$('.pager, #Sections').click(function(ev) {
-		var anchor = $(ev.target).closest('a');
-		if (anchor.size() && $.isString(anchor.attr('href'))) {
-			self.setOptions(self._parseLocation(anchor.attr('href')));
-			ev.preventDefault();
-		}
+	$('.pager a[href], #Sections a[href]').live('click', function(ev) {
+		self.setOptions(self._parseLocation($(this).attr('href')));
+		ev.preventDefault();
+	});
+	
+	$('#ChangeLanguage').live('click', function(){
+		$('#LanguageDialog').dialog('open');
+	});
+	
+	$('#LanguageDialog').dialog({
+		backgroundColor: '#FFF'
+	});
+	
+	$('#ErrorsDialog').dialog({
+		backgroundColor: '#FFF',
+		borderColor: '#CC0000'
 	});
 	
 	// Initial adjustments to height.
@@ -329,13 +339,7 @@ $.extend(Controller.prototype, {
 		var containerHeightDiff = $('#Container').outerHeight(true) - $('#Container').height();
 		$('#Container').height($('body').height() - containerHeightDiff - $('#Container').offset().top - footerHeight - 5);
 		
-		if ($('#Errors').is(':visible')) {
-			var errorsHeightDiff = $('#ErrorsInner').outerHeight(true) - $('#ErrorsInner').height();
-			$('#ErrorsInner').height($('#Errors').height() - errorsHeightDiff);
-			
-			var errorsScrollerHeightDiff = $('#ErrorsScroller').outerHeight(true) - $('#ErrorsScroller').height();
-			$('#ErrorsScroller').height($('#ErrorsInner').height() - errorsScrollerHeightDiff - $('#ErrorsScroller').position().top);
-		}
+		$('#ErrorsDialog, #LanguageDialog').dialog('resize');
 			
 		if ($('#LeftColumn').is(':visible')) {
 			var leftColumnBorderHeightDiff = $('#LeftColumnBorder').outerHeight(true) - $('#LeftColumnBorder').height();

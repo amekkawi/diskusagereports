@@ -186,8 +186,7 @@ $.extend(Controller.prototype, {
 		}
 		
 		if (!part || part == 'errors') {
-			$('#ErrorsTitle span').html(this.translate('errors_title'));
-			$('#ErrorsTitle div').html(this.translate('errors_close'));
+			$('#ErrorsDialog').dialog('option', 'title', this.translate('errors_title'));
 		}
 		
 		if (!part || part == 'tree') {

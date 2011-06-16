@@ -151,18 +151,13 @@ $.extend(Controller.prototype, {
 			$('#ErrorCount')
 				.text('Errors: ' + this.settings.errors.length)
 				.click(function() {
-					$('#Errors, #Dimmer').show();
-					self.resizeWindow();
+					$('#ErrorsDialog').dialog('open');
 				})
 				.disableTextSelection()
 				.show();
 			
-			// Handler for "Close" button on error window.
-			$('#ErrorsTitle div').click(function() {
-				$('#Errors, #Dimmer').hide();
-			});
-			
 			// Populate the error list.
+			var errorContents = $('#ErrorsDialog').dialog('contents');
 			for (var i = 0; i < this.settings.errors.length; i++) {
 				var detail = '', errorTitle = ''; //Unknown Error (' + this.settings.errors[i] + ')';
 				
@@ -216,7 +211,7 @@ $.extend(Controller.prototype, {
 					}
 				}
 				
-				var errorItem = $('<div>').addClass('errors-item').html($('<b>').html(errorTitle)).appendTo($('#ErrorsList'));
+				var errorItem = $('<div>').addClass('errors-item').html($('<b>').html(errorTitle)).appendTo(errorContents);
 				if (detail != '') errorItem.append(detail);
 			}
 		}
