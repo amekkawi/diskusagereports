@@ -85,15 +85,15 @@ $.extend(Controller.prototype, {
 	},
 	
 	isLanguageLoaded: function(lang) {
-		return this.isSupportedLanguage(lang) && this._languages[lang] != 'load';
+		return this.isSupportedLanguage(lang) && !$.isString(this._languages[lang]);
 	},
 	
-	addLanguage: function(lang) {
-		if ($.isString(lang)) lang = [ lang ];
+	addLanguage: function(lang, name) {
+		if ($.isString(lang)) lang = [ [ lang, name ] ];
 		
 		for (var i = 0; i < lang.length; i++)
-			if ($.isUndefined(this._languages[lang[i].toLowerCase()]))
-				this._languages[lang[i].toLowerCase()] = 'load';
+			if ($.isUndefined(this._languages[lang[i][0].toLowerCase()]))
+				this._languages[lang[i][0].toLowerCase()] = lang[i][1];
 	},
 	
 	setLanguage: function(rules, returnFn) {
@@ -130,7 +130,7 @@ $.extend(Controller.prototype, {
 		}
 		
 		// Retrieve the language data if it has not been loaded.
-		else if (this._languages[lang] == 'load') {
+		else if ($.isString(this._languages[lang])) {
 			try {
 				if (this._langXHR) this._langXHR.abort();
 				this._langXHR = $.ajax({
@@ -255,8 +255,30 @@ $.extend(Controller.prototype, {
 		this.resizeWindow();
 	},
 	
-	getSupportedLanguages: function() {
-		return $.getArrayKeys(this._languages);
+	getSupportedLanguages: function(sorted) {
+		
+		var self = this, list = $.getArrayKeys(this._languages);
+		
+		if (sorted) {
+			// Sort the list in alpha order.
+			list.sort(function(a,b){
+				var aname = self.getLanguageName(a),
+					bname = self.getLanguageName(b);
+				
+				if (aname == null && bname == null) return 0;
+				else if (aname == null) return 1;
+				else if (bname == null) return -1;
+				else if (aname.toLowerCase() > bname.toLowerCase()) return 1;
+				else if (aname.toLowerCase() < bname.toLowerCase()) return -1;
+				else return 0;
+			});
+		}
+		
+		return list;
+	},
+	
+	getLanguageName: function(lang) {
+		return this.isLanguageLoaded(lang) ? this._languages[lang].language_name : this._languages[lang];
 	},
 	
 	parseAcceptLanguage: function(rules) {
