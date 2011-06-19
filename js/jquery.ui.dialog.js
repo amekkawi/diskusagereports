@@ -39,6 +39,8 @@ $.widget("ui.dialog", {
 		
 		this._scroller = this._contents.wrap('<div class="' + this.widgetBaseClass + '-scroller">').parent();
 		
+		$elem.scrollerResize({ scroller: this._scroller });
+		
 		$('<div style="clear: both;">').appendTo(this._scroller);
 		
 		this._title = $('<div class="' + this.widgetBaseClass + '-title' + '">').insertBefore(this._scroller);
@@ -132,7 +134,7 @@ $.widget("ui.dialog", {
 	open: function() {
 		var self = this, $elem = $(this.element);
 		
-		this._trigger('opening');
+		this._trigger('opening', null, [ this._contents ]);
 		
 		$elem.css({ left: '-100000px', top:  '-100000px' }).show();
 		this.resize();
@@ -150,24 +152,10 @@ $.widget("ui.dialog", {
 	},
 	
 	resize: function() {
-		var self = this, $elem = $(this.element);
-		if (!$elem.is(':visible')) return;
+		var $elem = $(this.element);
 		
-		this._scroller.css({  width: '', height: '' });
-		this._contents.css({ 'white-space': 'nowrap' });
-		
-		$.each([ "Width", "Height" ], function( i, dimension ) {
-			var parent = Math.round(self._parent['outer' + dimension]()),
-				dialog = Math.round($elem['outer' + dimension](true)),
-				contents = Math.round(self._contents['outer' + dimension](true)),
-				diff = dialog - contents,
-				size = Math.min(parent - diff, contents + 35);
-			
-			self._scroller[dimension.toLowerCase()](size);
-			$elem.css(dimension == 'Width' ? 'left' : 'top', Math.round((parent - diff - size) / 2) + 'px');
-		});
-		
-		this._contents.css('white-space', '');
+		if ($elem.is(':visible'))
+			$elem.scrollerResize('resize', true);
 	},
 	
 	contents: function(contents) {
