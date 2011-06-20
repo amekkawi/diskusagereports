@@ -485,3 +485,15 @@ tbody th {
 	text-decoration: underline;
 	cursor: pointer;
 }
+
+#LanguageDialog ul, #LanguageDialog li {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+#LanguageDialog li {
+	padding: 2px;
+}
+#LanguageDialog a {
+	font-size: 16px;	
+}

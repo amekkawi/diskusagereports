@@ -115,7 +115,8 @@ $.extend(Controller.prototype, {
 					self._languageChangeStatic();
 				}
 				
-				returnFn(ret, message);
+				if ($.isFunction(returnFn))
+					returnFn(ret, message);
 			});
 		}
 	},
@@ -247,8 +248,12 @@ $.extend(Controller.prototype, {
 			$('#Footer').html(this.translate(this.settings ? 'footer_with_created' : 'footer',
 				this.settings ? this.settings.created.htmlencode() : null,
 				$('<a target="_blank" href="http://diskusagereport.sourceforge.net/">Disk Usage Reports</a>'),
-				$('<span id="ChangeLanguage">').text(this._languages[this.language].language_name)
+				$('<span id="ChangeLanguage">').text(this.getLanguageName(this.language))
 			));
+		}
+		
+		if (!part || part == 'language') {
+			$('#LanguageDialog').dialog('option', 'title', this.translate('languagedialog_title'));
 		}
 		
 		// Resize window in case the header was previously hidden.

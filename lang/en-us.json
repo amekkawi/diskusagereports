@@ -112,5 +112,7 @@
 	"invalidline_error_column": "Invalid Line - Bad Value for Column '{1}':",
 	"invalidline_error_unknown": "Invalid Line - Unknown Error: {1}",
 	"unknown_processing_error": "Unknown Error: {1}",
-	"writefail_error": "Error Writing File ({1}) for:"
+	"writefail_error": "Error Writing File ({1}) for:",
+	
+	"languagedialog_title": "Choose a language:"
 }

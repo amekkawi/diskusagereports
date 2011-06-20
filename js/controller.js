@@ -15,7 +15,7 @@ Controller = function() {
 	var self = this;
 	
 	// Add the built-in languages.
-	this.addLanguage([ 'en-us' ]);
+	this.addLanguage([ [ 'en-us', 'English (US)' ] ]);
 	
 	$('#Container').show();
 	
@@ -77,6 +77,22 @@ Controller = function() {
 	});
 	
 	$('#LanguageDialog').dialog({
+		opening: function(e, contents) {
+			contents.empty();
+			
+			var langs = self.getSupportedLanguages(true);
+			
+			var ul = $('<ul>');
+			$.each(langs, function(i, lang) {
+				$('<a href="#"></a>').click(function(e){
+					e.preventDefault();
+					self.setLanguage(lang);
+					$('#LanguageDialog').dialog('close');
+				}).text(self.getLanguageName(lang)).appendTo($('<li>').appendTo(ul));
+			});
+			
+			ul.appendTo(contents);
+		},
 		backgroundColor: '#FFF'
 	});
 	
