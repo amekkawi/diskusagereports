@@ -283,16 +283,22 @@ $.extend(Controller.prototype, {
 				
 				// Allow resizing of the left column.
 				$('#LeftColumnResizer').disableTextSelection().mousedown(function(evDown){
-					var startX = evDown.screenX;
-					var origWidth = $('#LeftColumn').width();
+					var startX = evDown.screenX,
+						origWidth = $('#LeftColumn').width(),
+						resizeTimeout, resizeCounter = 0, resizeFn = function(evMove){
+							resizeCounter = 0;
+							$('#LeftColumn').width(Math.max(100, Math.min($('#Columns').width() - 200, origWidth + evMove.screenX - startX)));
+						};
 					
 					$(document).bind('mousemove.resizer', function(evMove){
-						$('#LeftColumn').width(Math.max(100, Math.min($('#Columns').width() - 200, origWidth + evMove.screenX - startX)));
-						
-						if (document.timeout_resize) clearTimeout(document.timeout_resize);
-						document.timeout_resize = setTimeout(function() {
-							self.resizeWindow();
-						}, 100);
+						// Adjust heights when the window is resized.
+						if (resizeCounter >= 250) {
+							resizeFn(evMove);
+						}
+						else {
+							if (resizeTimeout) clearTimeout(resizeTimeout);
+							resizeTimeout = setTimeout(function() { resizeFn(evMove); }, resizeCounter += 75);
+						}
 					});
 					
 					$(document).one('mouseup', function(evUp){
