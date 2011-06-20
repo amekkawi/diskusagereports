@@ -292,7 +292,7 @@ $.extend(Controller.prototype, {
 		}
 		
 		if (!part || part == 'language') {
-			$('#ErrorCount').html(this.translate('errors_button', '<span></span>'));
+			$('#ErrorCount').html(this.translate('errors_button', '<span>' + this._errors.length + '</span>'));
 			$('#LanguageDialog').dialog('option', 'title', this.translate('languagedialog_title'));
 		}
 		
