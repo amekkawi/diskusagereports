@@ -77,7 +77,13 @@ tbody th {
 	border-radius: 15px;
 }
 
+#ErrorCountPositioner {
+	z-index: 100;
+	position: relative;
+}
+
 #ErrorCount {
+	display: none;
 	position: absolute;
 	z-index: 100;
 	top: -8px;
