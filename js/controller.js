@@ -372,13 +372,13 @@ $.extend(Controller.prototype, {
 	},
 	
 	reportError: function(message, detail) {
-		var button = $('#ErrorCount');
 		this.reportErrors([ [ message, detail ] ]);
 	},
 	
 	reportErrors: function(errors) {
 		this._errors.push.apply(this._errors, errors);
-		$('#ErrorCount').show().find('span').text(this._errors.length);
+		this._languageChangeStatic('errors');
+		$('#ErrorCount').show();
 	},
 	
 	populateErrors: function(contents) {
