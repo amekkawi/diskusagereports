@@ -59,13 +59,19 @@ Controller = function() {
 	$.scrollbarWidth();
 	
 	// Adjust heights when the window is resized.
-	$(window)
-		.resize(function(){
-			if (document.timeout_resize) clearTimeout(document.timeout_resize);
-			document.timeout_resize = setTimeout(function() {
-				self.resizeWindow();
-			}, 100);
-		});
+	var resizeTimeout, resizeCounter = 0, resizeFn = function(){
+		resizeCounter = 0;
+		self.resizeWindow();
+	};
+	$(window).resize(function(){
+		if (resizeCounter >= 500) {
+			resizeFn();
+		}
+		else {
+			if (resizeTimeout) clearTimeout(resizeTimeout);
+			resizeTimeout = setTimeout(resizeFn, resizeCounter += 150);
+		}
+	});
 	
 	$('.pager a[href], #Sections a[href]').live('click', function(ev) {
 		self.setOptions(self._parseLocation($(this).attr('href')));
