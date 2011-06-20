@@ -94,7 +94,7 @@ Controller = function() {
 	});
 	
 	// Execute the initializers for all the separate modules.
-	for (var i in this.inits) this.inits[i]();
+	for (var i in this.inits) this.inits[i].call(this);
 	
 	// Initial adjustments to height.
 	this.resizeWindow();
