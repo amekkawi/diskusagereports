@@ -48,14 +48,20 @@ $.widget("ui.scrollerResize", {
 		this._scroller.css('white-space', 'nowrap');
 		
 		var diff = { width: $elem.outerWidth(true) - this._scroller.width(), height: $elem.outerHeight(true) - this._scroller.height() },
-			contents = { width: this._contents.outerWidth(true), height: this._contents.outerHeight(true) },
 			max = { width: this._parent[this._parentFn.width]() - diff.width, height: this._parent[this._parentFn.height]() - diff.height },
-			size = { width: Math.min(max.width, contents.width), height: Math.min(max.height, contents.height), 'white-space': '' };
+			contents = { width: this._contents.outerWidth(true) },
+			size = { width: Math.min(max.width, contents.width) };
 		
-		if (size.height < contents.height) { //&& max.width >= size.width + scrollBar.vert) {
+		this._scroller.width(size.width);
+		
+		// Determine the new width/height now that the width has been set.
+		contents = { width: this._contents.outerWidth(true), height: this._contents.outerHeight(true) },
+		size.height = Math.min(max.height, contents.height);
+		
+		if (size.height < contents.height) {
 			size.width = Math.min(max.width, size.width + scrollBar.vert);
 		}
-		if (size.width < contents.width) { // && max.height >= size.height + scrollBar.horiz) {
+		if (size.width < contents.width) {
 			size.height = Math.min(max.height, size.height + scrollBar.horiz);
 		}
 		
