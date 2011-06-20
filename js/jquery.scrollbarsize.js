@@ -25,7 +25,13 @@ $.scrollBarSize = function() {
 		var ih = inner.height(),
 			oh = outer.height();
 		
-		_scrollBarSize.horiz = (ih == 0 || ih > oh) ? _scrollBarSize.vert : oh - ih;
+		// If determining the height fails, we need to know if we can use clientHeight.
+		// Double check clientWidth against the known width to see if the clientX properties are accurate.
+		var clientWidthVerified = $.isDefined(outer.prop('clientWidth')) && 100 - outer.prop('clientWidth') == _scrollBarSize.vert;
+		
+		_scrollBarSize.horiz = (ih == 0 || ih >= oh)
+			? clientWidthVerified ? 100 - outer.prop('clientHeight') : _scrollBarSize.vert
+			: oh - ih;
 		
 		outer.remove();
 	}
