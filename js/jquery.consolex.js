@@ -92,8 +92,6 @@ $.fn.log = function(o, sub) {
 				
 				if (passedLimit) {
 					more = $('<span>').text(', ...').css({ cursor: 'pointer', color: '#00F' }).click(function(){
-						ul.empty();
-						populate();
 						toggleList();
 					}).appendTo(ul);
 				}
