@@ -9,6 +9,34 @@
 
 ;(function($){
 
+Controller.prototype.inits.push(function() {
+	var self = this;
+	
+	$('#ChangeLanguage').live('click', function(){
+		$('#LanguageDialog').dialog('open');
+	});
+	
+	$('#LanguageDialog').dialog({
+		opening: function(e, contents) {
+			contents.empty();
+			
+			var langs = self.getSupportedLanguages(true);
+			
+			var ul = $('<ul>');
+			$.each(langs, function(i, lang) {
+				$('<a href="#"></a>').click(function(e){
+					e.preventDefault();
+					self.setLanguage(lang);
+					$('#LanguageDialog').dialog('close');
+				}).text(self.getLanguageName(lang)).appendTo($('<li>').appendTo(ul));
+			});
+			
+			ul.appendTo(contents);
+		},
+		backgroundColor: '#FFF'
+	});
+});
+
 $.extend(Controller.prototype, {
 	
 	// The default language, if the requested language is not supported.

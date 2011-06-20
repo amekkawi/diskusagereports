@@ -55,8 +55,8 @@ Controller = function() {
 	// Set the maximum number of rows per page.
 	this.pageMax = 100;
 	
-	// Calculate the width (which caches it).
-	$.scrollbarWidth();
+	// Cache the scroll bar width/height.
+	$.scrollBarSize();
 	
 	// Adjust heights when the window is resized.
 	var resizeTimeout, resizeCounter = 0, resizeFn = function(){
@@ -78,37 +78,12 @@ Controller = function() {
 		ev.preventDefault();
 	});
 	
-	$('#ChangeLanguage').live('click', function(){
-		$('#LanguageDialog').dialog('open');
-	});
-	
-	$('#LanguageDialog').dialog({
-		opening: function(e, contents) {
-			contents.empty();
-			
-			var langs = self.getSupportedLanguages(true);
-			
-			var ul = $('<ul>');
-			$.each(langs, function(i, lang) {
-				$('<a href="#"></a>').click(function(e){
-					e.preventDefault();
-					self.setLanguage(lang);
-					$('#LanguageDialog').dialog('close');
-				}).text(self.getLanguageName(lang)).appendTo($('<li>').appendTo(ul));
-			});
-			
-			ul.appendTo(contents);
-		},
-		backgroundColor: '#FFF'
-	});
-	
 	$('#ErrorCount')
 		.data('count', 0)
 		.click(function() {
 			$('#ErrorsDialog').dialog('open');
 		})
-		.disableTextSelection()
-		.show();
+		.disableTextSelection();
 	
 	$('#ErrorsDialog').dialog({
 		backgroundColor: '#FFF',
@@ -118,6 +93,9 @@ Controller = function() {
 		}
 	});
 	
+	// Execute the initializers for all the separate modules.
+	for (var i in this.inits) this.inits[i]();
+	
 	// Initial adjustments to height.
 	this.resizeWindow();
 	
@@ -126,6 +104,8 @@ Controller = function() {
 };
 
 $.extend(Controller.prototype, {
+	
+	inits: [],
 	
 	_ajaxStage: null,
 	_debugTimeout: 50,
@@ -394,32 +374,11 @@ $.extend(Controller.prototype, {
 	reportError: function(message, detail) {
 		var button = $('#ErrorCount');
 		this.reportErrors([ [ message, detail ] ]);
-		return;
-		
-		if ($.isString(message)) message = [ [ message, detail ] ];
-		
-		var count = button.data('count') + message.length;
-		button.data('count', count);
-		
-		button.html(this.hasTranslation(this.language, 'errors_button') ? this.translate('errors_button', count) : 'Errors: ' + count).show();
-		
-		var errorContents = $('#ErrorsDialog').dialog('contents');
-		for (var i = 0; i < message.length; i++) {
-			var errorItem = $('<div>').addClass('errors-item').html($('<b>').html(message[i][0])).appendTo(errorContents);
-			if (message[i][1]) errorItem.append(message[i][1]);
-		}
 	},
 	
 	reportErrors: function(errors) {
 		this._errors.push.apply(this._errors, errors);
-		$('#ErrorCount span').text(this._errors.length);
-		return;
-		
-		var errorContents = $('#ErrorsDialog').dialog('contents');
-		for (var i = 0; i < message.length; i++) {
-			var errorItem = $('<div>').addClass('errors-item').html($('<b>').html(message[i][0])).appendTo(errorContents);
-			if (message[i][1]) errorItem.append(message[i][1]);
-		}
+		$('#ErrorCount').show().find('span').text(this._errors.length);
 	},
 	
 	populateErrors: function(contents) {
