@@ -176,14 +176,23 @@ $.extend(Controller.prototype, {
 	
 	_languageChangeStatic: function(part) {
 		if (!part || part == 'title') {
+			var titleArgs = [ 'title' ], doctitleArgs = [ 'doctitle' ];
+			
 			if (this.settings && this.settings.name) {
-				$('#Title').html(this.translate('title_with_name', $('<b>').text(this.settings.name))).show();
-				document.title = this.translate('doctitle_with_name', this.settings.name);
+				titleArgs[0] += '_with_name';
+				titleArgs.push($('<b>').text(this.settings.name));
+				
+				doctitleArgs[0] += '_with_name';
+				doctitleArgs.push(this.settings.name);
 			}
-			else {
-				$('#Title').html(this.translate('title')).show();
-				document.title = this.translate('doctitle');
+			
+			if (this._data && this._data.name) {
+				doctitleArgs[0] += '_with_dir';
+				doctitleArgs.push(this._data.name);
 			}
+			
+			$('#Title').html(this.translate.apply(this, titleArgs)).show();
+			document.title = this.translate.apply(this, doctitleArgs);
 		}
 		
 		if (!part || part == 'errors') {
