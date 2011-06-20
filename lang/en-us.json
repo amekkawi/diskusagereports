@@ -9,7 +9,8 @@
 	"doctitle_with_name_with_dir": "{2} | {1} | Disk Usage Report",
 	"doctitle_with_dir": "{1} | Disk Usage Report",
 	
-	"errors_title": "Errors While Processing Report",
+	"errors_button": "Errors: {1}",
+	"errors_title": "Errors",
 	"errors_close": "Close",
 	
 	"loading_settings": "Loading Report Settings...",

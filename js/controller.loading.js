@@ -143,23 +143,30 @@ $.extend(Controller.prototype, {
 		}
 	},
 	
+	reportError: function(message, detail) {
+		var button = $('#ErrorCount');
+		
+		if ($.isString(message)) message = [ [ message, detail ] ];
+		
+		var count = button.data('count') + message.length;
+		button.data('count', count);
+		
+		button.html(this.hasTranslation(this.language, 'errors_button') ? this.translate('errors_button', count) : 'Errors: ' + count).show();
+		
+		var errorContents = $('#ErrorsDialog').dialog('contents');
+		for (var i = 0; i < message.length; i++) {
+			var errorItem = $('<div>').addClass('errors-item').html($('<b>').html(message[i][0])).appendTo(errorContents);
+			if (message[i][1]) errorItem.append(message[i][1]);
+		}
+	},
+	
 	_processErrors: function() {
-		var self = this;
+		var self = this, errors = [];
 		if (this.settings.errors.length > 0) {
 			
-			// Add a button that displays errors counts and shows error messages on click.
-			$('#ErrorCount')
-				.text('Errors: ' + this.settings.errors.length)
-				.click(function() {
-					$('#ErrorsDialog').dialog('open');
-				})
-				.disableTextSelection()
-				.show();
-			
-			// Populate the error list.
 			var errorContents = $('#ErrorsDialog').dialog('contents');
 			for (var i = 0; i < this.settings.errors.length; i++) {
-				var detail = '', errorTitle = ''; //Unknown Error (' + this.settings.errors[i] + ')';
+				var detail = '', errorTitle = '';
 				
 				if ($.isString(this.settings.errors[i])) {
 					errorTitle = this.translate('unknown_processing_error', this.settings.errors[i]);
@@ -167,20 +174,16 @@ $.extend(Controller.prototype, {
 				else {
 					switch (this.settings.errors[i][0]) {
 						case 'invalidline':
-							//errorTitle = 'Invalid Line - ';
 							switch (this.settings.errors[i][1]) {
 								case 'regex':
-									//errorTitle += 'Wrong Format';
 									errorTitle = this.translate('invalidline_error_regex');
 									detail += '<div style="overflow: auto; width: 100%;">'+ this.settings.errors[i][2].htmlencode() +'</div>';
 									break;
 								case 'maxlinelength':
-									//errorTitle += 'Line Too Long (' + this.settings.errors[i][2].length + ' characters)';
 									errorTitle = this.translate('invalidline_error_maxlinelength', this.settings.errors[i][2].length);
 									detail += '<div style="overflow: auto; width: 100%;">'+ this.settings.errors[i][2].htmlencode() +'</div>';
 									break;
 								case 'columncount':
-									//errorTitle += 'Wrong Column Count (' + this.settings.errors[i][2].length + ')';
 									errorTitle = this.translate('invalidline_error_columncount', this.settings.errors[i][2].length);
 									detail += '<table class="styledtable" border="1" cellspacing="0" cellpadding="4"><tbody><tr class="odd">';
 									for (var c = 0; c < this.settings.errors[i][2].length; c++) {
@@ -189,7 +192,6 @@ $.extend(Controller.prototype, {
 									detail += '</tr></tbody></table>';
 									break;
 								case 'column':
-									//errorTitle += 'Bad Value for Column \'' +  + '\'';
 									errorTitle = this.translate('invalidline_error_column', this.settings.errors[i][2]);
 									detail += '<table class="styledtable" border="1" cellspacing="0" cellpadding="4"><tbody><tr class="odd">';
 									for (var c = 0; c < this.settings.errors[i][4].length; c++) {
@@ -198,22 +200,20 @@ $.extend(Controller.prototype, {
 									detail += '</tr></tbody></table>';
 									break;
 								default:
-									//errorTitle += 'Unknown Error (' +  + ')';
 									errorTitle = this.translate('invalidline_error_unknown', this.settings.errors[i][1]);
 							}
-							//errorTitle += ':';
 							break;
 						case 'writefail':
 							errorTitle = this.translate('writefail_error', this.settings.errors[i][2]);
-							//errorTitle = 'Error Writing File (' + this.settings.errors[i][2].htmlencode() + ') for:';
 							detail += '<div style="overflow: auto; width: 100%;">'+ this.settings.errors[i][1].htmlencode() +'</div>';
 							break;
 					}
 				}
 				
-				var errorItem = $('<div>').addClass('errors-item').html($('<b>').html(errorTitle)).appendTo(errorContents);
-				if (detail != '') errorItem.append(detail);
+				errors.push([ errorTitle, detail != '' ? detail : undefined ]);
 			}
+			
+			this.reportError(errors);
 		}
 	},
 	

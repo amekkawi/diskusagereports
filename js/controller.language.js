@@ -23,29 +23,31 @@ $.extend(Controller.prototype, {
 	translate: function() {
 		arguments = $.makeArray(arguments);
 		
-		if (!this._languages[this.language]) {
-			throw "The language file for '" + this.language + "' has not been loaded.";
+		if (!this.isLanguageLoaded(this.language)) {
+			this.reportError("The language file for '" + this.language + "' has not been loaded.");
+			return '';
 		}
 		
 		var key = arguments.shift(),
-			str = this._languages[this.language][key],
+			translation = this._languages[this.language][key],
 			parts = [], isTextOnly = true,
 			argIndex, lastIndex = 0, match, re = new RegExp('{([0-9])}', 'g');
 		
 		// Throw an error because the key does not exist.
-		if (!$.isString(str)) {
-			throw "'" + key + "' does not exist in language file.";
+		if (!$.isString(translation)) {
+			this.reportError("'" + key + "' does not exist in language file.");
+			return '';
 		}
 		else {
 			// TODO: Remove toUpperCase() debug code.
-			//str = str.toUpperCase();
+			//translation = translation.toUpperCase();
 			
 			// Find all replacements in the string.
-			while (match = re.exec(str)) {
+			while (match = re.exec(translation)) {
 				
 				// Add any text between the last match and this one.
 				if (lastIndex < match.index) {
-					parts.push(document.createTextNode(str.substring(lastIndex, match.index)));
+					parts.push(document.createTextNode(translation.substring(lastIndex, match.index)));
 				}
 				
 				argIndex = parseInt(match[1]) - 1;
@@ -67,8 +69,8 @@ $.extend(Controller.prototype, {
 				lastIndex = re.lastIndex;
 			}
 			
-			if (lastIndex != str.length) {
-				parts.push(document.createTextNode(str.substr(lastIndex)));
+			if (lastIndex != translation.length) {
+				parts.push(document.createTextNode(translation.substr(lastIndex)));
 			}
 			
 			if (isTextOnly) {
@@ -81,7 +83,7 @@ $.extend(Controller.prototype, {
 	},
 	
 	isSupportedLanguage: function(lang) {
-		return $.isDefined(this._languages[lang.toLowerCase()]);
+		return lang && $.isDefined(this._languages[lang.toLowerCase()]);
 	},
 	
 	isLanguageLoaded: function(lang) {
@@ -196,7 +198,7 @@ $.extend(Controller.prototype, {
 		}
 		
 		if (!part || part == 'errors') {
-			$('#ErrorsDialog').dialog('option', 'title', this.translate('errors_title'));
+			$('#ErrorsDialog').dialog('option', 'title', this.translate('errors_title') + ':');
 		}
 		
 		if (!part || part == 'tree') {
@@ -392,6 +394,15 @@ $.extend(Controller.prototype, {
 		this.sortLanguageRules(supported);
 		
 		return supported;
+	},
+	
+	getTranslation: function(lang, key) {
+		if (!this.isLanguageLoaded(lang) || !this._languages[lang][key]) return null;
+		return this._languages[lang][key];
+	},
+	
+	hasTranslation: function(lang, key) {
+		return this.getTranslation(lang, key) != null;
 	}
 });
 

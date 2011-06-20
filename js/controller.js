@@ -102,6 +102,14 @@ Controller = function() {
 		backgroundColor: '#FFF'
 	});
 	
+	$('#ErrorCount')
+		.data('count', 0)
+		.click(function() {
+			$('#ErrorsDialog').dialog('open');
+		})
+		.disableTextSelection()
+		.show();
+	
 	$('#ErrorsDialog').dialog({
 		backgroundColor: '#FFF',
 		borderColor: '#CC0000'
