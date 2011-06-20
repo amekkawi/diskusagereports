@@ -143,23 +143,6 @@ $.extend(Controller.prototype, {
 		}
 	},
 	
-	reportError: function(message, detail) {
-		var button = $('#ErrorCount');
-		
-		if ($.isString(message)) message = [ [ message, detail ] ];
-		
-		var count = button.data('count') + message.length;
-		button.data('count', count);
-		
-		button.html(this.hasTranslation(this.language, 'errors_button') ? this.translate('errors_button', count) : 'Errors: ' + count).show();
-		
-		var errorContents = $('#ErrorsDialog').dialog('contents');
-		for (var i = 0; i < message.length; i++) {
-			var errorItem = $('<div>').addClass('errors-item').html($('<b>').html(message[i][0])).appendTo(errorContents);
-			if (message[i][1]) errorItem.append(message[i][1]);
-		}
-	},
-	
 	_processErrors: function() {
 		var self = this, errors = [];
 		if (this.settings.errors.length > 0) {
@@ -169,22 +152,22 @@ $.extend(Controller.prototype, {
 				var detail = '', errorTitle = '';
 				
 				if ($.isString(this.settings.errors[i])) {
-					errorTitle = this.translate('unknown_processing_error', this.settings.errors[i]);
+					errorTitle = [ 'unknown_processing_error', this.settings.errors[i] ];
 				}
 				else {
 					switch (this.settings.errors[i][0]) {
 						case 'invalidline':
 							switch (this.settings.errors[i][1]) {
 								case 'regex':
-									errorTitle = this.translate('invalidline_error_regex');
+									errorTitle = [ 'invalidline_error_regex' ];
 									detail += '<div style="overflow: auto; width: 100%;">'+ this.settings.errors[i][2].htmlencode() +'</div>';
 									break;
 								case 'maxlinelength':
-									errorTitle = this.translate('invalidline_error_maxlinelength', this.settings.errors[i][2].length);
+									errorTitle = [ 'invalidline_error_maxlinelength', this.settings.errors[i][2].length ];
 									detail += '<div style="overflow: auto; width: 100%;">'+ this.settings.errors[i][2].htmlencode() +'</div>';
 									break;
 								case 'columncount':
-									errorTitle = this.translate('invalidline_error_columncount', this.settings.errors[i][2].length);
+									errorTitle = [ 'invalidline_error_columncount', this.settings.errors[i][2].length ];
 									detail += '<table class="styledtable" border="1" cellspacing="0" cellpadding="4"><tbody><tr class="odd">';
 									for (var c = 0; c < this.settings.errors[i][2].length; c++) {
 										detail += '<td>' + this.settings.errors[i][2][c].htmlencode() + '</td>';
@@ -192,7 +175,7 @@ $.extend(Controller.prototype, {
 									detail += '</tr></tbody></table>';
 									break;
 								case 'column':
-									errorTitle = this.translate('invalidline_error_column', this.settings.errors[i][2]);
+									errorTitle = [ 'invalidline_error_column', this.settings.errors[i][2] ];
 									detail += '<table class="styledtable" border="1" cellspacing="0" cellpadding="4"><tbody><tr class="odd">';
 									for (var c = 0; c < this.settings.errors[i][4].length; c++) {
 										detail += '<td ' + (c == this.settings.errors[i][3] ? ' style="background-color: #FF0;"' : '') + '>' + this.settings.errors[i][4][c].htmlencode() + '</td>';
@@ -200,11 +183,11 @@ $.extend(Controller.prototype, {
 									detail += '</tr></tbody></table>';
 									break;
 								default:
-									errorTitle = this.translate('invalidline_error_unknown', this.settings.errors[i][1]);
+									errorTitle = [ 'invalidline_error_unknown', this.settings.errors[i][1] ];
 							}
 							break;
 						case 'writefail':
-							errorTitle = this.translate('writefail_error', this.settings.errors[i][2]);
+							errorTitle = [ 'writefail_error', this.settings.errors[i][2] ];
 							detail += '<div style="overflow: auto; width: 100%;">'+ this.settings.errors[i][1].htmlencode() +'</div>';
 							break;
 					}
@@ -213,7 +196,7 @@ $.extend(Controller.prototype, {
 				errors.push([ errorTitle, detail != '' ? detail : undefined ]);
 			}
 			
-			this.reportError(errors);
+			this.reportErrors(errors);
 		}
 	},
 	

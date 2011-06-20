@@ -198,7 +198,7 @@ $.extend(Controller.prototype, {
 		}
 		
 		if (!part || part == 'errors') {
-			$('#ErrorsDialog').dialog('option', 'title', this.translate('errors_title') + ':');
+			$('#ErrorsDialog').dialog('option', 'title', this.translate('errors_title'));
 		}
 		
 		if (!part || part == 'tree') {
@@ -264,6 +264,7 @@ $.extend(Controller.prototype, {
 		}
 		
 		if (!part || part == 'language') {
+			$('#ErrorCount').html(this.translate('errors_button', '<span></span>'));
 			$('#LanguageDialog').dialog('option', 'title', this.translate('languagedialog_title'));
 		}
 		

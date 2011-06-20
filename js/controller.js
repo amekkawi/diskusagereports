@@ -112,7 +112,10 @@ Controller = function() {
 	
 	$('#ErrorsDialog').dialog({
 		backgroundColor: '#FFF',
-		borderColor: '#CC0000'
+		borderColor: '#CC0000',
+		opening: function(e, contents) {
+			self.populateErrors(contents);
+		}
 	});
 	
 	// Initial adjustments to height.
@@ -127,6 +130,7 @@ $.extend(Controller.prototype, {
 	_ajaxStage: null,
 	_debugTimeout: 50,
 	_preLoad: true,
+	_errors: [],
 	
 	// Directory lookup.
 	directories: null,
@@ -384,6 +388,49 @@ $.extend(Controller.prototype, {
 		if ($('#Report').is(':visible')) {
 			var reportHeightDiff = $('#Report').outerHeight(true) - $('#Report').height();
 			$('#Report').height($('#RightColumn').height() - reportHeightDiff - $('#Report').position().top);
+		}
+	},
+	
+	reportError: function(message, detail) {
+		var button = $('#ErrorCount');
+		this.reportErrors([ [ message, detail ] ]);
+		return;
+		
+		if ($.isString(message)) message = [ [ message, detail ] ];
+		
+		var count = button.data('count') + message.length;
+		button.data('count', count);
+		
+		button.html(this.hasTranslation(this.language, 'errors_button') ? this.translate('errors_button', count) : 'Errors: ' + count).show();
+		
+		var errorContents = $('#ErrorsDialog').dialog('contents');
+		for (var i = 0; i < message.length; i++) {
+			var errorItem = $('<div>').addClass('errors-item').html($('<b>').html(message[i][0])).appendTo(errorContents);
+			if (message[i][1]) errorItem.append(message[i][1]);
+		}
+	},
+	
+	reportErrors: function(errors) {
+		this._errors.push.apply(this._errors, errors);
+		$('#ErrorCount span').text(this._errors.length);
+		return;
+		
+		var errorContents = $('#ErrorsDialog').dialog('contents');
+		for (var i = 0; i < message.length; i++) {
+			var errorItem = $('<div>').addClass('errors-item').html($('<b>').html(message[i][0])).appendTo(errorContents);
+			if (message[i][1]) errorItem.append(message[i][1]);
+		}
+	},
+	
+	populateErrors: function(contents) {
+		contents.empty();
+		for (var i = 0; i < this._errors.length; i++) {
+			var errorItem = $('<div>')
+					.addClass('errors-item')
+					.html( $('<b>').html($.isArray(this._errors[i][0]) ? this.translate.apply(this, this._errors[i][0]) : this._errors[i][0]) )
+					.appendTo(contents);
+			
+			if (this._errors[i][1]) errorItem.append(this._errors[i][1]);
 		}
 	}
 	

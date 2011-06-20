@@ -10,7 +10,7 @@
 	"doctitle_with_dir": "{1} | Disk Usage Report",
 	
 	"errors_button": "Errors: {1}",
-	"errors_title": "Errors",
+	"errors_title": "Errors:",
 	"errors_close": "Close",
 	
 	"loading_settings": "Loading Report Settings...",
