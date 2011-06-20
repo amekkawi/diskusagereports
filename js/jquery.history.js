@@ -192,9 +192,11 @@ var Timer = {
 };
 
 /*
+ * >> DISABLED since this causes the title in history menus to instead show the URL <<
+ * 
  * Use the HTML5 popstate/pushState if the browser supports it.
  */
-if ('pushState' in window.history) {
+if ('pushStateDISABLED' in window.history) {
 	$.extend(History.prototype, {
 		mode: 'html5',
 		init: function() {
