@@ -287,7 +287,7 @@ $.extend(Controller.prototype, {
 			$('#Footer').html(this.translate(this.settings ? 'footer_with_created' : 'footer',
 				this.settings ? this.settings.created.htmlencode() : null,
 				$('<a target="_blank" href="http://diskusagereport.sourceforge.net/">Disk Usage Reports</a>'),
-				$('<span id="ChangeLanguage">').text(this.getLanguageName(this.language))
+				$('<span id="ChangeLanguage"></span>').text(this.getLanguageName(this.language))
 			));
 		}
 		

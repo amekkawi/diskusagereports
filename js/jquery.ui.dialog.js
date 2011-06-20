@@ -41,11 +41,11 @@ $.widget("ui.dialog", {
 		
 		$elem.scrollerResize({ scroller: this._scroller });
 		
-		$('<div style="clear: both;">').appendTo(this._scroller);
+		$('<div style="clear: both;"></div>').appendTo(this._scroller);
 		
-		this._title = $('<div class="' + this.widgetBaseClass + '-title' + '">').insertBefore(this._scroller);
+		this._title = $('<div class="' + this.widgetBaseClass + '-title' + '"></div>').insertBefore(this._scroller);
 		
-		this._close = $('<div class="' + this.widgetBaseClass + '-close' + '">')
+		this._close = $('<div class="' + this.widgetBaseClass + '-close' + '"></div>')
 			.click(function(){ self.close(); })
 			.appendTo($elem);
 		
