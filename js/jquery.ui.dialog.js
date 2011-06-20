@@ -154,8 +154,17 @@ $.widget("ui.dialog", {
 	resize: function() {
 		var $elem = $(this.element);
 		
-		if ($elem.is(':visible'))
-			$elem.scrollerResize('resize', true);
+		if (!$elem.is(':visible')) return;
+		
+		$elem.scrollerResize('resize', true);
+		
+		var scrollerWidth = this._scroller.outerWidth(true),
+			scrollerDiff = scrollerWidth - this._scroller.width(),
+			min = $elem.width();
+		
+		if (scrollerWidth < min) {
+			this._scroller.width(min);
+		}
 	},
 	
 	contents: function(contents) {
