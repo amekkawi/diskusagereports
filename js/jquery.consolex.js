@@ -1,3 +1,12 @@
+/* 
+ * Copyright (c) 2011 André Mekkawi <contact@andremekkawi.com>
+ * 
+ * LICENSE
+ * 
+ * This source file is subject to the MIT license in the file LICENSE.txt.
+ * The license is also available at http://diskusagereport.sf.net/license.html
+ */
+
 $.fn.log = function(o, sub) {
 	var compactListCSS = { 'list-style': 'none', 'margin': '0', 'padding': '0', 'display': 'inline' },
 		expandedListCSS = { 'list-style': '', 'margin': '', 'padding': '', 'display': '' },
