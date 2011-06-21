@@ -1,4 +1,7 @@
 {
+	"extends": null,
+	"hidden": false,
+	
 	"language_name": "English (US)",
 	
 	"title": "Disk Usage Report",
