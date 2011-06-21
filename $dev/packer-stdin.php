@@ -34,7 +34,7 @@ if (($h = fopen('php://stdin', 'r')) !== FALSE) {
 	
 	@fclose($h);
 	
-	$packer = new JavaScriptPacker($source, 'Normal', true, false);
+	$packer = new JavaScriptPacker($source, 'None', true, false);
 	$packed = $packer->pack();
 	echo $packed;
 }
