@@ -67,9 +67,6 @@ $.extend(Controller.prototype, {
 			return '';
 		}
 		else {
-			// TODO: Remove toUpperCase() debug code.
-			//translation = translation.toUpperCase();
-			
 			// Find all replacements in the string.
 			while (match = re.exec(translation)) {
 				
@@ -301,12 +298,20 @@ $.extend(Controller.prototype, {
 		this.resizeWindow();
 	},
 	
-	getSupportedLanguages: function(sorted) {
+	getSupportedLanguages: function(sorted, includeHidden) {
 		
 		var self = this, list = $.getArrayKeys(this._languages);
 		
+		// Remove hidden.
+		if (!includeHidden) {
+			for (var i = list.length - 1; i >= 0; i--) {
+				if (this._languages[list[i]].hidden)
+					list.splice(i, 1);
+			}
+		}
+		
+		// Sort the list in alpha order.
 		if (sorted) {
-			// Sort the list in alpha order.
 			list.sort(function(a,b){
 				var aname = self.getLanguageName(a),
 					bname = self.getLanguageName(b);
@@ -404,7 +409,7 @@ $.extend(Controller.prototype, {
 	},
 	
 	matchSupportedLanguagesToRules: function(rules) {
-		var supported = this.getSupportedLanguages();
+		var supported = this.getSupportedLanguages(null, true);
 		
 		// Parse the rules as an Accept-Language header if it is a string.
 		if ($.isString(rules)) rules = this.parseAcceptLanguage(rules);
