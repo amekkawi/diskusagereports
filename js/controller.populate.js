@@ -11,11 +11,11 @@
 
 $.extend(Controller.prototype, {
 	
-	_populateReport: function() {
+	_populateReport: function(force) {
 		this._languageChangeStatic('title');
 		
 		if (this._data) {
-			if (this._lastSectionOptions != ''.concat(this.options.section, this.options.totalsSortBy, this.options.totalsSortRev, this.options.filesSortBy, this.options.filesSortRev, this.options.top100SortBy, this.options.top100SortRev, this.options.page)) {
+			if (force || this._lastSectionOptions != ''.concat(this.options.section, this.options.totalsSortBy, this.options.totalsSortRev, this.options.filesSortBy, this.options.filesSortRev, this.options.top100SortBy, this.options.top100SortRev, this.options.page)) {
 				this._lastSectionOptions = ''.concat(this.options.section, this.options.totalsSortBy, this.options.totalsSortRev, this.options.filesSortBy, this.options.filesSortRev, this.options.top100SortBy, this.options.top100SortRev, this.options.page);
 				
 				$('#Path').empty();

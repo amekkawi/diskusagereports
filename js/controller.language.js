@@ -143,6 +143,7 @@ $.extend(Controller.prototype, {
 				if (ret) {
 					self.language = lang;
 					self._languageChangeStatic();
+					self._populateReport(true);
 				}
 				
 				if ($.isFunction(returnFn))
