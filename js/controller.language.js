@@ -168,8 +168,32 @@ $.extend(Controller.prototype, {
 					error: function(xhr, status, ex) {
 						if (status == 'abort') return;
 						
+						var msg;
+						switch (status) {
+							case 'parsererror':
+								msg = 'Invalid JSON syntax:';
+								break;
+							case 'timeout':
+								msg = 'Timed out while downloading';
+								break;
+							case 'error':
+								switch (xhr.status) {
+									case 404:
+										msg = '404 Not Found:';
+										break;
+									case 401:
+										msg = '401 Unauthorized:';
+										break;
+									default:
+										msg = 'HTTP Status ' + xhr.status + ':';
+								}
+								break;
+							default:
+								msg = 'Unknown Error';
+						}
+						
 						if ($.isFunction(returnFn))
-							returnFn(false, 'Failed to load language file (' + status + '): lang/' + lang + '.json');
+							returnFn(false, msg + ' lang/' + lang + '.json');
 					},
 					success: function(data, status, xhr) {
 						if (data) {
@@ -191,7 +215,7 @@ $.extend(Controller.prototype, {
 			catch (e) {
 				// TODO: Handle exception when data is viewed via 'file:///' protocol.
 				if ($.isFunction(returnFn))
-					returnFn(false, 'Failed to load language file (AJAX exception): lang/' + lang + '.json');
+					returnFn(false, 'AJAX exception: lang/' + lang + '.json');
 			}
 		}
 		
