@@ -108,7 +108,8 @@ $.extend(Controller.prototype, {
 	inits: [],
 	
 	_ajaxStage: null,
-	_debugTimeout: 50,
+	_debugTimeoutFn: function(fn, timeout) { /*return setTimeout(fn, timeout);*/ fn(); return null; },
+	_debugTimeout: 500,
 	_preLoad: true,
 	_errors: [],
 	
@@ -148,7 +149,7 @@ $.extend(Controller.prototype, {
 			if (ret) {
 				$('#Loading').html(self.translate('loading_settings'));
 				
-				setTimeout(function(){
+				self._debugTimeoutFn(function(){
 					self._downloadSettings();
 				}, self._debugTimeout);
 			}
@@ -179,9 +180,13 @@ $.extend(Controller.prototype, {
 	},
 	
 	displayReport: function(completeFn) {
+		var self = this;
+		
 		// If the hash changed, load the data for the new directory.
 		if (this._lastHash != this.options.hash) {
-			this._downloadHash(completeFn);
+			this._debugTimeoutFn(function(){
+				self._downloadHash(completeFn);
+			}, this._debugTimeout);
 		}
 		else {
 			this._populateReport();

@@ -132,7 +132,7 @@ $.extend(Controller.prototype, {
 		if (this.settings.directorytree && !disableTree) {
 			$('#Loading').html(this.translate('loading_directories'));
 			
-			setTimeout(function(){
+			this._debugTimeoutFn(function(){
 				self._downloadDirectories();
 			}, this._debugTimeout);
 		}
@@ -257,7 +257,7 @@ $.extend(Controller.prototype, {
 		
 		$('#Loading').html(this.translate('displaying_report'));
 		
-		setTimeout(function(){ // Debugging timeout
+		this._debugTimeoutFn(function(){
 			self._setupTabs();
 			self._setupColHeaders();
 			
@@ -356,7 +356,7 @@ $.extend(Controller.prototype, {
 				$('#LeftColumnScroller').scrollIntoView($('#DirectoryTree li.selected'));
 			});
 			
-		}, this._debugTimeout); // Debugging timeout
+		}, this._debugTimeout);
 	},
 	
 	_setupTabs: function() {
