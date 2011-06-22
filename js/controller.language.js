@@ -248,9 +248,9 @@ $.extend(Controller.prototype, {
 		}
 		
 		if (!part || part == 'errors') {
-			var errorsCount = this.translate('errors_button', this._errors.length),
+			var errorsCount = this.translate('errors_button', '<span>' + this._errors.length + '</span>'),
 				errorsDialog = this.translate('errors_title');
-			$('#ErrorCount').html(errorsCount == '' ? 'Errors <span>' + this._errors.length + '</span>' : errorsCount);
+			$('#ErrorCount').html(errorsCount == '' ? 'Errors: <span>' + this._errors.length + '</span>' : errorsCount);
 			$('#ErrorsDialog').dialog('option', 'title', errorsDialog == '' ? 'Errors:' : errorsDialog);
 		}
 		
