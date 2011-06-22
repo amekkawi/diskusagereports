@@ -377,17 +377,16 @@ $.extend(Controller.prototype, {
 	
 	reportErrors: function(errors) {
 		this._errors.push.apply(this._errors, errors);
-		this._languageChangeStatic('errors');
-		$('#ErrorCount').show();
+		$('#ErrorCount').show().find('span').text(this._errors.length);
 	},
 	
 	populateErrors: function(contents) {
 		contents.empty();
 		for (var i = 0; i < this._errors.length; i++) {
 			var errorItem = $('<div>')
-					.addClass('errors-item')
-					.html( $('<b>').html($.isArray(this._errors[i][0]) ? this.translate.apply(this, this._errors[i][0]) : this._errors[i][0]) )
-					.appendTo(contents);
+				.addClass('errors-item')
+				.html( $('<b>').html($.isArray(this._errors[i][0]) ? this.translate.apply(this, this._errors[i][0]) : this._errors[i][0]) )
+				.appendTo(contents);
 			
 			if (this._errors[i][1]) errorItem.append(this._errors[i][1]);
 		}

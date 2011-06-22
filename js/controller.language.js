@@ -63,7 +63,7 @@ $.extend(Controller.prototype, {
 		
 		// Throw an error because the key does not exist.
 		if (!$.isString(translation)) {
-			this.reportError("'" + key + "' does not exist in language file.");
+			this.reportError("A translation for '" + key + "' does not exist.");
 			return '';
 		}
 		else {
@@ -248,8 +248,10 @@ $.extend(Controller.prototype, {
 		}
 		
 		if (!part || part == 'errors') {
-			$('#ErrorCount').html(this.translate('errors_button', this._errors.length));
-			$('#ErrorsDialog').dialog('option', 'title', this.translate('errors_title'));
+			var errorsCount = this.translate('errors_button', this._errors.length),
+				errorsDialog = this.translate('errors_title');
+			$('#ErrorCount').html(errorsCount == '' ? 'Errors <span>' + this._errors.length + '</span>' : errorsCount);
+			$('#ErrorsDialog').dialog('option', 'title', errorsDialog == '' ? 'Errors:' : errorsDialog);
 		}
 		
 		if (!part || part == 'tree') {
