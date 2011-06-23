@@ -11,7 +11,7 @@
 
 $STDERR = fopen('php://stderr', 'w+');
 
-if (!isset($_SERVER['argc'])) {
+if (php_sapi_name() != "cli") {
 	fwrite($STDERR, "Must be run from the command line.\n"); exit(1);
 }
 

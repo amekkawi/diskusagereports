@@ -28,7 +28,7 @@ if(!function_exists('file_put_contents')) {
 }
 
 // Make sure this is being run from the command line.
-if (!isset($_SERVER['argc'])) {
+if (php_sapi_name() != "cli") {
 	echo "Must be run from the command line.\n";
 	exit(1);
 }
