@@ -78,21 +78,6 @@ Controller = function() {
 		ev.preventDefault();
 	});
 	
-	$('#ErrorCount')
-		.data('count', 0)
-		.click(function() {
-			$('#ErrorsDialog').dialog('open');
-		})
-		.disableTextSelection();
-	
-	$('#ErrorsDialog').dialog({
-		backgroundColor: '#FFF',
-		borderColor: '#CC0000',
-		opening: function(e, contents) {
-			self.populateErrors(contents);
-		}
-	});
-	
 	// Execute the initializers for all the separate modules.
 	for (var i in this.inits) this.inits[i].call(this);
 	
@@ -111,7 +96,6 @@ $.extend(Controller.prototype, {
 	_debugTimeoutFn: function(fn, timeout) { /*return setTimeout(fn, timeout);*/ fn(); return null; },
 	_debugTimeout: 500,
 	_preLoad: true,
-	_errors: [],
 	
 	// Directory lookup.
 	directories: null,
@@ -373,27 +357,6 @@ $.extend(Controller.prototype, {
 		if ($('#Report').is(':visible')) {
 			var reportHeightDiff = $('#Report').outerHeight(true) - $('#Report').height();
 			$('#Report').height($('#RightColumn').height() - reportHeightDiff - $('#Report').position().top);
-		}
-	},
-	
-	reportError: function(message, detail) {
-		this.reportErrors([ [ message, detail ] ]);
-	},
-	
-	reportErrors: function(errors) {
-		this._errors.push.apply(this._errors, errors);
-		$('#ErrorCount').show().find('span').text(this._errors.length);
-	},
-	
-	populateErrors: function(contents) {
-		contents.empty();
-		for (var i = 0; i < this._errors.length; i++) {
-			var errorItem = $('<div>')
-				.addClass('errors-item')
-				.html( $('<b>').html($.isArray(this._errors[i][0]) ? this.translate.apply(this, this._errors[i][0]) : this._errors[i][0]) )
-				.appendTo(contents);
-			
-			if (this._errors[i][1]) errorItem.append(this._errors[i][1]);
 		}
 	}
 	
