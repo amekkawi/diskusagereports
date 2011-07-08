@@ -163,7 +163,7 @@ $.extend(Controller.prototype, {
 			try {
 				if (this._langXHR) this._langXHR.abort();
 				this._langXHR = $.ajax({
-					url: 'lang/' + lang + '.json',
+					url: 'lang/' + lang + '.txt',
 					dataType: 'json',
 					error: function(xhr, status, ex) {
 						if (status == 'abort') return;
@@ -193,7 +193,7 @@ $.extend(Controller.prototype, {
 						}
 						
 						if ($.isFunction(returnFn))
-							returnFn(false, msg + ' lang/' + lang + '.json');
+							returnFn(false, msg + ' lang/' + lang + '.txt');
 					},
 					success: function(data, status, xhr) {
 						if (data) {
@@ -215,7 +215,7 @@ $.extend(Controller.prototype, {
 			catch (e) {
 				// TODO: Handle exception when data is viewed via 'file:///' protocol.
 				if ($.isFunction(returnFn))
-					returnFn(false, 'AJAX exception: lang/' + lang + '.json');
+					returnFn(false, 'AJAX exception: lang/' + lang + '.txt');
 			}
 		}
 		
