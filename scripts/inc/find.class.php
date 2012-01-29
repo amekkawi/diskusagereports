@@ -10,8 +10,6 @@ class Find {
 	var $_ds;
 	var $_delim;
 	
-	var $_lastError;
-	
 	function Find() {
 		$this->_ds = DIRECTORY_SEPARATOR;
 		$this->delim = "\x00";
@@ -23,7 +21,7 @@ class Find {
 		}
 		
 		// Attempt to resolve the path (in case it is relative).
-		if (($directory = realpath($directory)) === FALSE) {
+		if (($realpath = realpath($directory)) === FALSE) {
 			return FIND_FAILED_RESOLVE;
 		}
 		
@@ -37,43 +35,33 @@ class Find {
 			return FIND_FAILED_STDOUT;
 		}
 		if (is_null($err) && ($cerr = ($err = fopen('php://stderr', 'w+')) !== FALSE) === FALSE) {
+			if (isset($cout)) fclose($out);
 			return FIND_FAILED_STDERR;
 		}
 		
 		// Clean the right side of the directory path, if it is at least two chracters long.
-		if (strlen($directory) >= 2) {
-			$directory = rtrim($directory, DIRECTORY_SEPARATOR);
+		if (strlen($realpath) >= 2) {
+			$realpath = rtrim($realpath, DIRECTORY_SEPARATOR);
 		}
 		
-		$dirname = dirname($directory);
-		$basename = basename($directory);
-		//$stack = array();
-		
-		// process directory
-		echo 'path: ' . $directory . "\n";
-		echo 'dirname: ' . dirname($directory) . "\n";
-		echo 'basename: ' . basename($directory) . "\n\n";
+		$dirname = dirname($realpath);
+		$basename = basename($realpath);
 		
 		// Support *nix root directories.
 		if ($dirname == DIRECTORY_SEPARATOR && $basename == '') {
-			//array_push($stack, '');
 			$dirname = '';
 			$basename = DIRECTORY_SEPARATOR;
 		}
 		
+		// On Windows both $dirname and $basename will return 'C:' for a root path.
 		elseif (substr($dirname, -1) == ':' && $dirname == $basename) {
 			$dirname = '';
 		}
 		
-		$this->_outputEntry($out, 'd', $dirname, $basename, $stat);
+		// Output the header for the find results.
+		fwrite($out, '#' . $this->_delim . $this->_ds . $this->_delim . str_replace(DIRECTORY_SEPARATOR, $this->_ds, $dirname) . $this->_delim . $basename . $this->_delim . date('YmdHis') . "\n");
 		
-		// On Windows both directory and name will return 'C:' for a root path.
-		if (substr($directory, -1) == ':' && $directory == $name) {
-			//$directory = '';
-		}
-		
-		//$this->_processDirectory($out, $err, $directory, 0);
-		//$this->_processDirectory($out, $err, $stack, $basename, 0);
+		$this->_processDirectory($out, $err, $realpath, '', 0);
 		
 		// Close streams if they were opened in this method.
 		if (isset($cout)) fclose($out);
@@ -82,104 +70,79 @@ class Find {
 		return FIND_OK;
 	}
 	
-	function _processDirectory(&$out, &$err, $directory, $depth) {
-		if (($dirh = opendir($dirPath)) === FALSE) {
-			fwrite($err, "Failed to open directory for listing files: " . $directory . "\n");
+	function _processDirectory(&$out, &$err, $rootpath, $pathext, $depth) {
+		$fullpath = $rootpath . DIRECTORY_SEPARATOR . $pathext;
+		
+		if (($dirh = opendir($fullpath)) === FALSE) {
+			fwrite($err, "Failed to open directory for listing files: " . $fullpath . "\n");
+			$this->_outputError($out, 'OPENDIR_FAIL', array($fullpath));
 		}
 		else {
-			while (($file = readdir($dirh)) !== FALSE) {
+			while (($entry = readdir($dirh)) !== FALSE) {
 				
 				// Skip dot and double-dot notation.
-		        if ($file != '.' && $file != '..') {
-		        	$this->_processDirectoryEntry($out, $err, $directory, $depth, $file);
+		        if ($entry != '.' && $entry != '..') {
+		        	$this->_processDirectoryEntry($out, $err, $rootpath, $pathext, $depth, $entry);
 		        }
 		    }
+		    
 			closedir($dirh);
 		}
 	}
 	
-	function _processDirectoryEntry(&$out, &$err, $directory, $depth, $name) {
-		$path = $directory . DIRECTORY_SEPARATOR . $name;
+	function _processDirectoryEntry(&$out, &$err, $rootpath, $pathext, $depth, $entry) {
+		$fullpath = $rootpath . DIRECTORY_SEPARATOR . $pathext . DIRECTORY_SEPARATOR . $entry;
 		 
 		// Attempt to stat file.
-		if (($stat = lstat($path)) !== FALSE) {
+		if (($stat = lstat($fullpath)) !== FALSE) {
 
-			if (is_link($path)) {
+			if (is_link($fullpath)) {
 				$type = 'l';
 			}
-			elseif (is_dir($path)) {
+			elseif (is_dir($fullpath)) {
 				$type = 'd';
 			}
-			elseif (is_file($path)) {
+			elseif (is_file($fullpath)) {
 				$type = 'f';
 			}
 			else {
-				$type = '-';
+				$type = '?';
 			}
 			
-			//echo $type . $args['delim'] . date('Y-m-d', intval($stat['mtime'])) . $args['delim'] . date('H:i:s', intval($stat['mtime'])) . $args['delim'] . $stat['size'] . $args['delim'] . $depth . $args['delim'] . $directory . $args['delim'] . $file . "\n";
-			$this->_outputEntry($out, $type, $directory, $name, $stat);
+			$this->_outputEntry($out, $type, $pathext, $depth, $entry, $stat);
 			
-			if ($isdir) {
-				$this->_processDirectory($out, $err, $path, $depth + 1);
+			if ($type == 'd') {
+				$this->_processDirectory($out, $err, $rootpath, ($pathext == '' ? '' : $pathext . DIRECTORY_SEPARATOR) . $entry, $depth + 1);
 			}
 		}
 		else {
-			fwrite($err, 'Failed to stat: ' . $filepath."\n");
+			fwrite($err, 'Failed to stat: ' . $fullpath . "\n");
+			$this->_outputError($out, 'STAT_FAIL', array($fullpath));
 		}
 	}
 	
-	function _outputEntry(&$out, $type, $directory, $name, $stat) {
+	function _outputEntry(&$out, $type, $pathext, $depth, $entry, $stat) {
 		// Make sure the directory separator for the output is correct.
 		if ($this->_ds != DIRECTORY_SEPARATOR) {
 			$directory = str_replace(DIRECTORY_SEPARATOR, $this->_ds, $directory);
 		}
 		
-		fwrite($out, $type . $this->_delim . date('Y-m-d', intval($stat['mtime'])) . $this->_delim . date('H:i:s', intval($stat['mtime'])) . $this->_delim . $stat['size'] . $this->_delim . '0' . $this->_delim . $directory . $this->_delim . $name . "\n");
+		fwrite($out, implode($this->_delim, array(
+			$type, 
+			date('Y-m-d', intval($stat['mtime'])), 
+			date('H:i:s', intval($stat['mtime'])), 
+			$stat['size'],
+			$depth,
+			$pathext,
+			$entry
+		)) . "\n");
 	}
 	
-	function _processDirectoryOLD($out, $err, &$stack, $basename, $depth) {
-		
-		// Push the new directory name on the stack.
-		array_push($stack, $basename);
-		
-		$dirPath = implode(DIRECTORY_SEPARATOR, $stack);
-		$dirOutPath = implode($this->_ds, $stack);
-		
-		echo "dirPath: $dirPath\n";
-		echo "dirOutPath: $dirOutPath\n";
-		
-		return;
-		
-		// The path will be empty if the directory is a *nix root path.
-		if ($dirPath == '') {
-			$dirPath = DIRECTORY_SEPARATOR;
-			$dirOutPath = $this->_ds;
-		}
-		
-		if (($dirh = opendir($dirPath)) === FALSE) {
-			fwrite($err, "Failed to open directory for listing files: " . $basename . "\n");
-		}
-		else {
-			while (($file = readdir($dirh)) !== FALSE) {
-		        if ($file != '.' && $file != '..') {
-			        $filepath = ConcatPath($this->_ds, $basename, $file);
-			        if (($stat = stat($filepath)) !== FALSE) {
-			        	if (!($islink = is_link($filepath))) {
-			        		$isdir = is_dir($filepath);
-				        	echo ($isdir ? 'd' : 'f') . $args['delim'] . date('Y-m-d', intval($stat['mtime'])) . $args['delim'] . date('H:i:s', intval($stat['mtime'])) . $args['delim'] . $stat['size'] . $args['delim'] . $depth . $args['delim'] . $basename . $args['delim'] . $file . "\n";
-				        	if (!$islink && $isdir) {
-				        		ProcessFolder($filepath, $depth + 1);
-				        	}
-			        	}
-			        }
-			        else {
-			        	fwrite($err, 'Failed to stat: ' . $filepath."\n");
-			        }
-		        }
-		    }
-			closedir($dirh);
-		}
+	function _outputError(&$out, $id, $arguments = array()) {
+		fwrite($out, implode($this->_delim, array_merge(array(
+			'!',
+			$id
+		), $arguments)) . "\n");
 	}
 	
 	function getDS() {
@@ -196,10 +159,6 @@ class Find {
 	
 	function setDelim($delim) {
 		$this->_delim = $delim;
-	}
-	
-	function getLastError() {
-		return $this->_lastError;
 	}
 }
 ?>
