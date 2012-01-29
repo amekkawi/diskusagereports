@@ -2,6 +2,7 @@
 
 /* 
  * Copyright (c) 2011 André Mekkawi <contact@andremekkawi.com>
+ * Revision: $Revision$
  * 
  * LICENSE
  * 
@@ -18,6 +19,22 @@ define('LARGE_INT', defined('PHP_INT_MAX') && strlen(PHP_INT_MAX.'') > 14);
 
 // Show/hide debugging output.
 define('DEBUG', FALSE);
+
+//echo ((120 & 128) == 128) ? "true" : "false";
+//echo "\n";
+//return;
+
+$tests = array();
+
+//for ($i = 0; $i < 128; $i++) array_push($tests, chr($i));
+
+array_push($tests, chr(hexdec('C2')) . chr(hexdec('A2')));
+
+for ($i = 0; $i < count($tests); $i++) {
+	echo $i . ': (' . $tests[$i] . ') -> ' . json_encode($tests[$i]) . ' --> ' . json_decode(json_encode($tests[$i])) . "\n";
+}
+
+return;
 
 // Backwards compatibility includes.
 if(!function_exists('json_encode')) {
@@ -214,7 +231,7 @@ $fpercent = 0;
 // Read in all lines.
 while (($line = fgets($fh, $args['maxlinelength']+2)) !== FALSE) {
 	$fread += strlen($line);
-	$line = trim($line);
+	$line = rtrim($line, '\n\r');
 	
 	if (DEBUG && function_exists('memory_get_usage') && $fstat['size'] > 0 && $fpercent != floor($fread / $fstat['size'] * 100)) {
 		$fpercent = floor($fread / $fstat['size'] * 100);
@@ -222,7 +239,7 @@ while (($line = fgets($fh, $args['maxlinelength']+2)) !== FALSE) {
 	}
 	
 	// Skip blank lines
-	if ($line == '') { }
+	if (trim($line) == '') { }
 	
 	elseif (strlen($line) > $args['maxlinelength']) {
 		array_push($errors, array('invalidline', 'maxlinelength', $line));
