@@ -30,7 +30,7 @@ class Find {
 	
 	function Find() {
 		$this->_ds = DIRECTORY_SEPARATOR;
-		$this->delim = "\x00";
+		$this->_delim = "\x00";
 	}
 	
 	function run($directory, $out = NULL, $err = NULL) {
