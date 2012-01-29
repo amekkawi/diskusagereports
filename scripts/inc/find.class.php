@@ -6,6 +6,17 @@ define('FIND_FAILED_STAT', 3);
 define('FIND_FAILED_STDOUT', 4);
 define('FIND_FAILED_STDERR', 5);
 
+/**
+ * Output the contents of a directory in a format that is expected by {@link ../process.php}.
+ * 
+ * @author André Mekkawi <contact@andremekkawi.com>
+ * @version $Revision$
+ * @license See LICENSE.txt or http://diskusagereports.com/license.html 
+ * @copyright 2012 André Mekkawi <contact@andremekkawi.com>
+ * @see ../find.php
+ * @see ../find.sh
+ *
+ */
 class Find {
 	var $_ds;
 	var $_delim;
