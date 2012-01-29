@@ -1,4 +1,15 @@
 <?php
+
+/* 
+ * Copyright (c) 2011 André Mekkawi <contact@andremekkawi.com>
+ * Revision: $Revision$
+ * 
+ * LICENSE
+ * 
+ * This source file is subject to the MIT license in the file LICENSE.txt.
+ * The license is also available at http://diskusagereport.sf.net/license.html
+ */
+
 define('FIND_OK', 0);
 define('FIND_NOT_DIRECTORY', 1);
 define('FIND_FAILED_RESOLVE', 2);
@@ -9,10 +20,6 @@ define('FIND_FAILED_STDERR', 5);
 /**
  * Output the contents of a directory in a format that is expected by {@link ../process.php}.
  * 
- * @author André Mekkawi <contact@andremekkawi.com>
- * @version $Revision$
- * @license See LICENSE.txt or http://diskusagereports.com/license.html 
- * @copyright 2012 André Mekkawi <contact@andremekkawi.com>
  * @see ../find.php
  * @see ../find.sh
  *
