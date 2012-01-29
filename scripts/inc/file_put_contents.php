@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * From Pear's PHP Compat <http://pear.php.net/package/PHP_Compat/>
+ * Copyright: 2004-2007 Aidan Lister <aidan@php.net>, Arpad Ray <arpad@php.net>
+ * 
+ * Revision: $Revision$
+ */
+
 if (!defined('FILE_USE_INCLUDE_PATH')) {
     define('FILE_USE_INCLUDE_PATH', 1);
 }
@@ -21,7 +29,6 @@ if (!defined('FILE_APPEND')) {
  * @copyright   2004-2007 Aidan Lister <aidan@php.net>, Arpad Ray <arpad@php.net>
  * @link        http://php.net/function.file_put_contents
  * @author      Aidan Lister <aidan@php.net>
- * @version     $Revision: 269597 $
  * @internal    resource_context is not supported
  * @since       PHP 5
  * @require     PHP 4.0.0 (user_error)
