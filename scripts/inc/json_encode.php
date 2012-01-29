@@ -1,7 +1,10 @@
 <?php
-// Based on Zend Framework's JSON encoding
-// Copyright (c) 2005-2010, Zend Technologies USA, Inc.
-// All rights reserved.
+/*
+ * Based on Zend Framework's JSON encoding
+ * Copyright (c) 2005-2010, Zend Technologies USA, Inc. All rights reserved.
+ * 
+ * Revision: $Revision$
+ */ 
 
 /**
  * Zend Framework
