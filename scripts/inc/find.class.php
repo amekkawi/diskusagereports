@@ -59,9 +59,15 @@ class Find {
 		}
 		
 		// Output the header for the find results.
-		fwrite($out, '#' . $this->_delim . $this->_ds . $this->_delim . str_replace(DIRECTORY_SEPARATOR, $this->_ds, $dirname) . $this->_delim . $basename . $this->_delim . date('YmdHis') . "\n");
+		fwrite($out, implode($this->_delim, array(
+			'#',
+			$this->_ds,
+			str_replace(DIRECTORY_SEPARATOR, $this->_ds, $dirname),
+			$basename,
+			date('Y-m-d H:i:s')
+		)) . "\n");
 		
-		$this->_processDirectory($out, $err, $realpath, '', 0);
+		$this->_processDirectory($out, $err, $realpath, '', 1);
 		
 		// Close streams if they were opened in this method.
 		if (isset($cout)) fclose($out);
@@ -124,7 +130,7 @@ class Find {
 	function _outputEntry(&$out, $type, $pathext, $depth, $entry, $stat) {
 		// Make sure the directory separator for the output is correct.
 		if ($this->_ds != DIRECTORY_SEPARATOR) {
-			$directory = str_replace(DIRECTORY_SEPARATOR, $this->_ds, $directory);
+			$pathext = str_replace(DIRECTORY_SEPARATOR, $this->_ds, $pathext);
 		}
 		
 		fwrite($out, implode($this->_delim, array(
@@ -133,8 +139,7 @@ class Find {
 			date('H:i:s', intval($stat['mtime'])), 
 			$stat['size'],
 			$depth,
-			$pathext,
-			$entry
+			($pathext == '' ? '' : $pathext . $this->_ds) . $entry
 		)) . "\n");
 	}
 	
