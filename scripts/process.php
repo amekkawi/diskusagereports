@@ -39,24 +39,23 @@ $sizeGroups = array(
 // Labels for age ranges.
 $dateFormat = 'Y-m-d';
 $modifiedGroups = array(
-	array('label' => '10 Years or More', 'date' => date($dateFormat, strtotime('-10 year'))),
-	array('label' => '5 - 10 Years', 'date' => date($dateFormat, strtotime('-5 year'))),
-	array('label' => '2 - 5 Years', 'date' => date($dateFormat, strtotime('-2 year'))),
-	array('label' => '1 - 2 Years', 'date' => date($dateFormat, strtotime('-1 year'))),
-	array('label' => '270 - 365 Days', 'date' => date($dateFormat, strtotime('-270 day'))),
-	array('label' => '180 - 270 Days', 'date' => date($dateFormat, strtotime('-180 day'))),
-	array('label' => '90 - 180 Days', 'date' => date($dateFormat, strtotime('-90 day'))),
-	array('label' => '60 - 90 Days', 'date' => date($dateFormat, strtotime('-60 day'))),
-	array('label' => '30 - 60 Days', 'date' => date($dateFormat, strtotime('-30 day'))),
-	array('label' => '15 - 30 Days', 'date' => date($dateFormat, strtotime('-15 day'))),
-	array('label' => '7 - 15 Days', 'date' => date($dateFormat, strtotime('-7 day'))),
-	array('label' => '1 - 7 Days', 'date' => date($dateFormat, strtotime('-1 day'))),
-	array('label' => 'Today', 'date' => date($dateFormat)),
+	array('label' => '10 Years or More', 'date' => '-10 year'),
+	array('label' => '5 - 10 Years', 'date' => '-5 year'),
+	array('label' => '2 - 5 Years', 'date' => '-2 year'),
+	array('label' => '1 - 2 Years', 'date' => '-1 year'),
+	array('label' => '270 - 365 Days', 'date' => '-270 day'),
+	array('label' => '180 - 270 Days', 'date' => '-180 day'),
+	array('label' => '90 - 180 Days', 'date' => '-90 day'),
+	array('label' => '60 - 90 Days', 'date' => '-60 day'),
+	array('label' => '30 - 60 Days', 'date' => '-30 day'),
+	array('label' => '15 - 30 Days', 'date' => '-15 day'),
+	array('label' => '7 - 15 Days', 'date' => '-7 day'),
+	array('label' => '1 - 7 Days', 'date' => '-1 day'),
+	array('label' => 'Today', 'date' => 'today'),
 	array('label' => 'Future', 'date' => '9999-99-99')
 );
 
 // ======================================================
-
 
 // export TZ=UTC; find "DIRECTORYNAME" -type d -or -type f -printf '%y %TY-%Tm-%Td %TT %s %d %h %f\n' > "OUTFILENAME"; unset TZ
 // cat diskusage-gs.txt | sed -En -e 's/^d/&/p' -e 's/^f.+\.(jpg)$/&/p' | php scripts/process.php ../diskusage-data/test2
@@ -165,11 +164,15 @@ elseif (!is_file($processor->getFileList())) {
 	exit(1);
 }
 
-
 // Set the timezone.
 if (!(function_exists("date_default_timezone_set") ? @(date_default_timezone_set($args['timezone'])) : @(putenv("TZ=".$args['timezone'])))) {
 	echo "'timezone' config was set to an invalid identifier.";
 	exit(1);
+}
+
+// Format the dates in $modifiedGroups.
+for ($i = 0; $i < count($modifiedGroups); $i++) {
+	$modifiedGroups[$i]['date'] = FormatDate($modifiedGroups[$i]['date'], $dateFormat);
 }
 
 $STDERR = fopen('php://stderr', 'w+');

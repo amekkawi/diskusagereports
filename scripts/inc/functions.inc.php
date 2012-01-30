@@ -2,6 +2,19 @@
 // Determine if the system supports 64-bit integers.
 define('LARGE_INT', defined('PHP_INT_MAX') && strlen(PHP_INT_MAX.'') > 14);
 
+function FormatDate($date, $format) {
+	if (preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/', $date)) {
+		return $date;
+	}
+	elseif (class_exists('DateTime')) {
+		$date = new DateTime($date);
+		return $date->format($format);
+	}
+	else {
+		return date($format, strtotime($date));
+	}
+}
+
 function BigVal($num) {
 	return LARGE_INT ? intval($num) : floatval($num);
 }
