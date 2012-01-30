@@ -211,5 +211,5 @@ switch ($ret = $processor->run()) {
 		break;
 }
 
-exit($ret === TRUE ? 0 : $ret);
+exit($ret);
 ?>
