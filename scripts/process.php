@@ -188,7 +188,7 @@ $processor->setSizeGroups($sizeGroups);
 $processor->setModifiedGroups($modifiedGroups);
 $processor->setWarningCallback('WarningHandler');
 
-switch ($ret - $processor->run()) {
+switch ($ret = $processor->run()) {
 	case PROCESS_FAILED_OPEN_FILELIST:
 		echo "The <filelist> could not be opened.\n";
 		break;
