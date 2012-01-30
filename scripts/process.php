@@ -175,15 +175,12 @@ for ($i = 0; $i < count($modifiedGroups); $i++) {
 	$modifiedGroups[$i]['date'] = FormatDate($modifiedGroups[$i]['date'], $dateFormat);
 }
 
-$STDERR = fopen('php://stderr', 'w+');
 function WarningHandler() {
-	global $STDERR;
-	
 	$args = func_get_args();
 	$error = array_shift($args);
 	
 	if ($args[0] == PROCESS_WARN_WRITEFAIL) {
-		fwrite($STDERR, 'Failed to write: ' . $args[1] . (isset($args[2]) ? ' for ' . $args[2] : '') . "\n");
+		echo 'Failed to write: ' . $args[1] . (isset($args[2]) ? ' for ' . $args[2] : '') . "\n";
 	}
 }
 
@@ -191,7 +188,20 @@ $processor->setSizeGroups($sizeGroups);
 $processor->setModifiedGroups($modifiedGroups);
 $processor->setWarningCallback('WarningHandler');
 
-$processor->run();
+switch ($ret - $processor->run()) {
+	case PROCESS_FAILED_OPEN_FILELIST:
+		echo "The <filelist> could not be opened.\n";
+		break;
+	case PROCESS_INVALID_REPORTDIR:
+		echo "The <reportdir> already exists and is not a directory.\n";
+		break;
+	case PROCESS_INVALID_HEADER:
+		echo "The header line in the <filelist> is invalid.\n";
+		break;
+	case PROCESS_FAILED_REPORTDIR_MKDIR:
+		echo "The <reportdir> could not be created.\n";
+		break;
+}
 
-fclose($STDERR);
+exit($ret === TRUE ? 0 : $ret);
 ?>
