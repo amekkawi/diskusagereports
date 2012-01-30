@@ -81,14 +81,7 @@ class Process {
 		$this->_dirLookupSize = 0;
 		
 		// Create the regular expression to validate lines.
-		$this->_lineRegEx = '/^' . 
-			implode(preg_quote($this->_delim), array(
-				'[df]',
-				'[0-9]{4}-[0-9]{2}-[0-9]{2}', // Date
-				'[0-9]{2}:[0-9]{2}:[0-9]{2}', // Time
-				'[0-9]+', // Size
-				'[0-9]+' // Depth
-			)) . preg_quote($this->_delim) . '/';
+		$this->_createLineRegEx();
 		
 		// Verify the report directory is valid.
 		if (file_exists($this->_reportDir)) {
@@ -159,6 +152,9 @@ class Process {
 		
 		// The first character after the pound-sign is the delim.
 		$this->_delim = substr($line, 1, 1);
+		
+		// Recreate the lineRegEx with the new delim.
+		$this->_createLineRegEx();
 			
 		// Explode the remaining part of the header.
 		$splitHeader = explode($this->_delim, substr($line, 2));
@@ -488,6 +484,18 @@ class Process {
 	
 	function _top100Comparator($listitem, $needle) {
 		return BigVal($listitem['size']) - BigVal($needle);
+	}
+	
+	function _createLineRegEx() {
+		// Create the regular expression to validate lines.
+		$this->_lineRegEx = '/^' . 
+			implode(preg_quote($this->_delim), array(
+				'[df]',
+				'[0-9]{4}-[0-9]{2}-[0-9]{2}', // Date
+				'[0-9]{2}:[0-9]{2}:[0-9]{2}', // Time
+				'[0-9]+', // Size
+				'[0-9]+' // Depth
+			)) . preg_quote($this->_delim) . '/';
 	}
 	
 	function getName() {
