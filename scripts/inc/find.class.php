@@ -94,11 +94,11 @@ class Find {
 		return FIND_OK;
 	}
 	
-	function _processDirectory(&$out, &$err, $rootpath, $pathext, $depth) {
-		$fullpath = $rootpath . DIRECTORY_SEPARATOR . $pathext;
+	function _processDirectory($out, $err, $rootpath, $pathext, $depth) {
+		$fullpath = $rootpath . ($rootpath == DIRECTORY_SEPARATOR ? '' : DIRECTORY_SEPARATOR) . $pathext;
 		
 		if (($dirh = opendir($fullpath)) === FALSE) {
-			fwrite($err, "Failed to open directory for listing files: " . $fullpath . "\n");
+			fwrite($err, "Failed to open directory for listing files: $fullpath\n");
 			$this->_outputError($out, 'OPENDIR_FAIL', array($fullpath));
 		}
 		else {
@@ -114,8 +114,8 @@ class Find {
 		}
 	}
 	
-	function _processDirectoryEntry(&$out, &$err, $rootpath, $pathext, $depth, $entry) {
-		$fullpath = $rootpath . DIRECTORY_SEPARATOR . $pathext . DIRECTORY_SEPARATOR . $entry;
+	function _processDirectoryEntry($out, $err, $rootpath, $pathext, $depth, $entry) {
+		$fullpath = $rootpath . ($rootpath == DIRECTORY_SEPARATOR ? '' : DIRECTORY_SEPARATOR) . $pathext . ($pathext == '' ? '' : DIRECTORY_SEPARATOR) . $entry;
 		 
 		// Attempt to stat file.
 		if (($stat = lstat($fullpath)) !== FALSE) {
@@ -145,7 +145,7 @@ class Find {
 		}
 	}
 	
-	function _outputEntry(&$out, $type, $pathext, $depth, $entry, $stat) {
+	function _outputEntry($out, $type, $pathext, $depth, $entry, $stat) {
 		// Make sure the directory separator for the output is correct.
 		if ($this->_ds != DIRECTORY_SEPARATOR) {
 			$pathext = str_replace(DIRECTORY_SEPARATOR, $this->_ds, $pathext);
@@ -161,7 +161,7 @@ class Find {
 		)) . "\n");
 	}
 	
-	function _outputError(&$out, $id, $arguments = array()) {
+	function _outputError($out, $id, $arguments = array()) {
 		fwrite($out, implode($this->_delim, array_merge(array(
 			'!',
 			$id
