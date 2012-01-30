@@ -17,6 +17,7 @@ define('PROCESS_INVALID_REPORTDIR', 2);
 define('PROCESS_FAILED_REPORTDIR_MKDIR', 3);
 define('PROCESS_FAILED_OPEN_FILELIST', 4);
 define('PROCESS_INVALID_HEADER', 5);
+define('PROCESS_WARN_WRITEFAIL', 6);
 
 define('PROCESS_COL_TYPE', 0);
 define('PROCESS_COL_DATE', 1);
@@ -531,6 +532,12 @@ class Process {
 	}
 	function setModifiedGroups($modifiedGroups) {
 		$this->_modifiedGroups = $modifiedGroups;
+	}
+	function getWarningCallback() {
+		return $this->_warningCallback;
+	}
+	function setWarningCallback($warningCallback) {
+		$this->_warningCallback = $warningCallback;
 	}
 }
 ?>
