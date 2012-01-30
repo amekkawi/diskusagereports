@@ -44,6 +44,7 @@ class Process {
 	var $_ds;
 	var $_sizeGroups;
 	var $_modifiedGroups;
+	var $_warningCallback;
 	
 	// Internal only
 	var $_lineRegEx;
@@ -51,7 +52,7 @@ class Process {
 	var $_header;
 	
 	var $_dirStack;
-	var $_dirLookup;
+	var $_dirLookup; //TODO: Rename to 'dirTree'
 	var $_dirLookupStack;
 	var $_dirLookupSize;
 	
@@ -66,6 +67,7 @@ class Process {
 		$this->_noTree = false;
 		$this->_delim = "\x00";
 		$this->_ds = DIRECTORY_SEPARATOR;
+		$this->_warningCallback = null;
 	}
 	
 	function run() {
@@ -99,6 +101,9 @@ class Process {
 			return PROCESS_FAILED_REPORTDIR_MKDIR;
 		}
 		
+		// Clean up the reportDir path
+		$this->_reportDir = rtrim(realpath($this->_reportDir), DIRECTORY_SEPARATOR);
+		
 		return $this->_readLines();
 	}
 	
@@ -109,7 +114,7 @@ class Process {
 		}
 		
 		while (($line = fgets($fh, $this->_maxLineLength + 2)) !== FALSE) {
-			$line = rtrim($line, '\n\r');
+			$line = rtrim($line, "\n\r");
 			
 			// Ignore blank lines
 			if (trim($line) != '') {
@@ -123,11 +128,13 @@ class Process {
 				
 				else {
 					$this->_processLine($line);
-					var_dump($this->_dirStack);
-					exit;
 				}
 			}
 		}
+		
+		$this->_checkDirStack();
+		$this->_saveDirTree();
+		$this->_saveSettings();
 		
 		return TRUE;
 	}
@@ -194,50 +201,116 @@ class Process {
 
 		else {
 			// Break up the path into dirname/basename.
+			if (($dirname = dirname($split[PROCESS_COL_PATH])) == '.') $dirname = '';
+			$basename = basename($split[PROCESS_COL_PATH]);
 			
-			//$this->_checkDirStack($split[PROCESS_COL_PATH]);
+			$this->_checkDirStack($dirname);
 			
 			// Convert the file list's UTC date/time to the report's timezone.
 			$localtime = $this->_makeLocalTime($split[PROCESS_COL_DATE], $split[PROCESS_COL_TIME]);
 			$split[PROCESS_COL_DATE] = date('Y-m-d', $localtime);
 			$split[PROCESS_COL_TIME] = date('H:i:s', $localtime);
 			
+			// Add the root directory to the stack,
+			// if the stack is empty and we're past depth zero (0).
+			if (count($this->_dirStack) == 0 && $split[PROCESS_COL_DEPTH] != '0') {
+				$this->_processDirectory('', '');
+			}
+			
 			if ($split[PROCESS_COL_TYPE] == 'd') {
-				$this->_processDirectory($split[PROCESS_COL_PATH]);
+				$this->_processDirectory($split[PROCESS_COL_PATH], $basename);
 			}
 			else {
-				// TODO
+				$this->_processFile($basename, $dirname, $split[PROCESS_COL_SIZE], $split[PROCESS_COL_DATE], $split[PROCESS_COL_TIME]);
 			}
 		}
 	}
 	
-	function _processDirectory($path) {
+	function _checkDirStack($dirname = NULL) {
 		
-		// Add the root directory to the stack, if the stack is empty.
-		if ($path != '' && count($this->_dirStack) == 0) {
-			$this->_processDirectory('');
+		// Pop off directories till we find one whose path matches the current dirname.
+		while (count($this->_dirStack) > (is_null($dirname) ? 0 : 1) && (is_null($dirname) || $this->_dirStack[count($this->_dirStack)-1]['path'] != $dirname)) {
+			
+			$pop = array_pop($this->_dirStack);
+			$dlpop = array_pop($this->_dirLookupStack); //TODO: Rename treepop
+			
+			if (DEBUG) echo 'Exit Dir: ' . $pop['path'] . " ($dirname)\n";
+			
+			if (!$this->_noTree) {
+				// Increment the directory lookup size.
+				$this->_dirLookupSize += strlen(json_encode($dlpop));
+				
+				// Disable the tree if it's too large.
+				if ($this->_dirLookupSize > $this->_maxTreeSize) {
+					$this->_noTree = true;
+				}
+			}
+			
+			$pop['parents'] = array();
+			foreach ($this->_dirStack as $parent) {
+				array_push($pop['parents'], array(
+					'name' => $parent['name'],
+					'hash' => md5($parent['path'])
+				));
+			}
+			
+			// Remove the path so it is not saved.
+			$path = $pop['path'];
+			unset($pop['path']);
+			
+			// Save the directory data.
+			if (file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . md5($path), json_encode($pop)) === FALSE) {
+				if (!is_null(_warningCallback)) call_user_func($this->_warningCallback, PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . md5($path), $path);
+				array_push($errors, array('writefail', $path, md5($path)));
+			}
 		}
+	}
+	
+	function _saveDirTree() {
+		// Save the directory list.
+		if (!$this->_noTree && file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'directories', json_encode($this->_dirLookup)) === FALSE) {
+			if (!is_null(_warningCallback)) call_user_func($this->_warningCallback, PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . 'directories');
+			array_push($this->_errors, array('writefail', 'directories', 'directories'));
+		}
+	}
+	
+	function _saveSettings() {
+		// Save the settings file.
+		if (file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'settings', json_encode(array(
+			'version' => '1.0',
+			'name' => $this->_name,
+			'created' => date('M j, Y g:i:s A T'),
+			'directorytree' => !$this->_noTree,
+			'root' => md5(''), // The root path is always an empty string.
+			'sizes' => $this->_sizeGroups,
+			'modified' => $this->_modifiedGroups,
+			'ds' => $this->_ds,
+			'errors' => $this->_errors
+		))) === FALSE) {
+
+			if (!is_null(_warningCallback)) call_user_func($this->_warningCallback, PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . 'settings');
+		}
+	}
+	
+	function _processDirectory($path, $basename) {
 		
-		$basename = basename($path);
+		if (DEBUG) echo 'Enter Dir: ' . $path . "\n";
 		
-		if ($basename == '') {
-			if (!is_null($this->_header) && $this->_header['basename']) {
-				$basename = $this->_header['basename'];
-			}
-			else {
-				$basename = '.';
-			}
+		// Set an empty basename to the one set in the header, if the header has been set.
+		if ($basename == '' && isset($this->_header['basename'])) {
+			$basename = $this->_header['basename'];
 		}
 		
 		$hash = md5($path);
 		
 		$newDir = array(
-			'name' => $basename,
+			'name' => $basename == '' ? '.' : $basename,
 			'path' => $path,
 			'bytes' => 0,
 			'totalbytes' => 0,
 			'num' => 0,
 			'totalnum' => 0,
+			'totalsubdirs' => 0,
 			'subdirs' => array(),
 			'files' => array()
 		);
@@ -254,11 +327,11 @@ class Process {
 			$newDir['top100'] = array();
 		}
 		
-		// Add this directory to the directory list, if is not being skipped.
+		// Add this directory to the directory tree (if it's not being skipped).
 		if (!$this->_noTree) {
 			// Add the directory to the hash lookup.
 			$this->_dirLookup[$hash] = array(
-				'name' => $basename,
+				'name' => &$newDir['name'], //TODO: remove ref? was here in case name was changed when header was processed.
 				'totalbytes' => &$newDir['totalbytes'],
 				'totalnum' => &$newDir['totalnum'],
 				'subdirs' => array()
@@ -276,7 +349,7 @@ class Process {
 		// Add this directory to its parent (if one exists).
 		if (count($this->_dirStack) > 0) {
 			array_push($this->_dirStack[count($this->_dirStack)-1]['subdirs'], array(
-				'name' => $basename,
+				'name' => &$newDir['name'], //TODO: remove ref? see above
 				'totalbytes' => &$newDir['totalbytes'],
 				'totalnum' => &$newDir['totalnum'],
 				'hash' => $hash
@@ -285,6 +358,91 @@ class Process {
 			
 		// Add the directory to the stack.
 		array_push($this->_dirStack, $newDir);
+	}
+	
+	function _processFile($basename, $dirname, $size, $date, $time) {
+		
+		// Get the current directory in the stack (for code readability).
+		$currDir = $this->_dirStack[count($this->_dirStack)-1];
+		
+		array_push($currDir['files'], array(
+			'name' => $basename,
+			'date' => $date,
+			'time' => $time,
+			'size' => BigVal($size)
+		));
+		
+		$currDir['bytes'] = BigAdd($currDir['bytes'], $size);
+		$currDir['num']++;
+		
+		// Increment totals for directories in the stack.
+		for ($i = 0; $i < count($this->_dirStack); $i++) {
+			
+			// Byte and file count totals.
+			$this->_dirStack[$i]['totalbytes'] = BigAdd($this->_dirStack[$i]['totalbytes'], $size);
+			$this->_dirStack[$i]['totalnum']++;
+			
+			// Increment the modified, sizes and extension totals.
+			if ($i < $this->_totalsDepth) {
+				for ($g = 0; $g < count($this->_sizeGroups); $g++) {
+					if (BigComp($this->_sizeGroups[$g]['size'], $size) <= 0) {
+						$this->_dirStack[$i]['sizes'][$g] = array_key_exists($g, $this->_dirStack[$i]['sizes'])
+							? array(BigAdd($this->_dirStack[$i]['sizes'][$g][0], $size), $this->_dirStack[$i]['sizes'][$g][1] + 1)
+							: array(BigVal($size), 1);
+						break;
+					}
+				}
+			
+				for ($g = 0; $g < count($this->_modifiedGroups); $g++) {
+					if (strcmp($this->_modifiedGroups[$g]['date'], $date) >= 0) {
+						$this->_dirStack[$i]['modified'][$g] = array_key_exists($g, $this->_dirStack[$i]['modified'])
+							? array(BigAdd($this->_dirStack[$i]['modified'][$g][0], $size), $this->_dirStack[$i]['modified'][$g][1] + 1)
+							: array(BigVal($size), 1);
+						break;
+					}
+				}
+				
+				$ext = $this->_getFileExtension($basename);
+				$this->_dirStack[$i]['types'][$ext] = array_key_exists($ext, $this->_dirStack[$i]['types'])
+						? array(BigAdd($this->_dirStack[$i]['types'][$ext][0], $size), $this->_dirStack[$i]['types'][$ext][1] + 1)
+						: array(BigVal($size), 1);
+			}
+			
+			// Add the file to the top 100 lists, if it is greater than a file already in it.
+			if ($i < $this->_top100Depth) {
+				$index = BinarySearch($this->_dirStack[$i]['top100'], $size, array('Process', '_top100Comparator'));
+				if ($index < 0) $index = abs($index + 1);
+				if (count($this->_dirStack[$i]['top100']) < 100 || $index < 100) {
+					array_splice($this->_dirStack[$i]['top100'], $index, 0, array(array(
+						'name' => $basename,
+						'size' => BigVal($size),
+						'hash' => md5($currDir['path']),
+						'path' => $dirname,
+						'date' => $date,
+						'time' => $time
+					)));
+					
+					if (count($this->_dirStack[$i]['top100']) > 100) {
+						array_pop($this->_dirStack[$i]['top100']);
+					}
+				}
+			}
+		}
+	}
+	
+	function _getFileExtension($name) {
+		$name = strtolower($name);
+		$index = strrpos($name, '.');
+
+		if ($index === FALSE || $index == 0 || $index == strlen($name)-1) {
+			return '';
+		}
+		elseif (true || preg_match('/^[0-9a-z_\-]{1,10}$/', substr($name, $index+1))) {
+			return substr($name, $index+1);
+		}
+		else {
+			return '';
+		}
 	}
 	
 	function _makeLocalTime($date, $time) {
@@ -296,6 +454,10 @@ class Process {
 			intval(substr($date, 8, 2)), // day
 			intval(substr($date, 0, 4))  // year
 		);
+	}
+	
+	function _top100Comparator($listitem, $needle) {
+		return BigVal($listitem['size']) - BigVal($needle);
 	}
 	
 	function getName() {
