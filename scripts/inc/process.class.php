@@ -154,7 +154,7 @@ class Process {
 				$memPercent = $currMem / $memLimit * 100;
 				if ($memPercent > $nextMemPercent) {
 					$nextMemPercent = ceil($memPercent);
-					echo "Used " . intval($memPercent) . "% of memory.\n";
+					echo "Used " . intval($memPercent) . "% of memory limit (" . ini_get('memory_limit') . ")\n";
 				}
 			}
 		}
@@ -273,7 +273,7 @@ class Process {
 				$this->_processDirectory($split[PROCESS_COL_PATH], $basename);
 			}
 			else {
-				$this->_processFile($basename, $dirname, $split[PROCESS_COL_SIZE], $split[PROCESS_COL_DATE], $split[PROCESS_COL_TIME]);
+				$this->_processFile($split[PROCESS_COL_TYPE], $basename, $dirname, $split[PROCESS_COL_SIZE], $split[PROCESS_COL_DATE], $split[PROCESS_COL_TIME]);
 			}
 		}
 	}
@@ -416,17 +416,29 @@ class Process {
 		array_push($this->_dirStack, $newDir);
 	}
 	
-	function _processFile($basename, $dirname, $size, $date, $time) {
+	function _processFile($type, $basename, $dirname, $size, $date, $time) {
+		
+		// Clear the size for special files types.
+		if ($specialFile = $type != 'f' && $type != 'd' && $type != 'l') {
+			$size = 0;
+		}
 		
 		// Get the current directory in the stack (for code readability).
 		$currDir = $this->_dirStack[count($this->_dirStack)-1];
 		
-		array_push($currDir['files'], array(
+		$newFile = array(
 			'name' => $basename,
 			'date' => $date,
 			'time' => $time,
 			'size' => BigVal($size)
-		));
+		);
+		
+		// Save the type only for non-files.
+		if ($type != 'f') {
+			$newFile['type'] = $type;
+		}
+		
+		array_push($currDir['files'], $newFile);
 		
 		$currDir['bytes'] = BigAdd($currDir['bytes'], $size);
 		$currDir['num']++;
@@ -520,7 +532,7 @@ class Process {
 		// Create the regular expression to validate lines.
 		$this->_lineRegEx = '/^' . 
 			implode(preg_quote($this->_delim), array(
-				'[ldf]',
+				'[dflcbpu]',
 				'[0-9]{4}-[0-9]{2}-[0-9]{2}', // Date
 				'[0-9]{2}:[0-9]{2}:[0-9]{2}', // Time
 				'[0-9]+', // Size
