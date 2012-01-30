@@ -119,19 +119,11 @@ class Find {
 		 
 		// Attempt to stat file.
 		if (($stat = lstat($fullpath)) !== FALSE) {
-
-			if (is_link($fullpath)) {
-				$type = 'l';
-			}
-			elseif (is_dir($fullpath)) {
-				$type = 'd';
-			}
-			elseif (is_file($fullpath)) {
-				$type = 'f';
-			}
-			else {
-				$type = '?';
-			}
+			
+			// Determine the file type character.
+			$type = filetype($fullpath);
+			if ($type = 'fifo') $type = 'p'; // fifo should be a 'p'
+			else ($type = strtolower(substr($type, 0, 1)));
 			
 			$this->_outputEntry($out, $type, $pathext, $depth, $entry, $stat);
 			
