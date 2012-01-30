@@ -12,6 +12,7 @@
 
 define('PROCESS_VERSION', '1.0');
 
+define('PROCESS_OK', 0);
 define('PROCESS_INVALID_FILELIST', 1);
 define('PROCESS_INVALID_REPORTDIR', 2);
 define('PROCESS_FAILED_REPORTDIR_MKDIR', 3);
@@ -103,6 +104,22 @@ class Process {
 	
 	function _readLines() {
 		
+		$memLimit = FALSE;
+		$nextMemPercent = 1;
+		if (function_exists('memory_get_usage')) {
+			if (preg_match('/^([0-9]+)([GMK]?)(B?)$/', strtoupper(ini_get('memory_limit').''), $matches)) {
+				$memLimit = intval($matches[1]);
+				switch ($matches[2]) {
+					case "G":
+						$memLimit *= 1024;
+					case "M":
+						$memLimit *= 1024;
+					case "K":
+						$memLimit *= 1024;
+				}
+			}
+		}
+		
 		if (DEBUG) echo "Reading lines...\n";
 		
 		// Attempt to open the file list.
@@ -131,6 +148,15 @@ class Process {
 					$this->_processLine($line);
 				}
 			}
+			
+			if ($memLimit !== FALSE) {
+				$currMem = memory_get_usage();
+				$memPercent = $currMem / $memLimit * 100;
+				if ($memPercent > $nextMemPercent) {
+					$nextMemPercent = ceil($memPercent);
+					echo "Used " . intval($memPercent) . "% of memory.\n";
+				}
+			}
 		}
 		
 		if (DEBUG) echo "Final check dir stack\n";
@@ -139,7 +165,7 @@ class Process {
 		$this->_saveDirTree();
 		$this->_saveSettings();
 		
-		return TRUE;
+		return PROCESS_OK;
 	}
 	
 	function _processHeader($line) {
@@ -197,21 +223,25 @@ class Process {
 	
 	function _processLine($line) {
 		if (strlen($line) > $this->_maxLineLength) {
+			if (DEBUG) echo "invalid line: maxlinelength\n";
 			array_push($this->_errors, array('invalidline', 'maxlinelength', $line));
 		}
 
 		// Validate the line up to the path column.
 		elseif (!preg_match($this->_lineRegEx, $line)) {
+			if (DEBUG) echo "invalid line: regex\n";
 			array_push($this->_errors, array('invalidline', 'regex', $line));
 		}
 
 		// Split the line and validate its length;
 		elseif (count($split = explode($this->_delim, $line)) != 6) {
+			if (DEBUG) echo "invalid line: columncount\n";
 			array_push($this->_errors, array('invalidline', 'columncount', $split));
 		}
 
 		// Make sure the path is at least one character long.
 		elseif (strlen($split[PROCESS_COL_PATH]) == 0) {
+			if (DEBUG) echo "invalid line: column path\n";
 			array_push($this->_errors, array('invalidline', 'column', 'path', PROCESS_COL_PATH, $split));
 		}
 
@@ -369,7 +399,7 @@ class Process {
 			}
 
 			// Add the directory to the lookup stack.
-			array_push($this->_dirLookupStack, &$this->_dirLookup[$hash]);
+			$this->_dirLookupStack[] = &$this->_dirLookup[$hash];
 		}
 			
 		// Add this directory to its parent (if one exists).
@@ -490,7 +520,7 @@ class Process {
 		// Create the regular expression to validate lines.
 		$this->_lineRegEx = '/^' . 
 			implode(preg_quote($this->_delim), array(
-				'[df]',
+				'[ldf]',
 				'[0-9]{4}-[0-9]{2}-[0-9]{2}', // Date
 				'[0-9]{2}:[0-9]{2}:[0-9]{2}', // Time
 				'[0-9]+', // Size
