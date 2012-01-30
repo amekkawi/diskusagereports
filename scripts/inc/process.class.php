@@ -109,6 +109,9 @@ class Process {
 	}
 	
 	function _readLines() {
+		
+		if (DEBUG) echo "Reading lines...\n";
+		
 		// Attempt to open the file list.
 		if (($fh = fopen($this->_fileList, 'r')) === FALSE) {
 			return PROCESS_FAILED_OPEN_FILELIST;
@@ -137,7 +140,9 @@ class Process {
 			}
 		}
 		
+		if (DEBUG) echo "Final check dir stack\n";
 		$this->_checkDirStack();
+		
 		$this->_saveDirTree();
 		$this->_saveSettings();
 		
@@ -145,6 +150,8 @@ class Process {
 	}
 	
 	function _processHeader($line) {
+		
+		if (DEBUG) echo "Processing header...\n";
 		
 		if (strlen($line) < 2 || strlen($line) > $this->_maxLineLength) {
 			return PROCESS_INVALID_HEADER;
@@ -179,6 +186,9 @@ class Process {
 	}
 	
 	function _processError($line) {
+		
+		if (DEBUG) echo "Processing error...\n";
+		
 		// Explode the error line.
 		$split = explode($this->_delim, $line);
 		
@@ -283,6 +293,8 @@ class Process {
 	}
 	
 	function _saveDirTree() {
+		if (DEBUG) echo "Saving dir tree...\n";
+		
 		// Save the directory list.
 		if (!$this->_noTree && file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'directories', json_encode($this->_dirLookup)) === FALSE) {
 			if (!is_null(_warningCallback)) call_user_func($this->_warningCallback, PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . 'directories');
@@ -291,6 +303,8 @@ class Process {
 	}
 	
 	function _saveSettings() {
+		if (DEBUG) echo "Saving settings tree...\n";
+		
 		// Save the settings file.
 		if (file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'settings', json_encode(array(
 			'version' => '1.0',

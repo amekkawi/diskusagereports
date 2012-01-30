@@ -70,6 +70,8 @@ if (php_sapi_name() != "cli") {
 // Show/hide debugging output (if any).
 define('DEBUG', FALSE);
 
+if (DEBUG) echo "Includes...\n";
+
 require_once('inc/functions.inc.php');
 require_once('inc/process.class.php');
 
@@ -81,12 +83,18 @@ if(!function_exists('file_put_contents')) {
 	require_once('inc/file_put_contents.php');
 }
 
+if (DEBUG) echo "Creating processor...\n";
+
 $processor = new Process();
+
+if (DEBUG) echo "Setting timezone...\n";
 
 // Default arguments (most arguments are stored within $processor.
 $args = array(
 	'timezone' => function_exists('date_default_timezone_get') ? @date_default_timezone_get() : 'America/New_York'
 );
+
+if (DEBUG) echo "Processing command line arguments...\n";
 
 $cliargs = array_slice($_SERVER['argv'], 1);
 $syntax = "Syntax: php process.php [options] <reportdir> [<filelist>]\nSee http://diskusagereport.sf.net/docs/ for help.\n";
