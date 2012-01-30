@@ -83,7 +83,7 @@ class Process {
 		// Create the regular expression to validate lines.
 		$this->_lineRegEx = '/^' . 
 			implode(preg_quote($this->_delim), array(
-				'[!dfl]',
+				'[df]',
 				'[0-9]{4}-[0-9]{2}-[0-9]{2}', // Date
 				'[0-9]{2}:[0-9]{2}:[0-9]{2}', // Time
 				'[0-9]+', // Size
@@ -125,6 +125,10 @@ class Process {
 					if (($ret = $this->_processHeader($line)) !== TRUE) {
 						return $ret;
 					}
+				}
+				
+				elseif (substr($line, 0, 1) == '!') {
+					$this->_processError($line);
 				}
 				
 				else {
@@ -172,6 +176,17 @@ class Process {
 		);
 		
 		return TRUE;
+	}
+	
+	function _processError($line) {
+		// Explode the error line.
+		$split = explode($this->_delim, $line);
+		
+		// Change the '!' to an error code.
+		$split[0] = 'finderror';
+		
+		// Push to the normal error list and let the UI handle it.
+		array_push($this->_errors, $split);
 	}
 	
 	function _processLine($line) {
