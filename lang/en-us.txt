@@ -19,11 +19,11 @@
 	"loading_directories": "Loading Directory List for Report...",
 	"displaying_report": "Displaying Report...",
 	
-	"directory_skip": "Taking too long? {1}.",
-	"directory_skip_link": "Skip the Directory List",
+	"directory_skip": "Taking too long? You may {1} but the directory tree on the left will not display.",
+	"directory_skip_link": "skip the directory list",
 	
-	"directory_root_notfound": "Error: The root directory could not be found in the directory list. {1}?",
-	"directory_root_notfound_link": "Skip the directory list",
+	"directory_root_notfound": "Error: The report's top-most directory could not be found in the directory list. You may {1} but the directory tree on the left will not display.",
+	"directory_root_notfound_link": "skip the directory list",
 	
 	"parse_error": "Error: Data is invalid or could not be parsed.",
 	"parse_error_skip_dirs": "Error: Data is invalid or could not be parsed. {1}.",
@@ -33,9 +33,9 @@
 	"timeout_error_skip_dirs": "Error: Download took to long and timed out. Reload to try again or {1}.",
 	"timeout_error_skip_dirs_link": "skip the directory list",
 	
-	"settings_notfound_error": "Error: Not found. The report may not exist.",
-	"directory_notfound_error": "Error: The directory list is missing. {1}?",
-	"directory_notfound_error_link": "Skip the directory list",
+	"settings_notfound_error": "Error: The settings file for the report was not found. Verify that the web address is correct and try again.",
+	"directory_notfound_error": "Error: The directory list is missing. You may {1} but the directory tree on the left will not display.",
+	"directory_notfound_error_link": "skip the directory list",
 	
 	"username_required": "Error: A username and password is required. Reload to try again.",
 	
