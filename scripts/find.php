@@ -10,6 +10,11 @@
  * The license is also available at http://diskusagereport.sf.net/license.html
  */
 
+if (!defined('E_DEPRECATED')) define('E_DEPRECATED', 8192);
+
+// Disable warnings, notices and deprecation messages.
+error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE & ~E_DEPRECATED);
+
 require_once('inc/find.class.php');
 
 $STDERR = fopen('php://stderr', 'w+');
