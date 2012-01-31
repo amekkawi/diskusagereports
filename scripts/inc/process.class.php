@@ -128,7 +128,7 @@ class Process {
 			}
 		}
 		
-		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo "Reading lines...\n";
+		if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Processing filelist...\n";
 		
 		// Attempt to open the file list.
 		if (($fh = fopen($this->_fileList, 'r')) === FALSE) {
@@ -155,8 +155,8 @@ class Process {
 				}
 				
 				// Validate the line, and if it is valid then process it.
-				elseif (($verify = $this->_validateLine($line, $lineNum)) === TRUE) {
-					$this->_processLine($line, $lineNum);
+				elseif (is_array(($split = $this->_validateLine($line, $lineNum)))) {
+					$this->_processLine($split);
 				}
 				
 				// Return a critical failure if an error constant was returned from verify.
@@ -204,10 +204,17 @@ class Process {
 		// Explode the remaining part of the header.
 		$splitHeader = explode($this->_delim, substr($line, 2));
 		
-		// Check that the header has a minimum number of columns,
+		// Only check that the header has a *minimum* number of columns,
 		// to allow future versions to add more.
 		if (count($splitHeader) < 3) {
 			return PROCESS_INVALID_HEADER;
+		}
+		
+		// Make sure all the strings are UTF-8 valid
+		for ($i = 1; $i < count($split); $i++) {
+			if (json_encode($split[$i]) == 'null' && ($split[$i] = iconv('Windows-1252', 'UTF-8', $split[$i])) === FALSE) {
+				return PROCESS_INVALID_CHARACTERS;
+			}
 		}
 		
 		// Override the directory separator.
@@ -233,6 +240,15 @@ class Process {
 		
 		// Change the '!' to an error code.
 		$split[0] = 'finderror';
+		
+		// Make sure all the strings are UTF-8 valid
+		for ($i = 1; $i < count($split); $i++) {
+			if (json_encode($split[$i]) == 'null' && ($split[$i] = iconv('Windows-1252', 'UTF-8', $split[$i])) === FALSE) {
+				$split[$i] = '((Error message contained invalid characters))';
+			}
+		}
+		
+		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo "Processing error: " . implode(' ', array_slice($split, 1)) . "\n";
 		
 		// Push to the normal error list and let the UI handle it.
 		array_push($this->_errors, $split);
@@ -272,14 +288,14 @@ class Process {
 		
 		else {
 			// Only if all the checks passed.
-			return TRUE;
+			return $split;
 		}
 		
 		// False if an error was pushed to the array.
 		return FALSE;
 	}
 	
-	function _processLine($line) {
+	function _processLine($split) {
 		// Break up the path into dirname/basename.
 		if (($dirname = dirname($split[PROCESS_COL_PATH])) == '.') $dirname = '';
 		$basename = basename($split[PROCESS_COL_PATH]);
@@ -313,7 +329,7 @@ class Process {
 			$pop = array_pop($this->_dirStack);
 			$dlpop = array_pop($this->_dirLookupStack); //TODO: Rename treepop
 			
-			if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo 'Exit Dir: ' . $pop['path'] . " ($dirname)\n";
+			if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo 'Exit dir: ' . $pop['path'] . (count($this->_dirStack) > 1 ? ' (now ' . $this->_dirStack[count($this->_dirStack)-1]['path'] . ')' : '') . "\n";
 			
 			if (!$this->_noTree) {
 				// Increment the directory lookup size.
@@ -346,7 +362,7 @@ class Process {
 	}
 	
 	function _saveDirTree() {
-		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo "Saving dir tree...\n";
+		if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Saving dir tree...\n";
 		
 		// Save the directory list.
 		if (!$this->_noTree && file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'directories', json_encode($this->_dirLookup)) === FALSE) {
@@ -356,7 +372,7 @@ class Process {
 	}
 	
 	function _saveSettings() {
-		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo "Saving settings tree...\n";
+		if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Saving settings...\n";
 		
 		// Save the settings file.
 		if (file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'settings', json_encode(array(
@@ -377,12 +393,12 @@ class Process {
 	
 	function _processDirectory($path, $basename) {
 		
-		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo 'Enter Dir: ' . $path . "\n";
-		
 		// Set an empty basename to the one set in the header, if the header has been set.
 		if ($basename == '' && isset($this->_header['basename'])) {
 			$basename = $this->_header['basename'];
 		}
+		
+		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo "Enter dir: $path ($basename)\n";
 		
 		$hash = md5($path);
 		
@@ -445,13 +461,15 @@ class Process {
 	
 	function _processFile($type, $basename, $dirname, $size, $date, $time) {
 		
+		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo "Processing file: $type $basename\n";
+		
 		// Clear the size for special files types.
 		if ($specialFile = $type != 'f' && $type != 'd' && $type != 'l') {
 			$size = 0;
 		}
 		
 		// Get the current directory in the stack (for code readability).
-		$currDir = $this->_dirStack[count($this->_dirStack)-1];
+		$currDir = &$this->_dirStack[count($this->_dirStack)-1];
 		
 		$newFile = array(
 			'name' => $basename,
@@ -644,6 +662,12 @@ class Process {
 	}
 	function setWarningCallback($warningCallback) {
 		$this->_warningCallback = $warningCallback;
+	}
+	function getVerboseLevel() {
+		return $this->_verboseLevel;
+	}
+	function setVerboseLevel($verboseLevel) {
+		$this->_verboseLevel = $verboseLevel;
 	}
 }
 ?>
