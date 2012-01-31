@@ -128,7 +128,7 @@ class Process {
 			}
 		}
 		
-		if ($this->_verboseLevel = PROCESS_VERBOSE_HIGHEST) echo "Reading lines...\n";
+		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo "Reading lines...\n";
 		
 		// Attempt to open the file list.
 		if (($fh = fopen($this->_fileList, 'r')) === FALSE) {
@@ -189,7 +189,7 @@ class Process {
 	
 	function _processHeader($line) {
 		
-		if ($this->_verboseLevel = PROCESS_VERBOSE_HIGHEST) echo "Processing header...\n";
+		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo "Processing header...\n";
 		
 		if (strlen($line) < 2 || strlen($line) > $this->_maxLineLength) {
 			return PROCESS_INVALID_HEADER;
@@ -313,7 +313,7 @@ class Process {
 			$pop = array_pop($this->_dirStack);
 			$dlpop = array_pop($this->_dirLookupStack); //TODO: Rename treepop
 			
-			if ($this->_verboseLevel = PROCESS_VERBOSE_HIGHEST) echo 'Exit Dir: ' . $pop['path'] . " ($dirname)\n";
+			if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo 'Exit Dir: ' . $pop['path'] . " ($dirname)\n";
 			
 			if (!$this->_noTree) {
 				// Increment the directory lookup size.
@@ -346,7 +346,7 @@ class Process {
 	}
 	
 	function _saveDirTree() {
-		if ($this->_verboseLevel = PROCESS_VERBOSE_HIGHEST) echo "Saving dir tree...\n";
+		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo "Saving dir tree...\n";
 		
 		// Save the directory list.
 		if (!$this->_noTree && file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'directories', json_encode($this->_dirLookup)) === FALSE) {
@@ -356,7 +356,7 @@ class Process {
 	}
 	
 	function _saveSettings() {
-		if ($this->_verboseLevel = PROCESS_VERBOSE_HIGHEST) echo "Saving settings tree...\n";
+		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo "Saving settings tree...\n";
 		
 		// Save the settings file.
 		if (file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'settings', json_encode(array(
@@ -377,7 +377,7 @@ class Process {
 	
 	function _processDirectory($path, $basename) {
 		
-		if ($this->_verboseLevel = PROCESS_VERBOSE_HIGHEST) echo 'Enter Dir: ' . $path . "\n";
+		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo 'Enter Dir: ' . $path . "\n";
 		
 		// Set an empty basename to the one set in the header, if the header has been set.
 		if ($basename == '' && isset($this->_header['basename'])) {
