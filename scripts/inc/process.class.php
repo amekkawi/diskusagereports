@@ -211,8 +211,8 @@ class Process {
 		}
 		
 		// Make sure all the strings are UTF-8 valid
-		for ($i = 1; $i < count($split); $i++) {
-			if (json_encode($split[$i]) == 'null' && ($split[$i] = iconv('Windows-1252', 'UTF-8', $split[$i])) === FALSE) {
+		for ($i = 1; $i < count($splitHeader); $i++) {
+			if (json_encode($splitHeader[$i]) == 'null' && ($splitHeader[$i] = iconv('Windows-1252', 'UTF-8', $splitHeader[$i])) === FALSE) {
 				return PROCESS_INVALID_CHARACTERS;
 			}
 		}
