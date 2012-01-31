@@ -19,6 +19,7 @@ define('PROCESS_FAILED_REPORTDIR_MKDIR', 3);
 define('PROCESS_FAILED_OPEN_FILELIST', 4);
 define('PROCESS_INVALID_HEADER', 5);
 define('PROCESS_WARN_WRITEFAIL', 6);
+define('PROCESS_INVALID_CHARACTERS', 7);
 
 define('PROCESS_COL_TYPE', 0);
 define('PROCESS_COL_DATE', 1);
@@ -144,6 +145,7 @@ class Process {
 				// Process the header.
 				if (substr($line, 0, 1) == '#') {
 					if (($ret = $this->_processHeader($line)) !== TRUE) {
+						fclose($fh);
 						return $ret;
 					}
 				}
@@ -152,8 +154,15 @@ class Process {
 					$this->_processError($line);
 				}
 				
-				else {
+				// Validate the line, and if it is valid then process it.
+				elseif (($verify = $this->_validateLine($line, $lineNum)) === TRUE) {
 					$this->_processLine($line, $lineNum);
+				}
+				
+				// Return a critical failure if an error constant was returned from verify.
+				elseif ($verify !== FALSE) {
+					fclose($fh);
+					return $verify;
 				}
 			}
 			
@@ -168,6 +177,8 @@ class Process {
 			
 			$lineNum++;
 		}
+		
+		fclose($fh);
 		
 		$this->_checkDirStack();
 		$this->_saveDirTree();
@@ -227,7 +238,7 @@ class Process {
 		array_push($this->_errors, $split);
 	}
 	
-	function _processLine($line, $lineNum) {
+	function _validateLine($line, $lineNum) {
 		if (strlen($line) > $this->_maxLineLength) {
 			if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Line $lineNum invalid: Exceeds max line length.\n";
 			array_push($this->_errors, array('invalidline', 'maxlinelength', $line));
@@ -251,36 +262,46 @@ class Process {
 			array_push($this->_errors, array('invalidline', 'column', 'path', PROCESS_COL_PATH, $split));
 		}
 
-		// TODO: Update to handle Windows-1252 characters.
-		elseif (json_encode($split[PROCESS_COL_PATH]) == 'null') {
-			echo 'Invalid characters in the path: ' . $split[PROCESS_COL_PATH] . "\n";
-			exit(1);
+		// If a json_encode fails then the text is not UTF-8.
+		// Attempt to convert it from Windows-1252.
+		elseif (json_encode($split[PROCESS_COL_PATH]) == 'null'
+			&& ($split[PROCESS_COL_PATH] = iconv('Windows-1252', 'UTF-8', $split[PROCESS_COL_PATH])) === FALSE) {
+			
+			return PROCESS_INVALID_CHARACTERS;
 		}
-
+		
 		else {
-			// Break up the path into dirname/basename.
-			if (($dirname = dirname($split[PROCESS_COL_PATH])) == '.') $dirname = '';
-			$basename = basename($split[PROCESS_COL_PATH]);
-			
-			$this->_checkDirStack($dirname);
-			
-			// Convert the file list's UTC date/time to the report's timezone.
-			$localtime = $this->_makeLocalTime($split[PROCESS_COL_DATE], $split[PROCESS_COL_TIME]);
-			$split[PROCESS_COL_DATE] = date('Y-m-d', $localtime);
-			$split[PROCESS_COL_TIME] = date('H:i:s', $localtime);
-			
-			// Add the root directory to the stack,
-			// if the stack is empty and we're past depth zero (0).
-			if (count($this->_dirStack) == 0 && $split[PROCESS_COL_DEPTH] != '0') {
-				$this->_processDirectory('', '');
-			}
-			
-			if ($split[PROCESS_COL_TYPE] == 'd') {
-				$this->_processDirectory($split[PROCESS_COL_PATH], $basename);
-			}
-			else {
-				$this->_processFile($split[PROCESS_COL_TYPE], $basename, $dirname, $split[PROCESS_COL_SIZE], $split[PROCESS_COL_DATE], $split[PROCESS_COL_TIME]);
-			}
+			// Only if all the checks passed.
+			return TRUE;
+		}
+		
+		// False if an error was pushed to the array.
+		return FALSE;
+	}
+	
+	function _processLine($line) {
+		// Break up the path into dirname/basename.
+		if (($dirname = dirname($split[PROCESS_COL_PATH])) == '.') $dirname = '';
+		$basename = basename($split[PROCESS_COL_PATH]);
+		
+		$this->_checkDirStack($dirname);
+		
+		// Convert the file list's UTC date/time to the report's timezone.
+		$localtime = $this->_makeLocalTime($split[PROCESS_COL_DATE], $split[PROCESS_COL_TIME]);
+		$split[PROCESS_COL_DATE] = date('Y-m-d', $localtime);
+		$split[PROCESS_COL_TIME] = date('H:i:s', $localtime);
+		
+		// Add the root directory to the stack,
+		// if the stack is empty and we're past depth zero (0).
+		if (count($this->_dirStack) == 0 && $split[PROCESS_COL_DEPTH] != '0') {
+			$this->_processDirectory('', '');
+		}
+		
+		if ($split[PROCESS_COL_TYPE] == 'd') {
+			$this->_processDirectory($split[PROCESS_COL_PATH], $basename);
+		}
+		else {
+			$this->_processFile($split[PROCESS_COL_TYPE], $basename, $dirname, $split[PROCESS_COL_SIZE], $split[PROCESS_COL_DATE], $split[PROCESS_COL_TIME]);
 		}
 	}
 	
