@@ -122,8 +122,8 @@ class Find {
 			
 			// Determine the file type character.
 			$type = filetype($fullpath);
-			if ($type = 'fifo') $type = 'p'; // fifo should be a 'p'
-			else ($type = strtolower(substr($type, 0, 1)));
+			if ($type == 'fifo') $type = 'p'; // fifo should be a 'p'
+			else $type = strtolower(substr($type, 0, 1));
 			
 			$this->_outputEntry($out, $type, $pathext, $depth, $entry, $stat);
 			
