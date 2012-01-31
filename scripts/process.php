@@ -91,7 +91,8 @@ if (DEBUG) echo "Setting timezone...\n";
 
 // Default arguments (most arguments are stored within $processor.
 $args = array(
-	'timezone' => function_exists('date_default_timezone_get') ? @date_default_timezone_get() : 'America/New_York'
+	'timezone' => function_exists('date_default_timezone_get') ? @date_default_timezone_get() : 'America/New_York',
+	'verbose' => PROCESS_VERBOSE_NORMAL
 );
 
 if (DEBUG) echo "Processing command line arguments...\n";
@@ -142,6 +143,15 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 			$processor->setMaxLineLength(intval($shifted = array_shift($cliargs)));
 			if (!preg_match('/^[0-9]+$/', $shifted)) echo "$cliarg must be followed by a number.\n"; exit(1);
 			break;
+		case '-q':
+			$processor->setVerboseLevel(PROCESS_VERBOSE_QUIET);
+			break;
+		case '-v':
+			$processor->setVerboseLevel(PROCESS_VERBOSE_HIGHER);
+			break;
+		case '-vv':
+			$processor->setVerboseLevel(PROCESS_VERBOSE_HIGHEST);
+			break;
 		default:
 			$processor->setReportDir($cliarg);
 			$processor->setFileList(array_shift($cliargs));
@@ -184,11 +194,13 @@ for ($i = 0; $i < count($modifiedGroups); $i++) {
 }
 
 function WarningHandler() {
+	global $args;
+	
 	$args = func_get_args();
 	$error = array_shift($args);
 	
 	if ($args[0] == PROCESS_WARN_WRITEFAIL) {
-		echo 'Failed to write: ' . $args[1] . (isset($args[2]) ? ' for ' . $args[2] : '') . "\n";
+		if ($args['verbose'] != PROCESS_VERBOSE_QUIET) echo 'Failed to write: ' . $args[1] . (isset($args[2]) ? ' for ' . $args[2] : '') . "\n";
 	}
 }
 

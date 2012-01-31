@@ -27,6 +27,11 @@ define('PROCESS_COL_SIZE', 3);
 define('PROCESS_COL_DEPTH', 4);
 define('PROCESS_COL_PATH', 5);
 
+define('PROCESS_VERBOSE_QUIET', 0);
+define('PROCESS_VERBOSE_NORMAL', 1);
+define('PROCESS_VERBOSE_HIGHER', 2);
+define('PROCESS_VERBOSE_HIGHEST', 3);
+
 /**
  * Process the output of find.php or find.sh and create static report files.
  * 
@@ -47,6 +52,7 @@ class Process {
 	var $_sizeGroups;
 	var $_modifiedGroups;
 	var $_warningCallback;
+	var $_verboseLevel;
 	
 	// Internal only
 	var $_lineRegEx;
@@ -70,6 +76,7 @@ class Process {
 		$this->_delim = "\x00";
 		$this->_ds = DIRECTORY_SEPARATOR;
 		$this->_warningCallback = null;
+		$this->_verboseLevel = 1;
 	}
 	
 	function run() {
@@ -105,8 +112,8 @@ class Process {
 	function _readLines() {
 		
 		$memLimit = FALSE;
-		$nextMemPercent = 1;
-		if (function_exists('memory_get_usage')) {
+		$nextMemPercent = $this->_verboseLevel == PROCESS_VERBOSE_HIGHEST ? 1 : $this->_verboseLevel == PROCESS_VERBOSE_QUIET ? 100 : 80;
+		if ($this->_verboseLevel != PROCESS_VERBOSE_QUIET && function_exists('memory_get_usage')) {
 			if (preg_match('/^([0-9]+)([GMK]?)(B?)$/', strtoupper(ini_get('memory_limit').''), $matches)) {
 				$memLimit = intval($matches[1]);
 				switch ($matches[2]) {
@@ -120,13 +127,14 @@ class Process {
 			}
 		}
 		
-		if (DEBUG) echo "Reading lines...\n";
+		if ($this->_verboseLevel = PROCESS_VERBOSE_HIGHEST) echo "Reading lines...\n";
 		
 		// Attempt to open the file list.
 		if (($fh = fopen($this->_fileList, 'r')) === FALSE) {
 			return PROCESS_FAILED_OPEN_FILELIST;
 		}
 		
+		$lineNum = 0;
 		while (($line = fgets($fh, $this->_maxLineLength + 2)) !== FALSE) {
 			$line = rtrim($line, "\n\r");
 			
@@ -145,7 +153,7 @@ class Process {
 				}
 				
 				else {
-					$this->_processLine($line);
+					$this->_processLine($line, $lineNum);
 				}
 			}
 			
@@ -157,11 +165,11 @@ class Process {
 					echo "Used " . intval($memPercent) . "% of memory limit (" . ini_get('memory_limit') . ")\n";
 				}
 			}
+			
+			$lineNum++;
 		}
 		
-		if (DEBUG) echo "Final check dir stack\n";
 		$this->_checkDirStack();
-		
 		$this->_saveDirTree();
 		$this->_saveSettings();
 		
@@ -170,7 +178,7 @@ class Process {
 	
 	function _processHeader($line) {
 		
-		if (DEBUG) echo "Processing header...\n";
+		if ($this->_verboseLevel = PROCESS_VERBOSE_HIGHEST) echo "Processing header...\n";
 		
 		if (strlen($line) < 2 || strlen($line) > $this->_maxLineLength) {
 			return PROCESS_INVALID_HEADER;
@@ -209,8 +217,6 @@ class Process {
 	
 	function _processError($line) {
 		
-		if (DEBUG) echo "Processing error...\n";
-		
 		// Explode the error line.
 		$split = explode($this->_delim, $line);
 		
@@ -221,27 +227,27 @@ class Process {
 		array_push($this->_errors, $split);
 	}
 	
-	function _processLine($line) {
+	function _processLine($line, $lineNum) {
 		if (strlen($line) > $this->_maxLineLength) {
-			if (DEBUG) echo "invalid line: maxlinelength\n";
+			if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Line $lineNum invalid: Exceeds max line length.\n";
 			array_push($this->_errors, array('invalidline', 'maxlinelength', $line));
 		}
 
 		// Validate the line up to the path column.
 		elseif (!preg_match($this->_lineRegEx, $line)) {
-			if (DEBUG) echo "invalid line: regex\n";
+			if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Line $lineNum is invalid: Does not match correct pattern.\n";
 			array_push($this->_errors, array('invalidline', 'regex', $line));
 		}
 
 		// Split the line and validate its length;
 		elseif (count($split = explode($this->_delim, $line)) != 6) {
-			if (DEBUG) echo "invalid line: columncount\n";
+			if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Line $lineNum is invalid: Too many columns.\n";
 			array_push($this->_errors, array('invalidline', 'columncount', $split));
 		}
-
+		
 		// Make sure the path is at least one character long.
 		elseif (strlen($split[PROCESS_COL_PATH]) == 0) {
-			if (DEBUG) echo "invalid line: column path\n";
+			if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Line $lineNum is invalid: The path must be at least one character long.\n";
 			array_push($this->_errors, array('invalidline', 'column', 'path', PROCESS_COL_PATH, $split));
 		}
 
@@ -286,7 +292,7 @@ class Process {
 			$pop = array_pop($this->_dirStack);
 			$dlpop = array_pop($this->_dirLookupStack); //TODO: Rename treepop
 			
-			if (DEBUG) echo 'Exit Dir: ' . $pop['path'] . " ($dirname)\n";
+			if ($this->_verboseLevel = PROCESS_VERBOSE_HIGHEST) echo 'Exit Dir: ' . $pop['path'] . " ($dirname)\n";
 			
 			if (!$this->_noTree) {
 				// Increment the directory lookup size.
@@ -319,7 +325,7 @@ class Process {
 	}
 	
 	function _saveDirTree() {
-		if (DEBUG) echo "Saving dir tree...\n";
+		if ($this->_verboseLevel = PROCESS_VERBOSE_HIGHEST) echo "Saving dir tree...\n";
 		
 		// Save the directory list.
 		if (!$this->_noTree && file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'directories', json_encode($this->_dirLookup)) === FALSE) {
@@ -329,7 +335,7 @@ class Process {
 	}
 	
 	function _saveSettings() {
-		if (DEBUG) echo "Saving settings tree...\n";
+		if ($this->_verboseLevel = PROCESS_VERBOSE_HIGHEST) echo "Saving settings tree...\n";
 		
 		// Save the settings file.
 		if (file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'settings', json_encode(array(
@@ -350,7 +356,7 @@ class Process {
 	
 	function _processDirectory($path, $basename) {
 		
-		if (DEBUG) echo 'Enter Dir: ' . $path . "\n";
+		if ($this->_verboseLevel = PROCESS_VERBOSE_HIGHEST) echo 'Enter Dir: ' . $path . "\n";
 		
 		// Set an empty basename to the one set in the header, if the header has been set.
 		if ($basename == '' && isset($this->_header['basename'])) {
