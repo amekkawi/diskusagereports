@@ -99,7 +99,7 @@ class Find {
 		
 		if (($dirh = opendir($fullpath)) === FALSE) {
 			fwrite($err, "Failed to open directory for listing files: $fullpath\n");
-			$this->_outputError($out, 'OPENDIR_FAIL', array($fullpath));
+			$this->_outputError($out, 'OPENDIR_FAIL', array($pathext));
 		}
 		else {
 			while (($entry = readdir($dirh)) !== FALSE) {
@@ -115,7 +115,8 @@ class Find {
 	}
 	
 	function _processDirectoryEntry($out, $err, $rootpath, $pathext, $depth, $entry) {
-		$fullpath = $rootpath . ($rootpath == DIRECTORY_SEPARATOR ? '' : DIRECTORY_SEPARATOR) . $pathext . ($pathext == '' ? '' : DIRECTORY_SEPARATOR) . $entry;
+		$entryPath = $pathext . ($pathext == '' ? '' : DIRECTORY_SEPARATOR) . $entry;
+		$fullpath = $rootpath . ($rootpath == DIRECTORY_SEPARATOR ? '' : DIRECTORY_SEPARATOR) . $entryPath;
 		 
 		// Attempt to stat file.
 		if (($stat = lstat($fullpath)) !== FALSE) {
@@ -128,12 +129,12 @@ class Find {
 			$this->_outputEntry($out, $type, $pathext, $depth, $entry, $stat);
 			
 			if ($type == 'd') {
-				$this->_processDirectory($out, $err, $rootpath, ($pathext == '' ? '' : $pathext . DIRECTORY_SEPARATOR) . $entry, $depth + 1);
+				$this->_processDirectory($out, $err, $rootpath, $entryPath, $depth + 1);
 			}
 		}
 		else {
 			fwrite($err, 'Failed to stat: ' . $fullpath . "\n");
-			$this->_outputError($out, 'STAT_FAIL', array($fullpath));
+			$this->_outputError($out, 'STAT_FAIL', array($entryPath));
 		}
 	}
 	
