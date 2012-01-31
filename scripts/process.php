@@ -221,6 +221,9 @@ switch ($ret = $processor->run()) {
 	case PROCESS_FAILED_REPORTDIR_MKDIR:
 		echo "The <reportdir> could not be created.\n";
 		break;
+	case PROCESS_INVALID_CHARACTERS:
+		echo "<filelist> contains characters that are not UTF-8, Windows-1252 or ISO-8859-1.\n";
+		break;
 }
 
 exit($ret);
