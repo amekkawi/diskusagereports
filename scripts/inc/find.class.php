@@ -81,7 +81,7 @@ class Find {
 			'#',
 			$this->_ds,
 			str_replace(DIRECTORY_SEPARATOR, $this->_ds, $dirname),
-			$basename,
+			str_replace(DIRECTORY_SEPARATOR, $this->_ds, $basename),
 			date('Y-m-d H:i:s')
 		)) . "\n");
 		
