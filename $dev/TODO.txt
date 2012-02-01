@@ -1,3 +1,9 @@
+ - Added to FAQ that running out of allowed memory usage can cause process.php to exit suddenly.
+ - Use http://code.google.com/p/flot/ for charts.
+ - Fall back to root hash 
+ - Add max error limit to process.php
+ - Add support for UTF-8 file names on Windows.
+
  X Allow for other languages
  X Add paging to the file list and file type list.
  X Allow for directory list to be skipped if it takes too long to download.
