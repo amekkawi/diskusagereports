@@ -20,9 +20,19 @@ $.extend(Controller.prototype, {
 				
 				$('#Path').empty();
 				for (var i = 0; i < this._data.parents.length; i++) {
-					$('#Path').append($('<a>').attr('href', '#' + this._createLocation({ hash: this._data.parents[i].hash }, 'path')).text(this._data.parents[i].name)).append(' ' + this.settings.ds.htmlencode() + ' ');
+					var pathPartName = this._data.parents[i].name.htmlencode(),
+						pathPartSeparator = ' ' + this.settings.ds + ' ';
+					
+					if (pathPartName == this.settings.ds) {
+						pathPartName = '&nbsp;' + pathPartName + '&nbsp;';
+						pathPartSeparator = '&nbsp; ';
+					}
+					
+					$('#Path')
+						.append($('<a>').attr('href', '#' + this._createLocation({ hash: this._data.parents[i].hash }, 'path')).html(pathPartName))
+						.append(pathPartSeparator);
 				}
-				$('#Path').append(this._data.name.htmlencode());
+				$('#Path').append(this._data.name == this.settings.ds ? '&nbsp;' + this._data.name.htmlencode() + '&nbsp;' : this._data.name.htmlencode());
 				
 				$('#DirSummary').html(
 					this.translate('total_size', FormatBytes(this._data.totalbytes), FormatBytes(this._data.bytes))
