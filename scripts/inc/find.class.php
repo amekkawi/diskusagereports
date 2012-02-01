@@ -126,6 +126,13 @@ class Find {
 			if ($type == 'fifo') $type = 'p'; // fifo should be a 'p'
 			else $type = strtolower(substr($type, 0, 1));
 			
+			// Do some additional checks if the type was unknown.
+			if ($type == 'u') {
+				if (is_link($fullpath)) $type = 'l';
+				elseif (is_dir($fullpath)) $type = 'd';
+				elseif (is_file($fullpath)) $type = 'f';
+			}
+			
 			$this->_outputEntry($out, $type, $pathext, $depth, $entry, $stat);
 			
 			if ($type == 'd') {
