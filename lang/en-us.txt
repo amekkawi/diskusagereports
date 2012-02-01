@@ -118,6 +118,10 @@
 	"invalidline_error_unknown": "Invalid Line - Unknown Error: {1}",
 	"unknown_processing_error": "Unknown Error: {1}",
 	"writefail_error": "Error Writing File ({1}) for:",
+	"find_stat_error": "Failed to Determine Stats for Directory or File:",
+	"find_opendir_error": "Failed to Open Directory to List Contents:",
+	"find_unknown_error": "Unknown Find Error:",
+	"unknown_error": "Unknown Error:",
 	
 	"languagedialog_title": "Choose a language:"
 }

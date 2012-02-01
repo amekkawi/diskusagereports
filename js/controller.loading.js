@@ -190,6 +190,32 @@ $.extend(Controller.prototype, {
 							errorTitle = [ 'writefail_error', this.settings.errors[i][2] ];
 							detail += '<div style="overflow: auto; width: 100%;">'+ this.settings.errors[i][1].htmlencode() +'</div>';
 							break;
+						case 'finderror':
+							switch (this.settings.errors[i][1]) {
+								case 'STAT_FAIL':
+									errorTitle = [ 'find_stat_error' ];
+									detail += '<div style="overflow: auto; width: 100%;">'+ this.settings.errors[i][2].htmlencode() +'</div>';
+									break;
+								case 'OPENDIR_FAIL':
+									errorTitle = [ 'find_opendir_error' ];
+									detail += '<div style="overflow: auto; width: 100%;">'+ this.settings.errors[i][2].htmlencode() +'</div>';
+									break;
+								default:
+									errorTitle = [ 'find_unknown_error' ];
+									detail += '<table class="styledtable" border="1" cellspacing="0" cellpadding="4"><tbody><tr class="odd">';
+									for (var c = 1; c < this.settings.errors[i].length; c++) {
+										detail += '<td>' + this.settings.errors[i][c].htmlencode() + '</td>';
+									}
+									detail += '</tr></tbody></table>';
+							}
+							break;
+						default:
+							errorTitle = [ 'unknown_error' ];
+							detail += '<table class="styledtable" border="1" cellspacing="0" cellpadding="4"><tbody><tr class="odd">';
+							for (var c = 0; c < this.settings.errors[i].length; c++) {
+								detail += '<td>' + this.settings.errors[i][c].htmlencode() + '</td>';
+							}
+							detail += '</tr></tbody></table>';
 					}
 				}
 				
