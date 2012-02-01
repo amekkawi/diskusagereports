@@ -180,6 +180,11 @@ class Process {
 		
 		fclose($fh);
 		
+		// Add the root directory to the stack if one was never added.
+		if (count($this->_dirStack) == 0) {
+			$this->_processDirectory('', '');
+		}
+		
 		$this->_checkDirStack();
 		$this->_saveDirTree();
 		$this->_saveSettings();
