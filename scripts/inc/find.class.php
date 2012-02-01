@@ -99,7 +99,7 @@ class Find {
 		
 		if (($dirh = opendir($fullpath)) === FALSE) {
 			fwrite($err, "Failed to open directory for listing files: $fullpath\n");
-			$this->_outputError($out, 'OPENDIR_FAIL', array($pathext));
+			$this->_outputError($out, 'OPENDIR_FAIL', array(str_replace(DIRECTORY_SEPARATOR, $this->_ds, $pathext)));
 		}
 		else {
 			while (($entry = readdir($dirh)) !== FALSE) {
@@ -141,7 +141,7 @@ class Find {
 		}
 		else {
 			fwrite($err, 'Failed to stat: ' . $fullpath . "\n");
-			$this->_outputError($out, 'STAT_FAIL', array($entryPath));
+			$this->_outputError($out, 'STAT_FAIL', array(str_replace(DIRECTORY_SEPARATOR, $this->_ds, $entryPath)));
 		}
 	}
 	
