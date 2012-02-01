@@ -2,14 +2,10 @@
 Image Credits:
 =================================================
 
-Image: title-icon.png
-By: http://cemagraphics.deviantart.com/
-Source: http://en.wikipedia.org/wiki/File:Colorful_Chart_Icon_vol2.png
-
 Images: folder-closed.png, folder-open.png, folder-large.png
 By: Fugue Icons by Yusuke Kamiyamane
 Source: http://p.yusukekamiyamane.com/
 
-Image: info.png, close.png, error22x22.png, error32x32.png, titleicon2.png, favicon.png
+Image: title-icon2.png, info.png, close.png, error22x22.png, error32x32.png, titleicon2.png, favicon.png
 By: Nuvola Icon Theme by David Vignoni
 Source: http://www.icon-king.com
