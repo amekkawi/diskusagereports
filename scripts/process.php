@@ -152,6 +152,8 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 		case '-vv':
 			$processor->setVerboseLevel(PROCESS_VERBOSE_HIGHEST);
 			break;
+		case '-fp':
+			$processor->setIncludeFullPath(true);
 		default:
 			$processor->setReportDir($cliarg);
 			$processor->setFileList(array_shift($cliargs));
@@ -223,6 +225,9 @@ switch ($ret = $processor->run()) {
 		break;
 	case PROCESS_INVALID_CHARACTERS:
 		echo "<filelist> contains characters that are not UTF-8, Windows-1252 or ISO-8859-1.\n";
+		break;
+	case PROCESS_UNEXPECTED_HEADER:
+		echo "<filelist> contains a header line in an unexpected locatoin. It must always be the first non-error line in the file.";
 		break;
 }
 
