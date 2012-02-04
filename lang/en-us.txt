@@ -117,9 +117,9 @@
 	"invalidline_error_column": "Invalid Line - Bad Value for Column '{1}':",
 	"invalidline_error_unknown": "Invalid Line - Unknown Error: {1}",
 	"unknown_processing_error": "Unknown Error: {1}",
-	"writefail_error": "Error Writing File ({1}) for:",
-	"find_stat_error": "Failed to Determine Stats for Directory or File:",
-	"find_opendir_error": "Failed to Open Directory to List Contents:",
+	"writefail_error": "Error writing file &quot;{1}&quot; for:",
+	"find_stat_error": "Failed to determine stats for directory or file:",
+	"find_opendir_error": "Failed to open directory to list contents:",
 	"find_unknown_error": "Unknown Find Error:",
 	"unknown_error": "Unknown Error:",
 	
