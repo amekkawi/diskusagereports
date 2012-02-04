@@ -1,4 +1,15 @@
 <?php
+
+/* 
+ * Copyright (c) 2011 André Mekkawi <contact@andremekkawi.com>
+ * Revision: $Revision$
+ * 
+ * LICENSE
+ * 
+ * This source file is subject to the MIT license in the file LICENSE.txt.
+ * The license is also available at http://diskusagereport.sf.net/license.html
+ */
+
 // Determine if the system supports 64-bit integers.
 define('LARGE_INT', defined('PHP_INT_MAX') && strlen(PHP_INT_MAX.'') > 14);
 
