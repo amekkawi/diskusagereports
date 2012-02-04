@@ -20,6 +20,7 @@ define('PROCESS_FAILED_OPEN_FILELIST', 4);
 define('PROCESS_INVALID_HEADER', 5);
 define('PROCESS_WARN_WRITEFAIL', 6);
 define('PROCESS_INVALID_CHARACTERS', 7);
+define('PROCESS_UNEXPECTED_HEADER', 8);
 
 define('PROCESS_COL_TYPE', 0);
 define('PROCESS_COL_DATE', 1);
@@ -54,6 +55,7 @@ class Process {
 	var $_modifiedGroups;
 	var $_warningCallback;
 	var $_verboseLevel;
+	var $_includeFullPath;
 	
 	// Internal only
 	var $_lineRegEx;
@@ -78,6 +80,7 @@ class Process {
 		$this->_ds = DIRECTORY_SEPARATOR;
 		$this->_warningCallback = NULL;
 		$this->_verboseLevel = 1;
+		$this->_includeFullPath = FALSE;
 	}
 	
 	function run() {
@@ -113,7 +116,7 @@ class Process {
 	function _readLines() {
 		
 		$memLimit = FALSE;
-		$nextMemPercent = $this->_verboseLevel == PROCESS_VERBOSE_HIGHEST ? 1 : $this->_verboseLevel == PROCESS_VERBOSE_QUIET ? 100 : 80;
+		$nextMemPercent = $this->_verboseLevel == PROCESS_VERBOSE_HIGHEST ? 1 : ($this->_verboseLevel == PROCESS_VERBOSE_QUIET ? 100 : 80);
 		if ($this->_verboseLevel != PROCESS_VERBOSE_QUIET && function_exists('memory_get_usage')) {
 			if (preg_match('/^([0-9]+)([GMK]?)(B?)$/', strtoupper(ini_get('memory_limit').''), $matches)) {
 				$memLimit = intval($matches[1]);
@@ -144,7 +147,13 @@ class Process {
 				
 				// Process the header.
 				if (substr($line, 0, 1) == '#') {
-					if (($ret = $this->_processHeader($line)) !== TRUE) {
+					
+					// Fail if the dirStack already contains directories. 
+					if (count($this->_dirStack) != 0) {
+						return PROCESS_UNEXPECTED_HEADER;
+					}
+					
+					elseif (($ret = $this->_processHeader($line)) !== TRUE) {
 						fclose($fh);
 						return $ret;
 					}
@@ -379,8 +388,7 @@ class Process {
 	function _saveSettings() {
 		if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Saving settings...\n";
 		
-		// Save the settings file.
-		if (file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'settings', json_encode(array(
+		$settings = array(
 			'version' => '1.0',
 			'name' => $this->_name,
 			'created' => date('M j, Y g:i:s A T'),
@@ -390,7 +398,14 @@ class Process {
 			'modified' => $this->_modifiedGroups,
 			'ds' => $this->_ds,
 			'errors' => $this->_errors
-		))) === FALSE) {
+		);
+		
+		if ($this->_includeFullPath && isset($this->_header['dirname'])) {
+			$settings['path'] = $this->_header['dirname'];
+		}
+		
+		// Save the settings file.
+		if (file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'settings', json_encode($settings)) === FALSE) {
 
 			if (!is_null(_warningCallback)) call_user_func($this->_warningCallback, PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . 'settings');
 		}
@@ -494,9 +509,9 @@ class Process {
 		$currDir['num']++;
 		
 		// Determine the root path for the 'top 100' paths.
-		$rootPath = $this->_header['basename'] == '' ? '.'
-			: $this->_header['basename'] == $this->_ds ? ''
-			: $this->_header['basename'];
+		$rootPath = !isset($this->_header['basename']) || $this->_header['basename'] == '' ? '.'
+			: ($this->_header['basename'] == $this->_ds ? ''
+				: $this->_header['basename']);
 		
 		// Increment totals for directories in the stack.
 		for ($i = 0; $i < count($this->_dirStack); $i++) {
@@ -678,6 +693,12 @@ class Process {
 	}
 	function setVerboseLevel($verboseLevel) {
 		$this->_verboseLevel = $verboseLevel;
+	}
+	function getIncludeFullPath() {
+		return $this->_includeFullPath;
+	}
+	function setIncludeFullPath($includeFullPath) {
+		$this->_includeFullPath = $includeFullPath;
 	}
 }
 ?>
