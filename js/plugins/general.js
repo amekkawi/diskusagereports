@@ -1,3 +1,5 @@
+// Revision: $Revision$
+
 // TODO: Give credit to original authors as necessary.
 
 String.prototype.htmlencode = function() {
