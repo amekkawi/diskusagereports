@@ -7,7 +7,7 @@
  * LICENSE
  * 
  * This source file is subject to the MIT license in the file LICENSE.txt.
- * The license is also available at http://diskusagereport.sf.net/license.html
+ * The license is also available at http://diskusagereports.com/license.html
  */
 
 // ======================================================
@@ -98,7 +98,7 @@ $args = array(
 if (DEBUG) echo "Processing command line arguments...\n";
 
 $cliargs = array_slice($_SERVER['argv'], 1);
-$syntax = "Syntax: php process.php [options] <reportdir> [<filelist>]\nSee http://diskusagereport.sf.net/docs/ for help.\n";
+$syntax = "Syntax: php process.php [options] <reportdir> [<filelist>]\nSee http://diskusagereports.com/docs/ for help.\n";
 
 // Process command line arguments.
 while (!is_null($cliarg = array_shift($cliargs))) {

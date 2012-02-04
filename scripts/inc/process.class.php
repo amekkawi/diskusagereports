@@ -7,7 +7,7 @@
  * LICENSE
  * 
  * This source file is subject to the MIT license in the file LICENSE.txt.
- * The license is also available at http://diskusagereport.sf.net/license.html
+ * The license is also available at http://diskusagereports.com/license.html
  */
 
 define('PROCESS_VERSION', '1.0');

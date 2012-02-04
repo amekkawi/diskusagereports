@@ -7,7 +7,7 @@
  * LICENSE
  * 
  * This source file is subject to the MIT license in the file LICENSE.txt.
- * The license is also available at http://diskusagereport.sf.net/license.html
+ * The license is also available at http://diskusagereports.com/license.html
  */
 
 if (!defined('E_DEPRECATED')) define('E_DEPRECATED', 8192);
@@ -31,7 +31,7 @@ $find = new Find();
 $directory = NULL;
 
 $cliargs = array_slice($_SERVER['argv'], 1);
-$syntax = "Syntax: php find.php [options] <directory>\nSee http://diskusagereport.sf.net/docs/index.html for help.\n";
+$syntax = "Syntax: php find.php [options] <directory>\nSee http://diskusagereports.com/docs/index.html for help.\n";
 
 while (!is_null($cliarg = array_shift($cliargs))) {
 	$shifted = true;
