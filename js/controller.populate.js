@@ -19,27 +19,41 @@ $.extend(Controller.prototype, {
 			if (force || this._lastSectionOptions != ''.concat(this.options.section, this.options.totalsSortBy, this.options.totalsSortRev, this.options.filesSortBy, this.options.filesSortRev, this.options.top100SortBy, this.options.top100SortRev, this.options.page)) {
 				this._lastSectionOptions = ''.concat(this.options.section, this.options.totalsSortBy, this.options.totalsSortRev, this.options.filesSortBy, this.options.filesSortRev, this.options.top100SortBy, this.options.top100SortRev, this.options.page);
 				
+				var fullPath = '';
 				$('#Path').empty();
+				
 				for (var i = 0; i < this._data.parents.length; i++) {
-					var pathPartName = this._data.parents[i].name.htmlencode(),
-						pathPartSeparator = ' ' + this.settings.ds + ' ';
+					var pathLink = $('<a>')
+						.attr('href', '#' + this._createLocation({ hash: this._data.parents[i].hash }, 'path'))
+						.text(this._data.parents[i].name)
+						.appendTo('#Path');
 					
-					if (pathPartName == this.settings.ds) {
-						pathPartName = '&nbsp;' + pathPartName + '&nbsp;';
-						pathPartSeparator = '&nbsp; ';
+					if (this._data.parents[i].name == this.settings.ds) {
+						pathLink.addClass('root');
+					}
+					else {
+						$('#Path').append('<span>' + this.settings.ds + '</span>');
 					}
 					
-					$('#Path')
-						.append($('<a>').attr('href', '#' + this._createLocation({ hash: this._data.parents[i].hash }, 'path')).html(pathPartName))
-						.append(pathPartSeparator);
+					fullPath += (fullPath == '' ? '' : this.settings.ds) + this._data.parents[i].name;
 				}
-				$('#Path').append(this._data.name == this.settings.ds ? '&nbsp;' + this._data.name.htmlencode() + '&nbsp;' : this._data.name.htmlencode());
+				$('#Path').append(this._data.name.htmlencode());
 				
-				$('#DirSummary').html(
+				var summary =
 					this.translate('total_size', FormatBytes(this._data.totalbytes), FormatBytes(this._data.bytes))
 					+ '<br/>'
-					+ this.translate('total_files', AddCommas(this._data.totalnum), AddCommas(this._data.num))
-				);
+					+ this.translate('total_files', AddCommas(this._data.totalnum), AddCommas(this._data.num));
+				
+				if (this.settings.path) {
+					summary +=
+						'<br/>'
+						+ this.translate('full_path', 
+								this.settings.path + (this.settings.path == this.settings.ds ? '' : this.settings.ds) + fullPath
+								+ (fullPath == '' ? '' : this.settings.ds) + this._data.name
+							);
+				}
+				
+				$('#DirSummary').html(summary);
 				
 				$('#Sections')
 					.removeClass('totals-sortedby-label totals-sortedby-byte totals-sortedby-num files-sortedby-name files-sortedby-type files-sortedby-size files-sortedby-modified top100-sortedby-name top100-sortedby-type top100-sortedby-size top100-sortedby-modified top100-sortedby-path')

@@ -268,6 +268,15 @@ tbody th {
 	padding-bottom: 4px;
 }
 
+#Path span {
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+#Path .root {
+	margin-right: 6px;
+}
+
 #Tabs ul, #Tabs li {
 	padding: 0;
 	margin: 0;

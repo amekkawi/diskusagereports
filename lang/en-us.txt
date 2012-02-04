@@ -51,6 +51,7 @@
 	
 	"total_size": "Total Size: {1} ({2} in this directory alone)",
 	"total_files": "Total Files: {1} ({2} in this directory alone)",
+	"full_path": "Full Path: {1}",
 	
 	"tab_contents": "Contents",
 	"tab_file_list": "File List",
