@@ -322,7 +322,7 @@ class Process {
 			$this->_processDirectory($split[PROCESS_COL_PATH], $basename);
 		}
 		else {
-			$this->_processFile($split[PROCESS_COL_TYPE], $basename, $dirname, $split[PROCESS_COL_SIZE], $split[PROCESS_COL_DATE], $split[PROCESS_COL_TIME]);
+			$this->_processFile($split[PROCESS_COL_TYPE], $basename, $split[PROCESS_COL_SIZE], $split[PROCESS_COL_DATE], $split[PROCESS_COL_TIME]);
 		}
 	}
 	
@@ -464,7 +464,7 @@ class Process {
 		array_push($this->_dirStack, $newDir);
 	}
 	
-	function _processFile($type, $basename, $dirname, $size, $date, $time) {
+	function _processFile($type, $basename, $size, $date, $time) {
 		
 		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo "Processing file: $type $basename\n";
 		
@@ -492,6 +492,11 @@ class Process {
 		
 		$currDir['bytes'] = BigAdd($currDir['bytes'], $size);
 		$currDir['num']++;
+		
+		// Determine the root path for the 'top 100' paths.
+		$rootPath = $this->_header['basename'] == '' ? '.'
+			: $this->_header['basename'] == $this->_ds ? ''
+			: $this->_header['basename'];
 		
 		// Increment totals for directories in the stack.
 		for ($i = 0; $i < count($this->_dirStack); $i++) {
@@ -535,7 +540,7 @@ class Process {
 						'name' => $basename,
 						'size' => BigVal($size),
 						'hash' => md5($currDir['path']),
-						'path' => $dirname,
+						'path' => $rootPath . $this->_ds . $currDir['path'],
 						'date' => $date,
 						'time' => $time
 					)));
