@@ -34,7 +34,7 @@ $cliargs = array_slice($_SERVER['argv'], 1);
 $syntax = "Syntax: php find.php [options] <directory>\nSee http://diskusagereports.com/docs/index.html for help.\n";
 
 while (!is_null($cliarg = array_shift($cliargs))) {
-	$shifted = true;
+	$shifted = TRUE;
 	
 	switch ($cliarg) {
 		case '/?':
@@ -76,7 +76,7 @@ if (is_null($directory)) {
 	fwrite($STDERR, "directory argument is missing\n".$syntax); exit(1);
 }
 
-switch($ret = $find->run($directory, null, $STDERR)) {
+switch($ret = $find->run($directory, NULL, $STDERR)) {
 	case FIND_NOT_DIRECTORY:
 		fwrite($STDERR, "The <directory> does not exist or is not a directory.\n");
 		break;

@@ -66,17 +66,17 @@ class Process {
 	var $_dirLookupSize;
 	
 	function Process() {
-		$this->_name = null;
-		$this->_fileList = null;
-		$this->_reportDir = null;
+		$this->_name = NULL;
+		$this->_fileList = NULL;
+		$this->_reportDir = NULL;
 		$this->_totalsDepth = 6;
 		$this->_top100Depth = 3;
 		$this->_maxLineLength = 1024;
 		$this->_maxTreeSize = 800 * 1024;
-		$this->_noTree = false;
+		$this->_noTree = FALSE;
 		$this->_delim = "\x00";
 		$this->_ds = DIRECTORY_SEPARATOR;
-		$this->_warningCallback = null;
+		$this->_warningCallback = NULL;
 		$this->_verboseLevel = 1;
 	}
 	
@@ -342,7 +342,7 @@ class Process {
 				
 				// Disable the tree if it's too large.
 				if ($this->_dirLookupSize > $this->_maxTreeSize) {
-					$this->_noTree = true;
+					$this->_noTree = TRUE;
 				}
 			}
 			
@@ -560,7 +560,7 @@ class Process {
 		if ($index === FALSE || $index == 0 || $index == strlen($name)-1) {
 			return '';
 		}
-		elseif (true || preg_match('/^[0-9a-z_\-]{1,10}$/', substr($name, $index+1))) {
+		elseif (TRUE || preg_match('/^[0-9a-z_\-]{1,10}$/', substr($name, $index+1))) {
 			return substr($name, $index+1);
 		}
 		else {

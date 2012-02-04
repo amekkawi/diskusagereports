@@ -102,7 +102,7 @@ $syntax = "Syntax: php process.php [options] <reportdir> [<filelist>]\nSee http:
 
 // Process command line arguments.
 while (!is_null($cliarg = array_shift($cliargs))) {
-	$shifted = true;
+	$shifted = TRUE;
 	
 	switch ($cliarg) {
 		case '/?':
@@ -123,7 +123,7 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 			if (!preg_match('/^[0-9]+$/', $shifted)) echo "$cliarg must be followed by a number.\n"; exit(1);
 			break;
 		case '-nt':
-			$processor->setNoTree(true);
+			$processor->setNoTree(TRUE);
 			break;
 		case '-mt':
 			$processor->setMaxTreeSize(intval($shifted = array_shift($cliargs)));
