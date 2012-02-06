@@ -123,7 +123,31 @@ void CFinder::outputEntry(char type, _TCHAR* pathExt, int depth, WIN32_FIND_DATA
 	_TCHAR* path = createPath(_T(""), pathExt, findData.cFileName);
 	char* utf8Name = CFinder::UnicodeToUTF8(path);
 	
+	// Use a large int to combine the two size parts.
+	LARGE_INTEGER fileSize;
+	fileSize.LowPart = findData.nFileSizeLow;
+	fileSize.HighPart = findData.nFileSizeHigh;
+
+	// Convert the file's write time (which is UTC) to system time (which is also UTC).
+	SYSTEMTIME writeTime;
+	FileTimeToSystemTime(&findData.ftLastWriteTime, &writeTime);
+	
+	// Output type char.
 	cout << type;
+	fwrite(&delim, 1, 1, stdout);
+	
+	// Output date/time
+	printf("%04d-%02d-%02d", writeTime.wYear, writeTime.wMonth, writeTime.wDay);
+	fwrite(&delim, 1, 1, stdout);
+	printf("%02d:%02d:%02d", writeTime.wHour, writeTime.wMinute, writeTime.wSecond);
+	fwrite(&delim, 1, 1, stdout);
+	
+	// Output file size.
+	printf("%I64d", fileSize.QuadPart);
+	fwrite(&delim, 1, 1, stdout);
+
+	// Output depth and file name.
+	cout << depth;
 	fwrite(&delim, 1, 1, stdout);
 	cout << utf8Name << endl;
 	
