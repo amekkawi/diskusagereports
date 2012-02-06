@@ -11,5 +11,14 @@
 #include <tchar.h>
 #include <iostream>
 #include <string>
+#include <windows.h>
+
+#ifndef _tstring
+	#ifdef _UNICODE
+		#define _tstring wstring
+	#else
+		#define _tstring string
+	#endif
+#endif
 
 // TODO: reference additional headers your program requires here

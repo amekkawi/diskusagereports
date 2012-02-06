@@ -48,7 +48,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
 			finder.setDS(argv[i][0]);
 		}
 		else {
-			//directory = argv[i];
+			directory = argv[i];
 		}
 	}
 
@@ -57,6 +57,8 @@ int _tmain(int argc, _TCHAR* argv[]) {
 		// output syntax
 		return 1;
 	}
+	
+	finder.run(directory);
 
 	return 0;
 }
