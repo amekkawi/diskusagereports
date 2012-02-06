@@ -3,8 +3,8 @@
 class CFinder
 {
 private:
-	_TCHAR delim;
-	_TCHAR ds;
+	char delim;
+	char ds;
 
 	void processDirectory(_TCHAR* rootPath, _TCHAR* pathExt, int depth);
 	void processEntry(_TCHAR* rootPath, _TCHAR* pathExt, int depth, WIN32_FIND_DATA findData);
@@ -19,8 +19,10 @@ public:
 	CFinder(void);
 	~CFinder(void);
 
-	void setDelim(_TCHAR delim);
-	void setDS(_TCHAR delim);
+	void setDelim(char delim);
+	void setDS(char delim);
 	int run(_TCHAR* directory);
+
+	static char* UnicodeToUTF8(_TCHAR* unicode);
 };
 

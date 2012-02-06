@@ -7,19 +7,19 @@
 using namespace std;
 
 CFinder::CFinder(void) {
-	ds = _T('/');
-	delim = _T('\0');
+	ds = '\\';
+	delim = '\0';
 }
 
 CFinder::~CFinder(void) {
 
 }
 
-void CFinder::setDelim(_TCHAR delim) {
+void CFinder::setDelim(char delim) {
 	this->delim = delim;
 }
 
-void CFinder::setDS(_TCHAR ds) {
+void CFinder::setDS(char ds) {
 	this->ds = ds;
 }
 
@@ -120,13 +120,15 @@ void CFinder::processEntry(_TCHAR* rootPath, _TCHAR* pathExt, int depth, WIN32_F
 }
 
 void CFinder::outputEntry(char type, _TCHAR* pathExt, int depth, WIN32_FIND_DATA findData) {
-	int bufferSize = WideCharToMultiByte(CP_UTF8, 0, findData.cFileName, -1, NULL, 0, NULL, NULL);
-	char* utf8Name = new char[bufferSize]; 
-	WideCharToMultiByte(CP_UTF8, 0, findData.cFileName, -1, utf8Name, bufferSize, NULL, NULL);
+	_TCHAR* path = createPath(_T(""), pathExt, findData.cFileName);
+	char* utf8Name = CFinder::UnicodeToUTF8(path);
 	
-	cout << type << delim << utf8Name << endl;
-
+	cout << type;
+	fwrite(&delim, 1, 1, stdout);
+	cout << utf8Name << endl;
+	
 	delete[] utf8Name;
+	delete[] path;
 }
 
 _TCHAR* CFinder::createPath(_TCHAR* rootPath, _TCHAR* pathExt, _TCHAR* entry) {
@@ -144,4 +146,11 @@ _TCHAR* CFinder::createPath(_TCHAR* rootPath, _TCHAR* pathExt, _TCHAR* entry) {
 	_tcscpy_s(fullPath, fullPathS.size() + 1, fullPathS.c_str());
 
 	return fullPath;
+}
+
+char* CFinder::UnicodeToUTF8(_TCHAR* unicode) {
+	int bufferSize = WideCharToMultiByte(CP_UTF8, 0, unicode, -1, NULL, 0, NULL, NULL);
+	char* utf8 = new char[bufferSize]; 
+	WideCharToMultiByte(CP_UTF8, 0, unicode, -1, utf8, bufferSize, NULL, NULL);
+	return utf8;
 }

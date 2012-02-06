@@ -27,12 +27,17 @@ int _tmain(int argc, _TCHAR* argv[]) {
 				// output syntax
 				return 1;
 			}
-			else if (sizeof(argv[i]) != 1) {
-				cerr << "The argument after -d be only one character long." << endl;
+
+			char* delim = CFinder::UnicodeToUTF8(argv[i]);
+			if (strlen(delim) != 1) {
+				cerr << "The argument after -d must be one character long." << endl;
 				// output syntax
+
+				delete[] delim;
 				return 1;
 			}
-			finder.setDelim(argv[i][0]);
+
+			finder.setDelim(delim[0]);
 		}
 		else if (_tcscmp(argv[i], _T("-ds")) == 0) {
 			if (++i == argc) {
@@ -40,12 +45,14 @@ int _tmain(int argc, _TCHAR* argv[]) {
 				// output syntax
 				return 1;
 			}
-			else if (sizeof(argv[i]) != 1) {
-				cerr << "The argument after -ds be only one character long." << endl;
+			
+			char* ds = CFinder::UnicodeToUTF8(argv[i]);
+			if (strlen(ds) != 1) {
+				cerr << "The argument after -ds must be one character long." << endl;
 				// output syntax
 				return 1;
 			}
-			finder.setDS(argv[i][0]);
+			finder.setDS(ds[0]);
 		}
 		else {
 			directory = argv[i];
