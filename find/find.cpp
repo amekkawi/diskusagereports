@@ -7,8 +7,7 @@
 using namespace std;
 
 int _tmain(int argc, _TCHAR* argv[]) {
-	// Set timezone?
-
+	
 	_TCHAR* directory = NULL;
 	CFinder finder;
 
@@ -28,16 +27,23 @@ int _tmain(int argc, _TCHAR* argv[]) {
 				return 1;
 			}
 
-			char* delim = CFinder::UnicodeToUTF8(argv[i]);
-			if (strlen(delim) != 1) {
+			if (_tcslen(argv[i]) != 1) {
 				cerr << "The argument after -d must be one character long." << endl;
 				// output syntax
-
-				delete[] delim;
 				return 1;
 			}
 
-			finder.setDelim(delim[0]);
+			char* delimUTF8 = CFinder::UnicodeToUTF8(argv[i]);
+			int delimSize = strlen(delimUTF8);
+			delete[] delimUTF8;
+
+			if (delimSize != 1) {
+				cerr << "The argument after -d cannot be a multi-byte character." << endl;
+				// output syntax
+				return 1;
+			}
+
+			finder.setDelim(argv[i][0]);
 		}
 		else if (_tcscmp(argv[i], _T("-ds")) == 0) {
 			if (++i == argc) {
@@ -45,16 +51,32 @@ int _tmain(int argc, _TCHAR* argv[]) {
 				// output syntax
 				return 1;
 			}
-			
-			char* ds = CFinder::UnicodeToUTF8(argv[i]);
-			if (strlen(ds) != 1) {
+
+			if (_tcslen(argv[i]) != 1) {
 				cerr << "The argument after -ds must be one character long." << endl;
 				// output syntax
 				return 1;
 			}
-			finder.setDS(ds[0]);
+
+			char* dsUTF8 = CFinder::UnicodeToUTF8(argv[i]);
+			int dsSize = strlen(dsUTF8);
+			delete[] dsUTF8;
+
+			if (dsSize != 1) {
+				cerr << "The argument after -ds cannot be a multi-byte character." << endl;
+				// output syntax
+				return 1;
+			}
+
+			finder.setDS(argv[i][0]);
 		}
 		else {
+			if (_tcslen(argv[i]) > MAX_PATH) {
+				cerr << "The <directory> argument cannot be longer than " << MAX_PATH << " characters." << endl;
+				// output syntax
+				return 1;
+			}
+
 			directory = argv[i];
 		}
 	}
@@ -64,9 +86,21 @@ int _tmain(int argc, _TCHAR* argv[]) {
 		// output syntax
 		return 1;
 	}
-	
-	finder.run(directory);
 
-	return 0;
+	directory = L"c:\\test.out";
+
+	int ret = finder.run(directory);
+
+	switch (ret) {
+		case CFinder::ERROR_DIRECTORY_NOTFOUND:
+			cerr << "The <directory> does not exist or is not a directory." << endl;
+			break;
+		case CFinder::ERROR_DIRECTORY_STAT:
+		case CFinder::ERROR_DIRECTORY_ACESSDENIED:
+			cerr << "Failed to retrieve info (via GetFileAttributes) on <directory>. You may not have access to the directory or its parent directories." << endl;
+			break;
+	}
+
+	return ret;
 }
 
