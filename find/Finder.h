@@ -38,13 +38,13 @@ private:
 
 	void processDirectory(_TCHAR* rootPath, _TCHAR* pathExt, int depth);
 	void processDirectory(_TCHAR* rootPath, _TCHAR* pathExt, int depth, bool exact);
-	void processEntry(_TCHAR* rootPath, _TCHAR* pathExt, int depth, WIN32_FIND_DATA findData);
+	void processEntry(_TCHAR* rootPath, _TCHAR* pathExt, int depth, WIN32_FIND_DATA findData, bool exact);
 	
 	void outputEntry(char type, _TCHAR* pathExt, int depth, WIN32_FIND_DATA findData);
 	void outputHeader(SPLIT_PATH_DATA* dirSplit);
 	void outputError(char* code, _TCHAR* pathExt);
 
-	void createPath(_TCHAR* fullPath, _TCHAR* rootPath, _TCHAR* pathExt, _TCHAR* entry);
 	void replacePathDS(_TCHAR* path);
+	void combinePath(_TCHAR* combined, int parts, ...);
 };
 

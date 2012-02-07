@@ -36,6 +36,10 @@ void CFinder::setDS(_TCHAR _tds) {
 }
 
 int CFinder::run(_TCHAR* directory) {
+
+	_TCHAR shit[MAX_PATH];
+	combinePath(shit, 2, _T("a"), _T("b"));
+
 	// Determine the real (aka: absolute) path.
 	_TCHAR realPath[MAX_PATH];
 	_tfullpath(realPath, directory, MAX_PATH);
@@ -148,7 +152,28 @@ void CFinder::processDirectory(_TCHAR* rootPath, _TCHAR* pathExt, int depth) {
 
 void CFinder::processDirectory(_TCHAR* rootPath, _TCHAR* pathExt, int depth, bool exact) {
 	_TCHAR fullPath[MAX_PATH];
-	createPath(fullPath, rootPath, pathExt, _T("*"));
+
+	// Use the \\?\ path prefix if exact.
+	if (exact) {
+		_tstring rootPathS(rootPath);
+		
+		// UNC path
+		if (_tcslen(rootPath) >= 2 && rootPath[0] == _T('\\') && rootPath[1] == _T('\\')) {
+			rootPathS.insert(2, _T("?\\UNC\\"));
+		}
+		else {
+			rootPathS.insert(0, _T("\\\\?\\"));
+		}
+
+		// Create a temp rootPath
+		_TCHAR rootPathTmp[MAX_PATH];
+		_tcscpy_s(rootPathTmp, MAX_PATH, rootPathS.c_str());
+
+		combinePath(fullPath, 3, rootPathTmp, pathExt, _T("*"));
+	}
+	else {
+		combinePath(fullPath, 3, rootPath, pathExt, _T("*"));
+	}
 
 	WIN32_FIND_DATA findData;
 	HANDLE hFind = INVALID_HANDLE_VALUE;
@@ -157,8 +182,9 @@ void CFinder::processDirectory(_TCHAR* rootPath, _TCHAR* pathExt, int depth, boo
 	if (hFind == INVALID_HANDLE_VALUE) {
 
 		DWORD lastError = GetLastError();
-		if (lastError == ERROR_PATH_NOT_FOUND) {
-			
+		if (!exact && lastError == ERROR_PATH_NOT_FOUND) {
+			// Try again with exact path, if path was not found and not already exact.
+			processDirectory(rootPath, pathExt, depth, true);
 		}
 		else {
 			cerr << "Failed to open directory for listing files (";
@@ -196,15 +222,13 @@ void CFinder::processDirectory(_TCHAR* rootPath, _TCHAR* pathExt, int depth, boo
 			if (_tcscmp(findData.cFileName, _T(".")) != 0
 				&& _tcscmp(findData.cFileName, _T("..")) != 0) {
 			
-				processEntry(rootPath, pathExt, depth, findData);
+				processEntry(rootPath, pathExt, depth, findData, exact);
 			}
 		} while (FindNextFile(hFind, &findData));
 	}
-
-	//delete[] fullPath;
 }
 
-void CFinder::processEntry(_TCHAR* rootPath, _TCHAR* pathExt, int depth, WIN32_FIND_DATA findData) {
+void CFinder::processEntry(_TCHAR* rootPath, _TCHAR* pathExt, int depth, WIN32_FIND_DATA findData, bool exact) {
 	char type;
 
 	if (findData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
@@ -222,15 +246,14 @@ void CFinder::processEntry(_TCHAR* rootPath, _TCHAR* pathExt, int depth, WIN32_F
 	// List contents if entry is a directory.
 	if (type == 'd') {
 		_TCHAR subPathExt[MAX_PATH];
-		createPath(subPathExt, _T(""), pathExt, findData.cFileName);
-		processDirectory(rootPath, subPathExt, depth + 1);
-		//delete[] subPathExt;
+		combinePath(subPathExt, 3, _T(""), pathExt, findData.cFileName);
+		processDirectory(rootPath, subPathExt, depth + 1, exact);
 	}
 }
 
 void CFinder::outputEntry(char type, _TCHAR* pathExt, int depth, WIN32_FIND_DATA findData) {
 	_TCHAR path[MAX_PATH];
-	createPath(path, _T(""), pathExt, findData.cFileName);
+	combinePath(path, 3, _T(""), pathExt, findData.cFileName);
 
 	// Replace directory separators if a different one was specified.
 	replacePathDS(path);
@@ -266,7 +289,6 @@ void CFinder::outputEntry(char type, _TCHAR* pathExt, int depth, WIN32_FIND_DATA
 	cout << utf8Name << endl;
 	
 	delete[] utf8Name;
-	//delete[] path;
 }
 
 void CFinder::outputError(char* code, _TCHAR* pathExt) {
@@ -289,21 +311,23 @@ void CFinder::outputError(char* code, _TCHAR* pathExt) {
 	delete[] pathExtUTF8;
 }
 
-void CFinder::createPath(_TCHAR* fullPath, _TCHAR* rootPath, _TCHAR* pathExt, _TCHAR* entry) {
-	_tstring fullPathS(rootPath);
+void CFinder::combinePath(_TCHAR* combined, int parts, ...) {
+	_tstring combinedS;
 
-	if (_tcslen(pathExt) != 0) {
-		fullPathS += (fullPathS.size() == 0 ? _T("") : _T("\\")) + _tstring(pathExt);
+	_TCHAR* part;
+	va_list marker;
+
+	va_start( marker, parts );
+	for (int i = 0; i < parts; i++) {
+		part = va_arg( marker, _TCHAR*);
+
+		if (_tcslen(part) != 0) {
+			combinedS += (combinedS.size() == 0 ? _T("") : _T("\\")) + _tstring(part);
+		}
 	}
+	va_end(marker);
 
-	if (_tcslen(entry) != 0) {
-		fullPathS += (fullPathS.size() == 0 ? _T("") : _T("\\")) + _tstring(entry);
-	}
-	
-	//_TCHAR fullPath[MAX_PATH]; // = new _TCHAR[fullPathS.size() + 1];
-	_tcscpy_s(fullPath, MAX_PATH, fullPathS.c_str());
-
-	//return fullPath;
+	_tcscpy_s(combined, MAX_PATH, combinedS.c_str());
 }
 
 char* CFinder::UnicodeToUTF8(_TCHAR cunicode) {
