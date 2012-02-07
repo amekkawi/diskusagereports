@@ -141,7 +141,6 @@ void CFinder::outputHeader(CFinder::SPLIT_PATH_DATA* dirSplit) {
 		now.wYear, now.wMonth, now.wDay,
 		now.wHour, now.wMinute, now.wSecond
 	);
-	fwrite(&delim, 1, 1, stdout);
 	
 	cout << endl;
 }
@@ -186,7 +185,7 @@ void CFinder::processDirectory(_TCHAR* rootPath, _TCHAR* pathExt, int depth, boo
 			// Try again with exact path, if path was not found and not already exact.
 			processDirectory(rootPath, pathExt, depth, true);
 		}
-		else {
+		else if (lastError != ERROR_NO_MORE_FILES) {
 			cerr << "Failed to open directory for listing files (";
 
 			switch (lastError) {
