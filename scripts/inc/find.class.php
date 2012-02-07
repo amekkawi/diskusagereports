@@ -121,16 +121,22 @@ class Find {
 		// Attempt to stat file.
 		if (($stat = lstat($fullpath)) !== FALSE) {
 			
-			// Determine the file type character.
-			$type = filetype($fullpath);
-			if ($type == 'fifo') $type = 'p'; // fifo should be a 'p'
-			else $type = strtolower(substr($type, 0, 1));
-			
-			// Do some additional checks if the type was unknown.
-			if ($type == 'u') {
-				if (is_link($fullpath)) $type = 'l';
-				elseif (is_dir($fullpath)) $type = 'd';
-				elseif (is_file($fullpath)) $type = 'f';
+			// Always mark symlinks as L.
+			if (is_link($fullpath)) {
+				$type = 'l';
+			}
+			else {
+				// Determine the file type character.
+				$type = filetype($fullpath);
+				if ($type == 'fifo') $type = 'p'; // fifo should be a 'p'
+				else $type = strtolower(substr($type, 0, 1));
+				
+				// Do some additional checks if the type was unknown.
+				if ($type == 'u') {
+					if (is_link($fullpath)) $type = 'l';
+					elseif (is_dir($fullpath)) $type = 'd';
+					elseif (is_file($fullpath)) $type = 'f';
+				}
 			}
 			
 			$this->_outputEntry($out, $type, $pathext, $depth, $entry, $stat);
