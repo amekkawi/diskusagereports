@@ -1,7 +1,7 @@
 #pragma once
 
-class CFinder
-{
+class CFinder {
+
 public:
 	struct SPLIT_PATH_DATA {
 		_TCHAR drive[_MAX_DRIVE];
@@ -30,14 +30,21 @@ public:
 	static void SplitPath(_TCHAR* path, SPLIT_PATH_DATA* data);
 	
 private:
-	_TCHAR delim;
-	_TCHAR ds;
+	char delim;
+	_TCHAR _tdelim;
+	
+	char ds;
+	_TCHAR _tds;
 
 	void processDirectory(_TCHAR* rootPath, _TCHAR* pathExt, int depth);
+	void processDirectory(_TCHAR* rootPath, _TCHAR* pathExt, int depth, bool exact);
 	void processEntry(_TCHAR* rootPath, _TCHAR* pathExt, int depth, WIN32_FIND_DATA findData);
+	
 	void outputEntry(char type, _TCHAR* pathExt, int depth, WIN32_FIND_DATA findData);
-	_TCHAR* createPath(_TCHAR* rootPath, _TCHAR* pathExt, _TCHAR* entry);
-	void replacePathDS(_TCHAR* path);
 	void outputHeader(SPLIT_PATH_DATA* dirSplit);
+	void outputError(char* code, _TCHAR* pathExt);
+
+	void createPath(_TCHAR* fullPath, _TCHAR* rootPath, _TCHAR* pathExt, _TCHAR* entry);
+	void replacePathDS(_TCHAR* path);
 };
 

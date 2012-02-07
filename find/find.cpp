@@ -6,30 +6,32 @@
 
 using namespace std;
 
+const char* SYNTAX = "Syntax: find.exe [options] <directory>\nSee http://diskusagereports.com/docs for help.";
+
 int _tmain(int argc, _TCHAR* argv[]) {
 	
 	_TCHAR* directory = NULL;
 	CFinder finder;
-
+	
 	for (int i = 1; i < argc; i++) {
 		if (_tcscmp(argv[i], _T("-?")) == 0
 			|| _tcscmp(argv[i], _T("-h")) == 0
 			|| _tcscmp(argv[i], _T("/?")) == 0
 			|| _tcscmp(argv[i], _T("/h")) == 0) {
 			
-			// output syntax
+			cerr << SYNTAX << endl;
 			return 0;
 		}
 		else if (_tcscmp(argv[i], _T("-d")) == 0) {
 			if (++i == argc) {
 				cerr << "-d must be followed by an argument." << endl;
-				// output syntax
+				cerr << SYNTAX << endl;
 				return 1;
 			}
 
 			if (_tcslen(argv[i]) != 1) {
 				cerr << "The argument after -d must be one character long." << endl;
-				// output syntax
+				cerr << SYNTAX << endl;
 				return 1;
 			}
 
@@ -39,7 +41,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
 
 			if (delimSize != 1) {
 				cerr << "The argument after -d cannot be a multi-byte character." << endl;
-				// output syntax
+				cerr << SYNTAX << endl;
 				return 1;
 			}
 
@@ -48,13 +50,13 @@ int _tmain(int argc, _TCHAR* argv[]) {
 		else if (_tcscmp(argv[i], _T("-ds")) == 0) {
 			if (++i == argc) {
 				cerr << "-ds must be followed by an argument" << endl;
-				// output syntax
+				cerr << SYNTAX << endl;
 				return 1;
 			}
 
 			if (_tcslen(argv[i]) != 1) {
 				cerr << "The argument after -ds must be one character long." << endl;
-				// output syntax
+				cerr << SYNTAX << endl;
 				return 1;
 			}
 
@@ -64,7 +66,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
 
 			if (dsSize != 1) {
 				cerr << "The argument after -ds cannot be a multi-byte character." << endl;
-				// output syntax
+				cerr << SYNTAX << endl;
 				return 1;
 			}
 
@@ -73,7 +75,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
 		else {
 			if (_tcslen(argv[i]) > MAX_PATH) {
 				cerr << "The <directory> argument cannot be longer than " << MAX_PATH << " characters." << endl;
-				// output syntax
+				cerr << SYNTAX << endl;
 				return 1;
 			}
 
@@ -82,16 +84,17 @@ int _tmain(int argc, _TCHAR* argv[]) {
 	}
 
 	if (directory == 0) {
-		cerr << "The <directory> argument is required." << endl;
-		// output syntax
+		cerr << "The <directory> argument is missing." << endl;
+		cerr << SYNTAX << endl;
 		return 1;
 	}
-
-	//directory = L"C:\\vb\\visualstudio-solution";
 
 	int ret = finder.run(directory);
 
 	switch (ret) {
+		case CFinder::ERROR_DIRECTORY_CANTRESOLVE:
+			cerr << "Failed to resolve <directory> to its full path. You may not have access (read and exec) to the directory or its parent directories." << endl;
+			break;
 		case CFinder::ERROR_DIRECTORY_NOTFOUND:
 			cerr << "The <directory> does not exist or is not a directory." << endl;
 			break;

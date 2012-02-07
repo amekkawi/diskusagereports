@@ -6,22 +6,37 @@
 using namespace std;
 
 CFinder::CFinder(void) {
-	ds = _T('\\');
-	delim = _T('\0');
+	ds = '\\';
+	_tds = _T('\\');
+	
+	delim = '\0';
+	_tdelim = _T('\0');
 }
 
-void CFinder::setDelim(_TCHAR delim) {
-	this->delim = delim;
+void CFinder::setDelim(_TCHAR _tdelim) {
+	char* delim = CFinder::UnicodeToUTF8(_tdelim);
+	
+	if (strlen(delim) == 1) {
+		this->_tdelim = _tdelim;
+		this->delim = delim[0];
+	}
+
+	delete[] delim;
 }
 
-void CFinder::setDS(_TCHAR ds) {
-	this->ds = ds;
+void CFinder::setDS(_TCHAR _tds) {
+	char* ds = CFinder::UnicodeToUTF8(_tds);
+	
+	if (strlen(ds) == 1) {
+		this->_tds = _tds;
+		this->ds = ds[0];
+	}
+
+	delete[] ds;
 }
 
 int CFinder::run(_TCHAR* directory) {
-	//struct _stat dirstat;
-
-	// Determine the real (absolute) path.
+	// Determine the real (aka: absolute) path.
 	_TCHAR realPath[MAX_PATH];
 	_tfullpath(realPath, directory, MAX_PATH);
 
@@ -56,7 +71,6 @@ int CFinder::run(_TCHAR* directory) {
 
 	// Attempt to get directory attributes.
 	DWORD dattr = GetFileAttributes(directory);
-	
 	if (dattr == INVALID_FILE_ATTRIBUTES) {
 		DWORD dattrError = GetLastError();
 		switch (dattrError) {
@@ -93,11 +107,19 @@ void CFinder::outputHeader(CFinder::SPLIT_PATH_DATA* dirSplit) {
 	// Replace directory separators if a different one was specified.
 	replacePathDS(dirSplit->dirname);
 
-	char* dsUTF8 = CFinder::UnicodeToUTF8(ds);
 	char* dirnameUTF8 = CFinder::UnicodeToUTF8(dirSplit->dirname);
 	char* basenameUTF8 = CFinder::UnicodeToUTF8(dirSplit->basename);
+
+	// Flip the dirname and basename if the basename is empty.
+	// This can happen if the path is "c:\\"
+	if (strlen(basenameUTF8) == 0) {
+		char* tmp = basenameUTF8;
+		basenameUTF8 = dirnameUTF8;
+		dirnameUTF8 = tmp;
+		tmp = NULL;
+	}
 	
-	cout << dsUTF8;
+	fwrite(&ds, 1, 1, stdout);
 	fwrite(&delim, 1, 1, stdout);
 
 	cout << dirnameUTF8;
@@ -106,7 +128,6 @@ void CFinder::outputHeader(CFinder::SPLIT_PATH_DATA* dirSplit) {
 	cout << basenameUTF8;
 	fwrite(&delim, 1, 1, stdout);
 	
-	delete[] dsUTF8;
 	delete[] dirnameUTF8;
 	delete[] basenameUTF8;
 	
@@ -122,14 +143,53 @@ void CFinder::outputHeader(CFinder::SPLIT_PATH_DATA* dirSplit) {
 }
 
 void CFinder::processDirectory(_TCHAR* rootPath, _TCHAR* pathExt, int depth) {
-	_TCHAR* fullPath = createPath(rootPath, pathExt, _T("*"));
+	processDirectory(rootPath, pathExt, depth, false);
+}
+
+void CFinder::processDirectory(_TCHAR* rootPath, _TCHAR* pathExt, int depth, bool exact) {
+	_TCHAR fullPath[MAX_PATH];
+	createPath(fullPath, rootPath, pathExt, _T("*"));
 
 	WIN32_FIND_DATA findData;
 	HANDLE hFind = INVALID_HANDLE_VALUE;
 	
 	hFind = FindFirstFile(fullPath, &findData);
 	if (hFind == INVALID_HANDLE_VALUE) {
-		printf ("FindFirstFile failed (%d)\n", GetLastError());
+
+		DWORD lastError = GetLastError();
+		if (lastError == ERROR_PATH_NOT_FOUND) {
+			
+		}
+		else {
+			cerr << "Failed to open directory for listing files (";
+
+			switch (lastError) {
+				case ERROR_BAD_NETPATH:
+					cerr << "BAD_NETPATH";
+					break;
+				case ERROR_PATH_NOT_FOUND:
+					cerr << "PATH_NOT_FOUND";
+					break;
+				case ERROR_FILE_NOT_FOUND:
+					cerr << "FILE_NOT_FOUND";
+					break;
+				case ERROR_INVALID_NAME:
+					cerr << "INVALID_NAME";
+					break;
+				case ERROR_ACCESS_DENIED:
+					cerr << "ACCESS_DENIED";
+					break;
+				default:
+					fprintf(stderr, "code %d: ", lastError);
+					cerr << "see diskusagereports.com/docs/errorcodes.html";
+			}
+
+			char* fullPathUTF8 = CFinder::UnicodeToUTF8(fullPath);
+			cerr << "): " << fullPathUTF8 << endl;
+			delete[] fullPathUTF8;
+
+			outputError("OPENDIR_FAIL", pathExt);
+		}
 	}
 	else {
 		do {
@@ -141,7 +201,7 @@ void CFinder::processDirectory(_TCHAR* rootPath, _TCHAR* pathExt, int depth) {
 		} while (FindNextFile(hFind, &findData));
 	}
 
-	delete[] fullPath;
+	//delete[] fullPath;
 }
 
 void CFinder::processEntry(_TCHAR* rootPath, _TCHAR* pathExt, int depth, WIN32_FIND_DATA findData) {
@@ -161,14 +221,16 @@ void CFinder::processEntry(_TCHAR* rootPath, _TCHAR* pathExt, int depth, WIN32_F
 	
 	// List contents if entry is a directory.
 	if (type == 'd') {
-		_TCHAR* subPathExt = createPath(_T(""), pathExt, findData.cFileName);
+		_TCHAR subPathExt[MAX_PATH];
+		createPath(subPathExt, _T(""), pathExt, findData.cFileName);
 		processDirectory(rootPath, subPathExt, depth + 1);
-		delete[] subPathExt;
+		//delete[] subPathExt;
 	}
 }
 
 void CFinder::outputEntry(char type, _TCHAR* pathExt, int depth, WIN32_FIND_DATA findData) {
-	_TCHAR* path = createPath(_T(""), pathExt, findData.cFileName);
+	_TCHAR path[MAX_PATH];
+	createPath(path, _T(""), pathExt, findData.cFileName);
 
 	// Replace directory separators if a different one was specified.
 	replacePathDS(path);
@@ -204,10 +266,30 @@ void CFinder::outputEntry(char type, _TCHAR* pathExt, int depth, WIN32_FIND_DATA
 	cout << utf8Name << endl;
 	
 	delete[] utf8Name;
-	delete[] path;
+	//delete[] path;
 }
 
-_TCHAR* CFinder::createPath(_TCHAR* rootPath, _TCHAR* pathExt, _TCHAR* entry) {
+void CFinder::outputError(char* code, _TCHAR* pathExt) {
+	// Create a copy of the path.
+	_TCHAR pathExtTmp[MAX_PATH];
+	_tcscpy_s(pathExtTmp, MAX_PATH, pathExt);
+
+	replacePathDS(pathExtTmp);
+
+	char* pathExtUTF8 = CFinder::UnicodeToUTF8(pathExtTmp);
+
+	cout << "!";
+	fwrite(&delim, 1, 1, stdout);
+	
+	cout << code;
+	fwrite(&delim, 1, 1, stdout);
+	
+	cout << pathExtUTF8 << endl;
+
+	delete[] pathExtUTF8;
+}
+
+void CFinder::createPath(_TCHAR* fullPath, _TCHAR* rootPath, _TCHAR* pathExt, _TCHAR* entry) {
 	_tstring fullPathS(rootPath);
 
 	if (_tcslen(pathExt) != 0) {
@@ -218,10 +300,10 @@ _TCHAR* CFinder::createPath(_TCHAR* rootPath, _TCHAR* pathExt, _TCHAR* entry) {
 		fullPathS += (fullPathS.size() == 0 ? _T("") : _T("\\")) + _tstring(entry);
 	}
 	
-	_TCHAR* fullPath = new _TCHAR[fullPathS.size() + 1];
-	_tcscpy_s(fullPath, fullPathS.size() + 1, fullPathS.c_str());
+	//_TCHAR fullPath[MAX_PATH]; // = new _TCHAR[fullPathS.size() + 1];
+	_tcscpy_s(fullPath, MAX_PATH, fullPathS.c_str());
 
-	return fullPath;
+	//return fullPath;
 }
 
 char* CFinder::UnicodeToUTF8(_TCHAR cunicode) {
@@ -237,12 +319,9 @@ char* CFinder::UnicodeToUTF8(_TCHAR* unicode) {
 }
 
 void CFinder::SplitPath(_TCHAR* path, SPLIT_PATH_DATA* data) {
-	/*_TCHAR drive[_MAX_DRIVE];
-	_TCHAR dir[_MAX_DIR];
-	_TCHAR fname[_MAX_FNAME];
-	_TCHAR ext[_MAX_EXT];*/
 	_tsplitpath_s(path, data->drive, _MAX_DRIVE, data->dir, _MAX_DIR, data->fname, _MAX_FNAME, data->ext, _MAX_EXT);
 
+	// Combine drive and dir to make dirname.
 	_tstring dirnameS(data->drive);
 	dirnameS += _tstring(data->dir);
 	
@@ -254,12 +333,15 @@ void CFinder::SplitPath(_TCHAR* path, SPLIT_PATH_DATA* data) {
 		}
 	}
 
+	// Copy dirname to the struct
 	data->dirname = new _TCHAR[dirnameS.size() + 1];
 	_tcscpy_s(data->dirname, dirnameS.size() + 1, dirnameS.c_str());
 
+	// Combine fname and ext to make the basename.
 	_tstring basenameS(data->fname);
 	basenameS += _tstring(data->ext);
 	
+	// Copy basename to the struct
 	data->basename = new _TCHAR[basenameS.size() + 1];
 	_tcscpy_s(data->basename, basenameS.size() + 1, basenameS.c_str());
 }
@@ -271,10 +353,10 @@ CFinder::SPLIT_PATH_DATA::~SPLIT_PATH_DATA() {
 
 void CFinder::replacePathDS(_TCHAR* path) {
 	// Replace directory separators if a different one was specified.
-	if (ds != _T('\\')) {
+	if (_tds != _T('\\')) {
 		for (size_t i = 0; i < _tcslen(path); i++) {
 			if (path[i] == _T('\\')) {
-				path[i] = ds;
+				path[i] = _tds;
 			}
 		}
 	}
