@@ -87,7 +87,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
 		return 1;
 	}
 
-	directory = L"c:\\test.out";
+	//directory = L"C:\\vb\\visualstudio-solution";
 
 	int ret = finder.run(directory);
 
