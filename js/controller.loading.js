@@ -100,7 +100,7 @@ $.extend(Controller.prototype, {
 		}
 	},
 	
-	_downloadSettings: function() {
+	_downloadSettings: function(noSuffix) {
 		var self = this;
 		
 		this._ajaxStage = 'settings';
@@ -108,10 +108,17 @@ $.extend(Controller.prototype, {
 		// Load the settings file.
 		$.ajax({
 			cache: false,
-			url: this.reportsBaseURL + this.report + '/settings',
+			url: this.reportsBaseURL + this.report + '/settings' + (noSuffix ? '' : '.txt'),
 			type: 'GET',
 			dataType: 'json',
-			error: function() { self._ajaxErrorHandler.apply(self, arguments); },
+			error: function() {
+				if (noSuffix)
+					self._ajaxErrorHandler.apply(self, arguments);
+				else {
+					// Try again without the suffix to support older reports.
+					self._downloadSettings(true);
+				}
+			},
 			success: function(settings, status, xhr){
 				self.settings = settings;
 				self._processSettings(settings);
