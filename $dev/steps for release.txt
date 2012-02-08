@@ -1,6 +1,0 @@
-1) Create a tag.
-2) Edit index.html so that it uses jquery.min.js.
-3) Run ./$dev/pack.sh to create ./js/packed.js
-4) Comment out <script> tags except for jquery.min.js
-5) Uncomment packed.js <script> tag.
-6) Remove ./$dev directory.
