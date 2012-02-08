@@ -56,6 +56,7 @@ class Process {
 	var $_warningCallback;
 	var $_verboseLevel;
 	var $_includeFullPath;
+	var $_suffix;
 	
 	// Internal only
 	var $_lineRegEx;
@@ -81,6 +82,7 @@ class Process {
 		$this->_warningCallback = NULL;
 		$this->_verboseLevel = 1;
 		$this->_includeFullPath = FALSE;
+		$this->_suffix = ".txt";
 	}
 	
 	function run() {
@@ -368,7 +370,7 @@ class Process {
 			unset($pop['path']);
 			
 			// Save the directory data.
-			if (file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . md5($path), json_encode($pop)) === FALSE) {
+			if (file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . md5($path) . $this->_suffix, json_encode($pop)) === FALSE) {
 				if (!is_null(_warningCallback)) call_user_func($this->_warningCallback, PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . md5($path), $path);
 				array_push($errors, array('writefail', $path, md5($path)));
 			}
@@ -379,7 +381,7 @@ class Process {
 		if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Saving dir tree...\n";
 		
 		// Save the directory list.
-		if (!$this->_noTree && file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'directories', json_encode($this->_dirLookup)) === FALSE) {
+		if (!$this->_noTree && file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'directories' . $this->_suffix, json_encode($this->_dirLookup)) === FALSE) {
 			if (!is_null(_warningCallback)) call_user_func($this->_warningCallback, PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . 'directories');
 			array_push($this->_errors, array('writefail', 'directories', 'directories'));
 		}
@@ -397,7 +399,8 @@ class Process {
 			'sizes' => $this->_sizeGroups,
 			'modified' => $this->_modifiedGroups,
 			'ds' => $this->_ds,
-			'errors' => $this->_errors
+			'errors' => $this->_errors,
+			'suffix' => $this->_suffix
 		);
 		
 		if ($this->_includeFullPath && isset($this->_header['dirname'])) {
@@ -405,8 +408,7 @@ class Process {
 		}
 		
 		// Save the settings file.
-		if (file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'settings', json_encode($settings)) === FALSE) {
-
+		if (file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'settings.txt', json_encode($settings)) === FALSE) {
 			if (!is_null(_warningCallback)) call_user_func($this->_warningCallback, PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . 'settings');
 		}
 	}
@@ -699,6 +701,12 @@ class Process {
 	}
 	function setIncludeFullPath($includeFullPath) {
 		$this->_includeFullPath = $includeFullPath;
+	}
+	function getSuffix() {
+		return $this->_suffix;
+	}
+	function setSuffix($suffix) {
+		$this->_suffix = $suffix;
 	}
 }
 ?>
