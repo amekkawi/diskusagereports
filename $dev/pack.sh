@@ -8,7 +8,7 @@ cd "$CODEBASE"
 sed -nE -e 's/^.*<script .+ src="([^"]+)".*$/\1/p' "$CODEBASE/index.html" \
 	| grep -v 'packed.js' | grep -v '.min.js' \
 	| xargs cat \
-	| php "$DEV/packer-stdin.php" \
+	| php "$DEV/inc/packer-stdin.php" \
 	> "$CODEBASE/js/packed.js"
 
 packed=$(cat "$CODEBASE/js/packed.js" | wc -c | tr -d ' ')
