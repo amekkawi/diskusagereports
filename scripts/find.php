@@ -31,8 +31,7 @@ $find = new Find();
 $directory = NULL;
 
 $cliargs = array_slice($_SERVER['argv'], 1);
-$syntax = "Syntax: php find.php [options] <directory>\nSee http://diskusagereports.com/docs
- for help.\n";
+$syntax = "Syntax: php find.php [options] <directory>\nSee http://diskusagereports.com/docs for help.\n";
 
 while (!is_null($cliarg = array_shift($cliargs))) {
 	$shifted = TRUE;
