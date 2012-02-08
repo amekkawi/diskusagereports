@@ -1,5 +1,12 @@
-// find.cpp : Defines the entry point for the console application.
-//
+/* 
+ * Copyright (c) 2011 André Mekkawi <contact@andremekkawi.com>
+ * Revision: $Revision$
+ * 
+ * LICENSE
+ * 
+ * This source file is subject to the MIT license in the file LICENSE.txt.
+ * The license is also available at http://diskusagereports.com/license.html
+ */
 
 #include "stdafx.h"
 #include "Finder.h"
