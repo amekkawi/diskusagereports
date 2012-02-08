@@ -35,6 +35,8 @@ Controller = function() {
 	this._subdirsSection = $('#Section_SubDirs');
 	this._top100Section = $('#Section_Top100');
 	
+	this.settingsSuffix = '.txt';
+	
 	this.gradient = 
 		['007eff','0081f8','0084ef','0088e4','008dd8','0092cb','0097bd','009cae',
 		 '00a29f','00a88f','00ae80','00b275','00b66a','00ba60','00be56','00c24c',

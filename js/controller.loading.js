@@ -108,7 +108,7 @@ $.extend(Controller.prototype, {
 		// Load the settings file.
 		$.ajax({
 			cache: false,
-			url: this.reportsBaseURL + this.report + '/settings' + (noSuffix ? '' : '.txt'),
+			url: this.reportsBaseURL + this.report + '/settings' + (noSuffix ? '' : self.settingsSuffix),
 			type: 'GET',
 			dataType: 'json',
 			error: function() {
