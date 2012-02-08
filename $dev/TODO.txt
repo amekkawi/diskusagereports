@@ -1,8 +1,9 @@
- - Added to FAQ that running out of allowed memory usage can cause process.php to exit suddenly.
+ - Add to FAQ that running out of allowed memory usage can cause process.php to exit suddenly.
  - Use http://code.google.com/p/flot/ for charts.
- - Fall back to root hash 
  - Add max error limit to process.php
  - Add support for UTF-8 file names on Windows.
+ - Note that find.php may not detect a symlink on Windows depending on version of PHP. See https://bugs.php.net/bug.php?id=51766
+ - Note that if the output of find is to be procesesd on a non-windows computer, you must use the forward slash directory separator.
 
  X Allow for other languages
  X Add paging to the file list and file type list.
