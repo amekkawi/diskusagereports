@@ -44,7 +44,7 @@ th {
 		$('#LoadForm').submit(function(){
 			if (document._xhr) document._xhr.abort();
 			document._xhr = $.ajax({
-				url: '../' + $('#Language').val() + '.json',
+				url: '../lang/' + $('#Language').val() + '.txt',
 				dataType: 'json',
 				error: function(xhr, status, ex){
 					$('#LoadErrors').text(status+'').show();
