@@ -14,6 +14,7 @@
 using namespace std;
 
 const char* SYNTAX = "Syntax: find.exe [options] <directory>\nSee http://diskusagereports.com/docs for help.";
+const char* VERSION = "$Revision$";
 
 int _tmain(int argc, _TCHAR* argv[]) {
 	
@@ -21,7 +22,23 @@ int _tmain(int argc, _TCHAR* argv[]) {
 	CFinder finder;
 	
 	for (int i = 1; i < argc; i++) {
-		if (_tcscmp(argv[i], _T("-?")) == 0
+		if (_tcscmp(argv[i], _T("-v")) == 0) {
+			
+			string ver(VERSION);
+			ver.erase(0, 11);
+			ver.erase(ver.size() - 2);
+
+			string cver(CFinder::Version());
+			cver.erase(0, 11);
+			cver.erase(cver.size() - 2);
+
+			cout << "Disk Usage Reports <http://diskusagereports.com/>" << endl
+				<< "Find Revision: " << ver << endl
+				<< "CFinder Revision: " << cver << endl;
+			
+			return 0;
+		}
+		else if (_tcscmp(argv[i], _T("-?")) == 0
 			|| _tcscmp(argv[i], _T("-h")) == 0
 			|| _tcscmp(argv[i], _T("/?")) == 0
 			|| _tcscmp(argv[i], _T("/h")) == 0) {

@@ -15,6 +15,12 @@
 
 using namespace std;
 
+//const char* CFINDER_VERSION = "$Revision$";
+
+char* CFinder::Version(void) {
+	return "$Revision$";
+}
+
 CFinder::CFinder(void) {
 	ds = '\\';
 	_tds = _T('\\');

@@ -38,6 +38,7 @@ public:
 	static char* UnicodeToUTF8(_TCHAR unicode);
 	static char* UnicodeToUTF8(_TCHAR* unicode);
 	static void SplitPath(_TCHAR* path, SPLIT_PATH_DATA* data);
+	static char* Version();
 	
 private:
 	char delim;
