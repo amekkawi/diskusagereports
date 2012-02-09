@@ -54,7 +54,7 @@ The license is also available at http://diskusagereports.com/license.html
 	$(function() {
 		window.controller = new Controller();
 		
-		// Optional settings
+		// Optional setting examples
 		// =============================================================
 		
 		// Path to the directory that contains the reports.
@@ -69,6 +69,11 @@ The license is also available at http://diskusagereports.com/license.html
 		
 		// Change the maximum number of rows displayed at once in a table.
 		//controller.pageMax = 100;
+		
+		// Change the suffix that report files will have.
+		// Can either be set to a string or an array of suffixes that will be checked in order.
+		//controller.suffix = '.json';
+		//controller.suffix = [ '.txt', '' ];
 		
 		// Add additional languages. You must include the respective language files (e.g. de.txt) in the 'lang' directory.
 		//controller.addLanguage('de', 'Deutsch');
