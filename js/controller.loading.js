@@ -106,24 +106,24 @@ $.extend(Controller.prototype, {
 		if ($.isUndefined(suffixIndex))
 			suffixIndex = 0;
 		
-		// Allow the settingsSuffix to be a string.
-		if ($.isString(this.settingsSuffix))
-			this.settingsSuffix = [ this.settingsSuffix ];
+		// Allow the suffix to be a string.
+		if ($.isString(this.suffix))
+			this.suffix = [ this.suffix ];
 		
 		// Make sure the suffix list contains an empty suffix for old reports.
-		if (jQuery.inArray("", this.settingsSuffix) == -1)
-			this.settingsSuffix.push("");
+		if (jQuery.inArray("", this.suffix) == -1)
+			this.suffix.push("");
 		
 		this._ajaxStage = 'settings';
 		
 		// Load the settings file.
 		$.ajax({
 			cache: false,
-			url: this.reportsBaseURL + this.report + '/settings' + this.settingsSuffix[suffixIndex],
+			url: this.reportsBaseURL + this.report + '/settings' + this.suffix[suffixIndex],
 			type: 'GET',
 			dataType: 'json',
 			error: function() {
-				if (++suffixIndex == self.settingsSuffix.length) {
+				if (++suffixIndex == self.suffix.length) {
 					self._ajaxErrorHandler.apply(self, arguments);
 				}
 				else {
@@ -136,7 +136,7 @@ $.extend(Controller.prototype, {
 				
 				// Make sure the suffix is set in the settings.
 				if ($.isUndefined(self.settings.suffix))
-					self.settings.suffix = self.settingsSuffix[suffixIndex];
+					self.settings.suffix = self.suffix[suffixIndex];
 				
 				self._processSettings(settings);
 			}
