@@ -110,11 +110,9 @@ $.extend(Controller.prototype, {
 		if ($.isString(this.settingsSuffix))
 			this.settingsSuffix = [ this.settingsSuffix ];
 		
-		// Make sure the last suffix is an empty string
-		// so that old reports are still supported.
-		if (this.settingsSuffix.length == 0 || this.settingsSuffix[this.settingsSuffix.length-1] != '') {
-			this.settingsSuffix.push('');
-		}
+		// Make sure the suffix list contains an empty suffix for old reports.
+		if (jQuery.inArray("", this.settingsSuffix) == -1)
+			this.settingsSuffix.push("");
 		
 		this._ajaxStage = 'settings';
 		
@@ -135,6 +133,11 @@ $.extend(Controller.prototype, {
 			},
 			success: function(settings, status, xhr){
 				self.settings = settings;
+				
+				// Make sure the suffix is set in the settings.
+				if ($.isUndefined(self.settings.suffix))
+					self.settings.suffix = self.settingsSuffix[suffixIndex];
+				
 				self._processSettings(settings);
 			}
 		});
@@ -264,7 +267,7 @@ $.extend(Controller.prototype, {
 		// Load the directory lookup file.
 		this._xhr_directories = $.ajax({
 			cache: false,
-			url: this.reportsBaseURL + this.report + '/directories',
+			url: this.reportsBaseURL + this.report + '/directories' + this.settings.suffix,
 			type: 'GET',
 			dataType: 'json',
 			error: function() {
