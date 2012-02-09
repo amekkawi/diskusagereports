@@ -399,8 +399,7 @@ class Process {
 			'sizes' => $this->_sizeGroups,
 			'modified' => $this->_modifiedGroups,
 			'ds' => $this->_ds,
-			'errors' => $this->_errors,
-			'suffix' => $this->_suffix
+			'errors' => $this->_errors
 		);
 		
 		if ($this->_includeFullPath && isset($this->_header['dirname'])) {
@@ -408,7 +407,7 @@ class Process {
 		}
 		
 		// Save the settings file.
-		if (file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'settings.txt', json_encode($settings)) === FALSE) {
+		if (file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'settings' . $this->_suffix, json_encode($settings)) === FALSE) {
 			if (!is_null(_warningCallback)) call_user_func($this->_warningCallback, PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . 'settings');
 		}
 	}
