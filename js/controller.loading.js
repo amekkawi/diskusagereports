@@ -100,23 +100,37 @@ $.extend(Controller.prototype, {
 		}
 	},
 	
-	_downloadSettings: function(noSuffix) {
+	_downloadSettings: function(suffixIndex) {
 		var self = this;
+		
+		if ($.isUndefined(suffixIndex))
+			suffixIndex = 0;
+		
+		// Allow the settingsSuffix to be a string.
+		if ($.isString(this.settingsSuffix))
+			this.settingsSuffix = [ this.settingsSuffix ];
+		
+		// Make sure the last suffix is an empty string
+		// so that old reports are still supported.
+		if (this.settingsSuffix.length == 0 || this.settingsSuffix[this.settingsSuffix.length-1] != '') {
+			this.settingsSuffix.push('');
+		}
 		
 		this._ajaxStage = 'settings';
 		
 		// Load the settings file.
 		$.ajax({
 			cache: false,
-			url: this.reportsBaseURL + this.report + '/settings' + (noSuffix ? '' : self.settingsSuffix),
+			url: this.reportsBaseURL + this.report + '/settings' + this.settingsSuffix[suffixIndex],
 			type: 'GET',
 			dataType: 'json',
 			error: function() {
-				if (noSuffix)
+				if (++suffixIndex == self.settingsSuffix.length) {
 					self._ajaxErrorHandler.apply(self, arguments);
+				}
 				else {
 					// Try again without the suffix to support older reports.
-					self._downloadSettings(true);
+					self._downloadSettings(suffixIndex);
 				}
 			},
 			success: function(settings, status, xhr){
