@@ -155,6 +155,8 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 		case '-fp':
 			$processor->setIncludeFullPath(true);
 			break;
+		case '-su':
+			$processor->setSuffix($shifted = array_shift($cliargs));
 		default:
 			$processor->setReportDir($cliarg);
 			$processor->setFileList(array_shift($cliargs));
