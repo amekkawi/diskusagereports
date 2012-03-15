@@ -21,13 +21,13 @@
 		
 		var container = this.eq(0),
 			targetTop = Math.round(target.offset().top),
-			targetLeft = Math.round(target.offset().left) + 14, /* +14 is custom for disk usage reporting */
-			targetWidth = target.outerWidth() - 14, /* -14 is custom for disk usage reporting */
+			targetLeft = Math.round(target.offset().left),
+			targetWidth = target.outerWidth(),
 			targetHeight = target.outerHeight(),
 			containerScrollTop = Math.round(container.scrollTop()),
 			containerScrollLeft = Math.round(container.scrollLeft()),
-			containerHeight = Math.round(container.height()) - (container.get(0).clientWidth < container.get(0).scrollWidth ? $.scrollBarSize().width : 0) - 4, /* -4 is custom for disk usage reporting */
-			containerWidth = Math.round(container.width()) - (container.get(0).clientHeight < container.get(0).scrollHeight ? $.scrollBarSize().width : 0) - 4; /* -4 is custom for disk usage reporting */
+			containerHeight = Math.round(container.height()) - (container.get(0).clientWidth < container.get(0).scrollWidth ? $.scrollBarSize().horiz : 0),
+			containerWidth = Math.round(container.width()) - (container.get(0).clientHeight < container.get(0).scrollHeight ? $.scrollBarSize().vert : 0);
 		
 		// Calculate the scroll values for the target.
 		var scrollTop = Math.round(targetTop) + ( containerScrollTop - Math.round(container.offset().top) );

@@ -29,15 +29,12 @@
 }
 
 .ui-tree li {
-	padding-left: 16px;
+	margin-left: 16px;
 	padding-top: 2px;
 	white-space: nowrap;
 	background-image: url(../images/jquery.ui.tree/horiz.png);
 	background-repeat: no-repeat;
 	background-position: 8px 10px;
-}
-.ui-tree ul ul ul li {
-	background-position: 24px 10px;
 }
 
 .ui-tree div.ui-tree-linecover {
@@ -68,14 +65,14 @@
 }
 
 .ui-tree li.ui-tree-root {
-	padding-left: 0;
+	margin-left: 0;
 }
 .ui-tree li.ui-tree-root > div div.ui-tree-expander {
 	padding-left: 0;
 	background-image: none !important;
 }
 .ui-tree li.ui-tree-root > ul > li {
-	padding-left: 0;
+	margin-left: 0;
 }
 
 .ui-tree li.ui-tree-nosubdirs > div div.ui-tree-expander {
