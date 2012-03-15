@@ -32,6 +32,10 @@ echo "Editing index.html..."
 sed -Ei '' -f "$SCRIPTDIR/inc/prepare.sed" "$PREPAREDIR/index.html"
 [ "$?" != "0" ] && echo "FAILED" && exit 1
 
+echo "Replacing \$Version\$ with tag name..."
+find -E "$PREPAREDIR" -iregex '.+\.(php|js|css|html)$' -print0 | xargs -0 sed -Ei -e 's#\$Version\$#'"$TAG"'#'
+[ "$?" != "0" ] && echo "FAILED" && exit 1
+
 echo "Removing .gitignore files..."
 find "$PREPAREDIR" -name '.gitignore' -print0 | xargs -0 rm
 
