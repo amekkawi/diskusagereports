@@ -1,6 +1,6 @@
 /* 
  * Copyright (c) 2011 André Mekkawi <contact@andremekkawi.com>
- * Revision: $Revision$
+ * $Version: 1.0.0 $
  * 
  * LICENSE
  * 

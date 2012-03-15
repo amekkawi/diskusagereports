@@ -1,4 +1,4 @@
-// Revision: $Revision$
+// $Version: 1.0.0 $
 
 // TODO: Give credit to original authors as necessary.
 
