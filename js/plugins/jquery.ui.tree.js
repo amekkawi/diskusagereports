@@ -61,7 +61,12 @@ $.widget("ui.tree", {
 			
 			if (this.options.expandOnSelect) this.open(hash, li);
 			
-			$('#LeftColumnScroller').scrollIntoView(li);
+			if (li.hasClass('ui-tree-root')) {
+				$('#LeftColumnScroller').scrollTop(0).scrollLeft(0);
+			}
+			else {
+				$('#LeftColumnScroller').scrollIntoView(li);
+			}
 		}
 	},
 	

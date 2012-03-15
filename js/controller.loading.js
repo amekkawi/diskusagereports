@@ -404,7 +404,13 @@ $.extend(Controller.prototype, {
 				// Force a resize since the viewer is now displayed.
 				self.resizeWindow();
 				
-				$('#LeftColumnScroller').scrollIntoView($('#DirectoryTree li.selected'));
+				var selected = $('#DirectoryTree li.selected');
+				if (selected.hasClass('ui-tree-root')) {
+					$('#LeftColumnScroller').scrollTop(0).scrollLeft(0);
+				}
+				else {
+					$('#LeftColumnScroller').scrollIntoView(selected);
+				}
 			});
 			
 		}, this._debugTimeout);
