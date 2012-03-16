@@ -118,7 +118,7 @@ $.extend(Controller.prototype, {
 			this._displayTotalsTable($('#SubDirs'), subdirs, function(data, field) {
 				switch (field) {
 					case 'label':
-						if (data.isfiles) return '<i>' + self.translate('contents_files_in_this_directory') + '</i>';
+						if (data.isfiles) return '<em>' + self.translate('contents_files_in_this_directory') + '</em>';
 						return '<a href="#' + self._createLocation({ hash: data.hash }, 'contents').htmlencode() + '">' + data.name.htmlencode() + '</a>';
 					case 'sortlabel':
 						if (data.isfiles) return '';
@@ -182,7 +182,7 @@ $.extend(Controller.prototype, {
 			this._displayTotalsTable($('#Types'), this._data.types, function(data, field, key) {
 				switch (field) {
 					case 'label':
-						return key == '' ? '<i>' + self.translate('unknown_file_type') + '</i>' : key.htmlencode();
+						return key == '' ? '<em>' + self.translate('unknown_file_type') + '</em>' : key.htmlencode();
 					case 'sortlabel':
 						return key.toLowerCase();
 					case 'bytes':
@@ -377,7 +377,7 @@ $.extend(Controller.prototype, {
 				
 				var extData = '', ext = data[key].name.toLowerCase().split('.');
 				if (ext.length > 1) ext = (extData = ext[ext.length-1]).htmlencode();
-				else ext = "<i>" + this.translate('unknown_file_type') + "</i>";
+				else ext = "<em>" + this.translate('unknown_file_type') + "</em>";
 				
 				var sortValue = data[key].name.toLowerCase();
 				switch (this.options.filesSortBy) {
@@ -465,7 +465,7 @@ $.extend(Controller.prototype, {
 				
 				var extData = '', ext = data[key].name.toLowerCase().split('.');
 				if (ext.length > 1) ext = (extData = ext[ext.length-1]).htmlencode();
-				else ext = "<i>Unknown</i>";
+				else ext = "<em>Unknown</em>";
 				
 				var sortValue = data[key].name.toLowerCase();
 				switch (this.options.top100SortBy) {

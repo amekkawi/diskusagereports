@@ -46,7 +46,7 @@ $.extend(Controller.prototype, {
 		for (var i = 0; i < this._errors.length; i++) {
 			var errorItem = $('<div>')
 				.addClass('errors-item')
-				.html( $('<b>').html($.isArray(this._errors[i][0]) ? this.translate.apply(this, this._errors[i][0]) : this._errors[i][0]) )
+				.html( $('<strong>').html($.isArray(this._errors[i][0]) ? this.translate.apply(this, this._errors[i][0]) : this._errors[i][0]) )
 				.appendTo(contents);
 			
 			if (this._errors[i][1]) errorItem.append(this._errors[i][1]);

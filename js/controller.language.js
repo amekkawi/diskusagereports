@@ -233,7 +233,7 @@ $.extend(Controller.prototype, {
 			
 			if (this.settings && this.settings.name) {
 				titleArgs[0] += '_with_name';
-				titleArgs.push($('<b>').text(this.settings.name));
+				titleArgs.push($('<strong>').text(this.settings.name));
 				
 				doctitleArgs[0] += '_with_name';
 				doctitleArgs.push(this.settings.name);

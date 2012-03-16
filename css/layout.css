@@ -162,7 +162,7 @@ tbody th {
 	text-shadow: rgba(0,0,0,0.5) 2px 2px 4px;
 }
 
-#Title b {
+#Title strong {
 	color: #dfcd90;
 	font-weight: normal;
 	/*white-space: nowrap;*/
@@ -195,7 +195,7 @@ tbody th {
 	background-repeat: no-repeat;
 	background-position: 0 6px;
 }
-.errors-item b {
+.errors-item strong {
 	font-size: 16px;
 }
 .errors-item div {
