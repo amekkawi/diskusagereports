@@ -465,6 +465,11 @@ class Process {
 			// Add the directory to the lookup stack.
 			$this->_dirLookupStack[] = &$this->_dirLookup[$hash];
 		}
+		
+		// Increment the subdirs count for parent directories.
+		for ($i = 0; $i < count($this->_dirStack); $i++) {
+			$this->_dirStack[$i]['totalsubdirs']++;
+		}
 			
 		// Add this directory to its parent (if one exists).
 		if (count($this->_dirStack) > 0) {
@@ -472,6 +477,7 @@ class Process {
 				'name' => &$newDir['name'], //TODO: remove ref? see above
 				'totalbytes' => &$newDir['totalbytes'],
 				'totalnum' => &$newDir['totalnum'],
+				'totalsubdirs' => &$newDir['totalsubdirs'],
 				'hash' => $hash
 			));
 		}
