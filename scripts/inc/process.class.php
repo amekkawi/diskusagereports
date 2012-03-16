@@ -64,9 +64,9 @@ class Process {
 	var $_header;
 	
 	var $_dirStack;
-	var $_dirLookup; //TODO: Rename to 'dirTree'
-	var $_dirLookupStack;
-	var $_dirLookupSize;
+	var $_dirTree;
+	var $_dirTreeStack;
+	var $_dirTreeBytes;
 	
 	function Process() {
 		$this->_name = NULL;
@@ -90,9 +90,9 @@ class Process {
 		$this->_header = NULL;
 		
 		$this->_dirStack = array();
-		$this->_dirLookup = array();
-		$this->_dirLookupStack = array();
-		$this->_dirLookupSize = 0;
+		$this->_dirTree = array();
+		$this->_dirTreeStack = array();
+		$this->_dirTreeBytes = 0;
 		
 		// Create the regular expression to validate lines.
 		$this->_createLineRegEx();
@@ -343,16 +343,16 @@ class Process {
 		while (count($this->_dirStack) > (is_null($dirname) ? 0 : 1) && (is_null($dirname) || $this->_dirStack[count($this->_dirStack)-1]['path'] != $dirname)) {
 			
 			$pop = array_pop($this->_dirStack);
-			$dlpop = array_pop($this->_dirLookupStack); //TODO: Rename treepop
+			$dlpop = array_pop($this->_dirTreeStack);
 			
 			if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo 'Exit dir: ' . $pop['path'] . (count($this->_dirStack) > 1 ? ' (now ' . $this->_dirStack[count($this->_dirStack)-1]['path'] . ')' : '') . "\n";
 			
 			if (!$this->_noTree) {
-				// Increment the directory lookup size.
-				$this->_dirLookupSize += strlen(json_encode($dlpop));
+				// Increment the directory tree size.
+				$this->_dirTreeBytes += strlen(json_encode($dlpop));
 				
 				// Disable the tree if it's too large.
-				if ($this->_dirLookupSize > $this->_maxTreeSize) {
+				if ($this->_dirTreeBytes > $this->_maxTreeSize) {
 					$this->_noTree = TRUE;
 				}
 			}
@@ -381,7 +381,7 @@ class Process {
 		if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Saving dir tree...\n";
 		
 		// Save the directory list.
-		if (!$this->_noTree && file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'directories' . $this->_suffix, json_encode($this->_dirLookup)) === FALSE) {
+		if (!$this->_noTree && file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'directories' . $this->_suffix, json_encode($this->_dirTree)) === FALSE) {
 			if (!is_null(_warningCallback)) call_user_func($this->_warningCallback, PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . 'directories');
 			array_push($this->_errors, array('writefail', 'directories', 'directories'));
 		}
@@ -449,21 +449,20 @@ class Process {
 		
 		// Add this directory to the directory tree (if it's not being skipped).
 		if (!$this->_noTree) {
-			// Add the directory to the hash lookup.
-			$this->_dirLookup[$hash] = array(
+			$this->_dirTree[$hash] = array(
 				'name' => &$newDir['name'], //TODO: remove ref? was here in case name was changed when header was processed.
 				'totalbytes' => &$newDir['totalbytes'],
 				'totalnum' => &$newDir['totalnum'],
 				'subdirs' => array()
 			);
 
-			// Add this directory to its parent (if one exists).
-			if (count($this->_dirLookupStack) > 0) {
-				array_push($this->_dirLookupStack[count($this->_dirLookupStack)-1]['subdirs'], $hash);
+			// Add this directory's hash to its parent tree node (if one exists).
+			if (count($this->_dirTreeStack) > 0) {
+				array_push($this->_dirTreeStack[count($this->_dirTreeStack)-1]['subdirs'], $hash);
 			}
 
-			// Add the directory to the lookup stack.
-			$this->_dirLookupStack[] = &$this->_dirLookup[$hash];
+			// Add the directory to the tree stack.
+			$this->_dirTreeStack[] = &$this->_dirTree[$hash];
 		}
 		
 		// Increment the subdirs count for parent directories.
