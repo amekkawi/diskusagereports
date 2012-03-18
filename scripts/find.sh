@@ -11,7 +11,7 @@ export TZ=UTC
 function syntax() {
 	[ "$*" != "" ] && echo "$*" 1>&2
 	echo "Syntax: $0 [OPTIONS] <directory-to-list>" 1>&2
-	echo "Use -h for full help." 1>&2
+	echo "Use -h for full help or visit diskusagereports.com/docs." 1>&2
 	exit 1
 }
 
@@ -26,6 +26,8 @@ The OPTIONS are:
       -d <delim>
       The field delimiter for each line in the output.
       The default is the NULL character.
+
+See also: diskusagereports.com/docs
 "
 	exit 1
 }

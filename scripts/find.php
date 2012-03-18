@@ -31,7 +31,7 @@ $find = new Find();
 $directory = NULL;
 
 $cliargs = array_slice($_SERVER['argv'], 1);
-$syntax = "Syntax: php find.php [OPTIONS] <directory-to-scan>\nUse -h for full help.\n";
+$syntax = "Syntax: php find.php [OPTIONS] <directory-to-scan>\nUse -h for full help or visit diskusagereports.com/docs.\n";
 
 $syntax_long = <<<EOT
 Syntax: php find.php [OPTIONS] <directory-to-scan>
@@ -48,6 +48,8 @@ The OPTIONS are:
       -ds <directoryseparator>
       The directory separator used between directory names.
       The default is the directory separator for the operating system.
+
+See also: diskusagereports.com/docs
 
 
 EOT;
