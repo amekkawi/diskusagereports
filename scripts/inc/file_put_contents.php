@@ -4,7 +4,7 @@
  * From Pear's PHP Compat <http://pear.php.net/package/PHP_Compat/>
  * Copyright: 2004-2007 Aidan Lister <aidan@php.net>, Arpad Ray <arpad@php.net>
  * 
- * Version: $Version$
+ * Version: $Source Version$
  */
 
 if (!defined('FILE_USE_INCLUDE_PATH')) {
