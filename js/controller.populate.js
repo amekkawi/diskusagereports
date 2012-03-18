@@ -8,7 +8,7 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
-;(function($){
+;(function($, undefined){
 
 $.extend(Controller.prototype, {
 	
@@ -56,7 +56,7 @@ $.extend(Controller.prototype, {
 				$('#DirSummary').html(summary);
 				
 				$('#Sections')
-					.removeClass('totals-sortedby-label totals-sortedby-byte totals-sortedby-num files-sortedby-name files-sortedby-type files-sortedby-size files-sortedby-modified top100-sortedby-name top100-sortedby-type top100-sortedby-size top100-sortedby-modified top100-sortedby-path')
+					.removeClass('totals-sortedby-label totals-sortedby-byte totals-sortedby-num totals-sortedby-subdirs files-sortedby-name files-sortedby-type files-sortedby-size files-sortedby-modified top100-sortedby-name top100-sortedby-type top100-sortedby-size top100-sortedby-modified top100-sortedby-path')
 					.addClass('totals-sortedby-' + this.options.totalsSortBy + ' files-sortedby-' + this.options.filesSortBy + ' top100-sortedby-' + this.options.top100SortBy)
 					[(this.options.totalsSortRev ? 'add' : 'remove') + 'Class']('totals-sortrev')
 					[(this.options.filesSortRev ? 'add' : 'remove') + 'Class']('files-sortrev')
@@ -109,7 +109,7 @@ $.extend(Controller.prototype, {
 		$('> div', this._sections).hide();
 		
 		var subdirs = this._data.subdirs.slice(0);
-		subdirs.push({ isfiles: true, totalbytes: this._data.bytes, totalnum: this._data.num });
+		subdirs.push({ isfiles: true, totalbytes: this._data.bytes, totalnum: this._data.num, totalsubdirs: $.isUndefined(this._data.totalsubdirs) ? undefined: this._data.subdirs.length });
 		
 		if (parseInt(this._data.totalnum) == 0 && this._data.subdirs.length == 0) {
 			$('#Section_Message').html(this.translate('notice_no_files_incl_sub')).show();
@@ -127,6 +127,8 @@ $.extend(Controller.prototype, {
 						return parseInt(data.totalbytes);
 					case 'num':
 						return parseInt(data.totalnum);
+					case 'subdirs':
+						return parseInt(data.totalsubdirs);
 				}
 			}, true);
 			this._subdirsSection.show();
@@ -231,27 +233,33 @@ $.extend(Controller.prototype, {
 	
 	_displayTotalsTable: function(table, data, getValue, htmlLabel) {
 		
-		var self = this;
-		var tbody = $('> tbody', table);
-		var tfoot = $('> tfoot', table);
+		var self = this,
+			thead = $('> thead', table),
+			tbody = $('> tbody', table),
+			tfoot = $('> tfoot', table);
+		
+		$('th:eq(3)', thead)[$.isUndefined(this._data.totalsubdirs) ? 'hide' : 'show']();
 		
 		tbody.empty();
 		
-		var totalBytes = 0;
-		var totalNum = 0;
-		
-		var rows = [];
+		var totalBytes = 0,
+			totalNum = 0,
+			rows = [];
 		
 		for (var key in data) {
-			var label = getValue(data[key], 'label', key);
-			var sortValue = sortLabel = getValue(data[key], 'sortlabel', key);
-			var bytes = getValue(data[key], 'bytes', key);
-			var num = getValue(data[key], 'num', key);
+			var label = getValue(data[key], 'label', key),
+				sortValue = sortLabel = getValue(data[key], 'sortlabel', key),
+				bytes = getValue(data[key], 'bytes', key),
+				num = getValue(data[key], 'num', key),
+				subdirs = $.isUndefined(data[key].totalsubdirs) ? null : getValue(data[key], 'subdirs', key);
 			
 			totalBytes += parseInt(bytes);
 			totalNum += parseInt(num);
 			
 			switch (this.options.totalsSortBy) {
+				case 'subdirs':
+					sortValue = parseInt(subdirs);
+					break;
 				case 'byte':
 					sortValue = parseInt(bytes);
 					break;
@@ -260,21 +268,27 @@ $.extend(Controller.prototype, {
 					break;
 			}
 			
-			var html = '';
+			var html = '<td class="totals-col-label">' + (htmlLabel ? label : label.htmlencode()) + '</td>';
 			
-			html += '<td class="totals-col-label">' + (htmlLabel ? label : label.htmlencode()) + '</td>';
-			
-			var bytePerCent = parseInt(10000 * parseInt(bytes) / Math.max(1, parseInt(this._data.totalbytes))) / 100;
-			var byteColorIndex = Math.max(1, Math.floor(this.gradient.length * bytePerCent / 100)) - 1;
+			var bytePerCent = parseInt(10000 * parseInt(bytes) / Math.max(1, parseInt(this._data.totalbytes))) / 100,
+				byteColorIndex = Math.max(1, Math.floor(this.gradient.length * bytePerCent / 100)) - 1;
 			html += '<td class="totals-col-byte" align="right">' + FormatBytes(bytes) + '</td>';
 			html += '<td class="totals-col-byte" align="right">' + bytePerCent.toFixed(2) + '%' + '</td>';
 			html += '<td class="totals-col-byte"><div class="percentbar"><div style="width: '+ bytePerCent +'%; background-color: #' + this.gradient[byteColorIndex] + ';">&nbsp;</div></div></td>';
 			
-			var numPerCent = parseInt(10000 * parseInt(num) / Math.max(1, parseInt(this._data.totalnum))) / 100;
-			var numColorIndex = Math.max(1, Math.floor(this.gradient.length * numPerCent / 100)) - 1;
+			var numPerCent = parseInt(10000 * parseInt(num) / Math.max(1, parseInt(this._data.totalnum))) / 100,
+				numColorIndex = Math.max(1, Math.floor(this.gradient.length * numPerCent / 100)) - 1;
 			html += '<td class="totals-col-num" align="right">' + AddCommas(num) + '</td>';
 			html += '<td class="totals-col-num" align="right">' + numPerCent.toFixed(2) + '%' + '</td>';
 			html += '<td class="totals-col-num"><div class="percentbar"><div style="width: '+ numPerCent +'%; background-color: #' + this.gradient[numColorIndex] + ';">&nbsp;</div></div></td>';
+			
+			if (subdirs != null) {
+				var subdirsPerCent = parseInt(10000 * parseInt(subdirs) / Math.max(1, parseInt(this._data.totalsubdirs))) / 100,
+					subdirsColorIndex = Math.max(1, Math.floor(this.gradient.length * subdirsPerCent / 100)) - 1;
+				html += '<td class="totals-col-subdirs" align="right">' + AddCommas(subdirs) + '</td>';
+				html += '<td class="totals-col-subdirs" align="right">' + subdirsPerCent.toFixed(2) + '%' + '</td>';
+				html += '<td class="totals-col-subdirs"><div class="percentbar"><div style="width: '+ subdirsPerCent +'%; background-color: #' + this.gradient[subdirsColorIndex] + ';">&nbsp;</div></div></td>';
+			}
 			
 			var index = BinarySearch(rows, [ sortValue, sortLabel ], function(needle, item, index) {
 				var modifier = self.options.totalsSortRev ? -1 : 1;
@@ -294,6 +308,7 @@ $.extend(Controller.prototype, {
 			else {
 				rows.splice(index, 0, [sortValue, sortLabel, html]);
 			}
+			console.log([this.options.totalsSortBy, sortValue, sortLabel]);
 		}
 		
 		// Determine the rows that will be shown (if not all of them).
@@ -316,6 +331,11 @@ $.extend(Controller.prototype, {
 		// Add the totals to the footer.
 		$('td:eq(1)', tfoot).text(FormatBytes(totalBytes) + ' (' + AddCommas(totalBytes) + ')');
 		$('td:eq(2)', tfoot).text(AddCommas(totalNum));
+		
+		if ($.isUndefined(this._data.totalsubdirs))
+			$('td:eq(3)', tfoot).hide();
+		else
+			$('td:eq(3)', tfoot).show().text(AddCommas(this._data.totalsubdirs));
 	},
 	
 	_displayPager: function(length) {

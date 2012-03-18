@@ -280,6 +280,7 @@ $.extend(Controller.prototype, {
 			$('#SubDirs > thead .totals-sortby-label span').html(this.translate('contents_header_name'));
 			$('#SubDirs > thead .totals-sortby-byte span').html(this.translate('contents_header_total_size'));
 			$('#SubDirs > thead .totals-sortby-num span').html(this.translate('contents_header_file_count'));
+			$('#SubDirs > thead .totals-sortby-subdirs span').html(this.translate('contents_header_subdirs'));
 			$('#SubDirs > tfoot td:eq(0)').html(this.translate('table_footer_total'));
 			
 			$('#Files-SortBy-name span').html(this.translate('file_list_header_name'));

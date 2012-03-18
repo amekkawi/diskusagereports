@@ -74,8 +74,9 @@
 	"contents_header_name": "Name",
 	"contents_header_total_size": "Total Size",
 	"contents_header_file_count": "File Count",
+	"contents_header_subdirs": "Sub Directories",
 	
-	"contents_files_in_this_directory": "Files in this directory",
+	"contents_files_in_this_directory": "In this directory",
 	
 	"file_list_header_name": "Name",
 	"file_list_header_type": "Type",

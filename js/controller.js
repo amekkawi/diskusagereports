@@ -280,7 +280,7 @@ $.extend(Controller.prototype, {
 		if (location.s && location.s.match(/^(subdirs|files|modified|types|sizes|top100)$/i)) {
 			opts.section = location.s.toLowerCase();
 		}
-		if (location.tsb && location.tsb.match(/^(label|byte|num)$/)) {
+		if (location.tsb && location.tsb.match(/^(label|byte|num|subdirs)$/)) {
 			opts.totalsSortBy = location.tsb;
 		}
 		if (location.tsr && location.tsr.match(/^[01]$/)) {

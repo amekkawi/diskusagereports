@@ -453,6 +453,9 @@ $.extend(Controller.prototype, {
 		$('#Sections .totals-sortby-num').disableTextSelection().click(function() {
 			self.setOptions({ page: 1, totalsSortBy: 'num', totalsSortRev: self.options.totalsSortBy == 'num' ? !self.options.totalsSortRev : true });
 		});
+		$('#Sections .totals-sortby-subdirs').disableTextSelection().click(function() {
+			self.setOptions({ page: 1, totalsSortBy: 'subdirs', totalsSortRev: self.options.totalsSortBy == 'subdirs' ? !self.options.totalsSortRev : true });
+		});
 
 		$('#Files-SortBy-name').disableTextSelection().click(function() {
 			self.setOptions({ page: 1, filesSortBy: 'name', filesSortRev: self.options.filesSortBy == 'name' ? !self.options.filesSortRev : false });
