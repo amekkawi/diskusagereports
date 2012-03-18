@@ -10,12 +10,33 @@ export TZ=UTC
 
 function syntax() {
 	[ "$*" != "" ] && echo "$*" 1>&2
-	echo "Syntax: $0 [options] <directory-to-list>" 1>&2
+	echo "Syntax: $0 [OPTIONS] <directory-to-list>" 1>&2
+	echo "Use -h for full help or visit diskusagereports.com/docs." 1>&2
+	exit 1
+}
+
+function syntax_long() {
+	echo "Syntax: $0 [OPTIONS] <directory-to-list>
+
+<directory-to-scan>
+The directory that the list of sub-directories and files will be created for.
+
+The OPTIONS are:
+
+      -d <delim>
+      The field delimiter for each line in the output.
+      The default is the NULL character.
+
+See also: diskusagereports.com/docs
+"
 	exit 1
 }
 
 while (( "$#" )); do
-	if [ "$1" == '-d' ]; then
+	if [ "$1" == '-h' -o "$1" == '-?' -o "$1" == '--help' ]; then
+		syntax_long
+	
+	elif [ "$1" == '-d' ]; then
 		shift
 		[ "$delim" != "" ] && syntax "Field delimiter already set."
 		[ "$#" == "0" ] && syntax "Missing argument for -d."

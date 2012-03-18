@@ -2,7 +2,7 @@
 
 /* 
  * Copyright (c) 2011 André Mekkawi <contact@andremekkawi.com>
- * Version: $Version$
+ * Version: $Source Version$
  * 
  * LICENSE
  * 
@@ -31,7 +31,28 @@ $find = new Find();
 $directory = NULL;
 
 $cliargs = array_slice($_SERVER['argv'], 1);
-$syntax = "Syntax: php find.php [options] <directory>\nSee http://diskusagereports.com/docs for help.\n";
+$syntax = "Syntax: php find.php [OPTIONS] <directory-to-scan>\nUse -h for full help or visit diskusagereports.com/docs.\n";
+
+$syntax_long = <<<EOT
+Syntax: php find.php [OPTIONS] <directory-to-scan>
+
+<directory-to-scan>
+The directory that the list of sub-directories and files will be created for.
+
+The OPTIONS are:
+
+      -d <delim>
+      The field delimiter for each line in the output.
+      The default is the NULL character.
+
+      -ds <directoryseparator>
+      The directory separator used between directory names.
+      The default is the directory separator for the operating system.
+
+See also: diskusagereports.com/docs
+
+
+EOT;
 
 while (!is_null($cliarg = array_shift($cliargs))) {
 	$shifted = TRUE;
@@ -41,9 +62,8 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 		case '-?':
 		case '-h':
 		case '--help':
-			fwrite($STDERR, $syntax);
-			// TODO: Output help.
-			break;
+			fwrite($STDERR, $syntax_long);
+			exit(1);
 		/*case '-i':
 			array_push($args['include'], $shifted = array_shift($cliargs));
 			break;
@@ -73,18 +93,18 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 // ==============================
 
 if (is_null($directory)) {
-	fwrite($STDERR, "<directory> argument is missing.\n".$syntax); exit(1);
+	fwrite($STDERR, "<directory-to-scan> argument is missing.\n".$syntax); exit(1);
 }
 
 switch($ret = $find->run($directory, NULL, $STDERR)) {
 	case FIND_NOT_DIRECTORY:
-		fwrite($STDERR, "The <directory> does not exist or is not a directory.\n");
+		fwrite($STDERR, "The <directory-to-scan> does not exist or is not a directory.\n");
 		break;
 	case FIND_FAILED_RESOLVE:
-		fwrite($STDERR, "Failed to resolve <directory> to its full path. You may not have access (read and exec) to the directory or its parent directories.\n");
+		fwrite($STDERR, "Failed to resolve <directory-to-scan> to its full path. You may not have access (read and exec) to the directory or its parent directories.\n");
 		break;
 	case FIND_FAILED_STAT:
-		fwrite($STDERR, "Failed to retrieve info (via stat) on <directory>. You may not have access to the directory or its parent directories.\n");
+		fwrite($STDERR, "Failed to retrieve info (via stat) on <directory-to-scan>. You may not have access to the directory or its parent directories.\n");
 		break;
 }
 

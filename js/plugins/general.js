@@ -1,4 +1,4 @@
-// Version: $Version$
+// Version: $Source Version$
 
 // TODO: Give credit to original authors as necessary.
 

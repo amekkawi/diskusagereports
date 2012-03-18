@@ -2,7 +2,7 @@
 
 /* 
  * Copyright (c) 2011 André Mekkawi <contact@andremekkawi.com>
- * Version: $Version$
+ * Version: $Source Version$
  * 
  * LICENSE
  * 
@@ -98,7 +98,70 @@ $args = array(
 if (DEBUG) echo "Processing command line arguments...\n";
 
 $cliargs = array_slice($_SERVER['argv'], 1);
-$syntax = "Syntax: php process.php [options] <reportdir> [<filelist>]\nSee http://diskusagereports.com/docs/ for help.\n";
+$syntax = "Syntax: php process.php [OPTIONS] <report-directory> [<filelist>]\nUse -h for full help or visit diskusagereports.com/docs.\n";
+
+$syntax_long = <<<EOT
+process.php [OPTIONS] <report-directory> [<filelist>]
+
+<report-directory>
+The directory where the report files will be saved. This should point to a
+directory under the 'data' directory.
+Examples: /var/www/html/diskusage/data/myreport
+          C:\Inetpub\wwwroot\diskusage\data\myreport
+
+<filelist>
+The file that was created during step 1. If you ommit this, process.php will
+attempt to read the file list from STDIN.
+
+The OPTIONS are:
+
+      -d <delim>
+      The field delimiter that each line of the filelist will be split using.
+      The default is the NULL character.
+
+      -ds <directoryseparator>
+      Specify the directory separator used in the file list. This is useful
+      if the list from step 1 was generated on a different operating system
+      which uses a different directory separator. For example, Windows uses
+      a backslash (\) while Linux/BSD/Mac/etc systems use a forward slash (/).
+      The default is the directory separator for the operating system
+      processing the report.
+
+      -l <num>
+      Lines in the report that are longer than <num> will not be processed.
+      This is just a failsafe to prevent the script from processing a list
+      file that is not formatted properly. The default is 1024.
+
+      -n <reportname>
+      This text will display in the header of the report.
+
+      -nt
+      Disable the directory tree that appears on the left side of the report.
+      This is useful when the directory being reported on has a large number
+      of sub directories, causing the directory list to be too large for the
+      browser to handle.
+
+      -t <num>
+      Limit the "File Sizes", "Modified", and "File Types" totals to only
+      <num> directories deep in the report. This is useful if the directory
+      being reported on has many files, which can cause the report to take a
+      long time to generate. For example, if this is set to 3 the directory
+      ./a, ./a/b and ./a/b/c will have these totals available, but ./a/b/c/d
+      will not. The default is 6.
+
+      -tz <timezone>
+      Set the report timezone. These are the same timezones as
+      http://php.net/manual/en/timezones.php. The default is the system's
+      timezone (if it can be determined).
+
+      -td <num>
+      Similar to -t but instead limits the "Top 100" list to only <num>
+      directories deep in the report. This is useful if the directory being
+      reported on has many files, which can cause the report to take a long
+      time to generate. The default is 3.
+
+
+EOT;
 
 // Process command line arguments.
 while (!is_null($cliarg = array_shift($cliargs))) {
@@ -109,9 +172,8 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 		case '-?':
 		case '-h':
 		case '--help':
-			echo $syntax;
-			// TODO: Output help.
-			break;
+			echo $syntax_long;
+			exit(1);
 		case '-tz':
 			$args['timezone'] = $shifted = array_shift($cliargs);
 			break;

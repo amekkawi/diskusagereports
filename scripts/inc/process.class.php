@@ -2,7 +2,7 @@
 
 /* 
  * Copyright (c) 2011 André Mekkawi <contact@andremekkawi.com>
- * Version: $Version$
+ * Version: $Source Version$
  * 
  * LICENSE
  * 
