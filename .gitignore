@@ -1,0 +1,5 @@
+/Release
+/Debug
+/*.opensdf
+/*.sdf
+!/.gitignore
