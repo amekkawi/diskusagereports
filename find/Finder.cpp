@@ -1,6 +1,5 @@
 /* 
  * Copyright (c) 2011 André Mekkawi <contact@andremekkawi.com>
- * Revision: $Revision$
  * 
  * LICENSE
  * 
@@ -14,12 +13,6 @@
 #include <algorithm>
 
 using namespace std;
-
-//const char* CFINDER_VERSION = "$Revision$";
-
-char* CFinder::Version(void) {
-	return "$Revision$";
-}
 
 CFinder::CFinder(void) {
 	ds = '\\';
