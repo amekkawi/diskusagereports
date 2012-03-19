@@ -89,10 +89,9 @@ $processor = new Process();
 
 if (DEBUG) echo "Setting timezone...\n";
 
-// Default arguments (most arguments are stored within $processor.
+// Default arguments (most arguments are stored within $processor)
 $args = array(
 	'timezone' => function_exists('date_default_timezone_get') ? @date_default_timezone_get() : 'America/New_York',
-	'verbose' => PROCESS_VERBOSE_NORMAL
 );
 
 if (DEBUG) echo "Processing command line arguments...\n";
@@ -101,7 +100,7 @@ $cliargs = array_slice($_SERVER['argv'], 1);
 $syntax = "Syntax: php process.php [OPTIONS] <report-directory> [<filelist>]\nUse -h for full help or visit diskusagereports.com/docs.\n";
 
 $syntax_long = <<<EOT
-process.php [OPTIONS] <report-directory> [<filelist>]
+Syntax: php process.php [OPTIONS] <report-directory> [<filelist>]
 
 <report-directory>
 The directory where the report files will be saved. This should point to a
@@ -110,8 +109,8 @@ Examples: /var/www/html/diskusage/data/myreport
           C:\Inetpub\wwwroot\diskusage\data\myreport
 
 <filelist>
-The file that was created during step 1. If you ommit this, process.php will
-attempt to read the file list from STDIN.
+The file that was created using one of the 'find' scripts (e.g. find.php).
+If you ommit this, process.php will attempt to read the file list from STDIN.
 
 The OPTIONS are:
 
@@ -127,20 +126,35 @@ The OPTIONS are:
       The default is the directory separator for the operating system
       processing the report.
 
+      -fp
+      Display the full path of the directories in the report. This is off by
+      default since it could potentially pose a security risk.
+
       -l <num>
       Lines in the report that are longer than <num> will not be processed.
       This is just a failsafe to prevent the script from processing a list
       file that is not formatted properly. The default is 1024.
+
+      -mt <bytes>
+      The maximum number of bytes that the 'directory tree' file can be.
+      The default is 819200. If the 'directory tree' file gets larger than
+      this number, then the script will act as if -nt had been specified.
 
       -n <reportname>
       This text will display in the header of the report.
 
       -nt
       Disable the directory tree that appears on the left side of the report.
-      This is useful when the directory being reported on has a large number
-      of sub directories, causing the directory list to be too large for the
-      browser to handle.
+      
+      -su <suffix>
+      Set the suffix of report files. This is '.txt' by default. You must
+      also edit the 'suffix' variable in index.html to include any suffix
+      besides the default or an empty suffix.
 
+      -q
+      Do not output any text to STDOUT. The script will return a non-zero
+      if it fails.
+      
       -t <num>
       Limit the "File Sizes", "Modified", and "File Types" totals to only
       <num> directories deep in the report. This is useful if the directory
@@ -149,16 +163,37 @@ The OPTIONS are:
       ./a, ./a/b and ./a/b/c will have these totals available, but ./a/b/c/d
       will not. The default is 6.
 
-      -tz <timezone>
-      Set the report timezone. These are the same timezones as
-      http://php.net/manual/en/timezones.php. The default is the system's
-      timezone (if it can be determined).
-
       -td <num>
       Similar to -t but instead limits the "Top 100" list to only <num>
       directories deep in the report. This is useful if the directory being
       reported on has many files, which can cause the report to take a long
       time to generate. The default is 3.
+
+      -tz <timezone>
+      Set the report timezone. These are the same timezones as
+      http://php.net/manual/en/timezones.php. The default is the system's
+      timezone (if it can be determined).
+      
+      -v
+      Output additional information as the script executes.
+      
+      -vv
+      Output more information than -v.
+      
+Notes:
+
+      o All OPTIONS must be before <report-directory>.
+      
+      o You should set the -tz option as trying to determine the system's
+        timezone is unreliable.
+        
+      o You may execute process.php on a separate server than the 'find'
+        script if you are worried about it using CPU time.
+        
+      o The directory separator used in <filelist> must be a forward slash
+        if this script is executed on a *nix system.
+
+See also: diskusagereports.com/docs
 
 
 EOT;
@@ -234,7 +269,7 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 
 // Make sure the <reportdir> was set.
 if (is_null($processor->getReportDir())) {
-	echo "<reportdir> argument is missing\n".$syntax;
+	if ($processor->getVerboseLevel() != PROCESS_VERBOSE_QUIET) echo "<reportdir> argument is missing\n".$syntax;
 	exit(1);
 }
 
@@ -245,13 +280,13 @@ if (is_null($processor->getFileList())) {
 
 // Otherwise, make sure the <filelist> exists.
 elseif (!is_file($processor->getFileList())) {
-	echo "The <filelist> '" . $processor->getFileList() . "' does not exist or is not a file.\n";
+	if ($processor->getVerboseLevel() != PROCESS_VERBOSE_QUIET) echo "The <filelist> '" . $processor->getFileList() . "' does not exist or is not a file.\n";
 	exit(1);
 }
 
 // Set the timezone.
 if (!(function_exists("date_default_timezone_set") ? @(date_default_timezone_set($args['timezone'])) : @(putenv("TZ=".$args['timezone'])))) {
-	echo "'timezone' config was set to an invalid identifier.";
+	if ($processor->getVerboseLevel() != PROCESS_VERBOSE_QUIET) echo "'timezone' config was set to an invalid identifier.\n";
 	exit(1);
 }
 
@@ -267,7 +302,7 @@ function WarningHandler() {
 	$error = array_shift($args);
 	
 	if ($args[0] == PROCESS_WARN_WRITEFAIL) {
-		if ($args['verbose'] != PROCESS_VERBOSE_QUIET) echo 'Failed to write: ' . $args[1] . (isset($args[2]) ? ' for ' . $args[2] : '') . "\n";
+		if ($processor->getVerboseLevel() != PROCESS_VERBOSE_QUIET) echo 'Failed to write: ' . $args[1] . (isset($args[2]) ? ' for ' . $args[2] : '') . "\n";
 	}
 }
 
@@ -275,25 +310,28 @@ $processor->setSizeGroups($sizeGroups);
 $processor->setModifiedGroups($modifiedGroups);
 $processor->setWarningCallback('WarningHandler');
 
-switch ($ret = $processor->run()) {
-	case PROCESS_FAILED_OPEN_FILELIST:
-		echo "The <filelist> could not be opened.\n";
-		break;
-	case PROCESS_INVALID_REPORTDIR:
-		echo "The <reportdir> already exists and is not a directory.\n";
-		break;
-	case PROCESS_INVALID_HEADER:
-		echo "The header line in the <filelist> is invalid.\n";
-		break;
-	case PROCESS_FAILED_REPORTDIR_MKDIR:
-		echo "The <reportdir> could not be created.\n";
-		break;
-	case PROCESS_INVALID_CHARACTERS:
-		echo "<filelist> contains characters that are not UTF-8, Windows-1252 or ISO-8859-1.\n";
-		break;
-	case PROCESS_UNEXPECTED_HEADER:
-		echo "<filelist> contains a header line in an unexpected locatoin. It must always be the first non-error line in the file.";
-		break;
+$ret = $processor->run();
+if ($processor->getVerboseLevel() != PROCESS_VERBOSE_QUIET) {
+	switch ($ret) {
+		case PROCESS_FAILED_OPEN_FILELIST:
+			echo "The <filelist> could not be opened.\n";
+			break;
+		case PROCESS_INVALID_REPORTDIR:
+			echo "The <reportdir> already exists and is not a directory.\n";
+			break;
+		case PROCESS_INVALID_HEADER:
+			echo "The header line in the <filelist> is invalid.\n";
+			break;
+		case PROCESS_FAILED_REPORTDIR_MKDIR:
+			echo "The <reportdir> could not be created.\n";
+			break;
+		case PROCESS_INVALID_CHARACTERS:
+			echo "<filelist> contains characters that are not UTF-8, Windows-1252 or ISO-8859-1.\n";
+			break;
+		case PROCESS_UNEXPECTED_HEADER:
+			echo "<filelist> contains a header line in an unexpected locatoin. It must always be the first non-error line in the file.";
+			break;
+	}
 }
 
 exit($ret);
