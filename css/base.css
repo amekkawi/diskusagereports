@@ -4,7 +4,8 @@ body {
 	background-color: #F5F5F5;
 }
 #Hero {
-	padding-left: 50px;
+	padding: 50px;
+	padding-left: 60px;
 	margin-bottom: 10px;
 	background-color: #FFF;
 	
@@ -15,7 +16,7 @@ body {
 	border-color: rgba(0, 0, 0, 0.1);
 	
 	background-color: #343434;
-	background-image: url(http://diskusagereports.com/images/template/background.gif);
+	background-image: url(../images/hero-bg.png);
 	background-position: top left;
 	background-repeat: repeat-x;
 	color: white;
@@ -39,4 +40,18 @@ body {
 }
 footer {
 	padding-left: 20px;
+}
+
+hr {
+	border-top: 1px solid #CCC;
+}
+
+.features h2 {
+	font-size: 22px;
+	font-weight: 300;
+}
+.features h2 img {
+	float: left;
+	margin: 7px 10px 0 0;
+	opacity: .7;
 }
