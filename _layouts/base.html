@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>{% if page.title %}{{ page.title }} | Disk Usage Reports{% else %}Disk Usage Reports: A web-based way to view disk usage{% endif %}</title>
+		<link rel="shortcut icon" href="{{ page.basepath }}images/favicon.png" type="image/png">
+		<link href="{{ page.basepath }}css/bootstrap.css" type="text/css" rel="stylesheet">
+		<link href="{{ page.basepath }}css/base.css" type="text/css" rel="stylesheet">
+		<!--[if lt IE 9]>
+			<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+		<div class="container">
+			
+			<header>
+				<div class="hero">
+					<h1>Disk Usage Reports</h1>
+					<p class="hero-tag">A web-based way to remotely view disk usage.</p>
+					{% if page.activepage == 'home' %}
+					<p class="hero-buttons">
+						<a href="{{ page.basepath }}download-latest.html" class="btn btn-primary btn-large">Download Latest <small>(v1.0.2)</small></a>
+						<span class="hide"> or </span>
+						<a href="https://github.com/amekkawi/diskusagereports" target="_blank" class="btn btn-large btn-success">Fork on Github &raquo;</a>
+					</p>
+					{% endif %}
+				</div>
+				<nav>
+					<ul>
+						<li><a href="{{ page.basepath }}" class="{% if page.activepage == 'home' %}active{% endif %}">Home</a></li>
+						<li><a href="{{ page.basepath }}demo/" class="{% if page.activepage == 'demo' %}active{% endif %}">Demo</a></li>
+						<li><a href="{{ page.basepath }}docs/" class="{% if page.activepage == 'docs' %}active{% endif %}">Documentation</a></li>
+						<li><a href="{{ page.basepath }}download.html" class="{% if page.activepage == 'downloads' %}active{% endif %}">Downloads</a></li>
+						<li><a href="{{ page.basepath }}help/" class="{% if page.activepage == 'help' %}active{% endif %}">Get Help</a></li>
+						<li><a href="{{ page.basepath }}license.html" class="{% if page.activepage == 'license' %}active{% endif %}">License</a></li>
+						<li class="{% if page.activepage == 'home' %}hide{% endif %}"><a href="https://github.com/amekkawi/diskusagereports" target="_blank" class="{% if page.activepage == 'github' %}active{% endif %}">Fork on Github &raquo;</a></li>
+					</ul>
+				</nav>
+			</header>
+			
+			{{ content }}
+
+			<hr style="margin-top: 0;">
+
+			<footer>
+				<p>&copy; 2012 André Mekkawi - Available under an <a href="{{ page.basepath }}license.html">MIT License</a></p>
+			</footer>
+
+		</div>
+
+	</body>
+</html>

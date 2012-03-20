@@ -1,128 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<title>Disk Usage Reports: A web-based way to view disk usage</title>
-		<link rel="shortcut icon" href="images/favicon.png" type="image/png">
-		<link href="http://twitter.github.com/bootstrap/assets/css/bootstrap.css" type="text/css" rel="stylesheet">
-		<link href="css/base.css" type="text/css" rel="stylesheet">
-		
-		<!--[if lt IE 9]>
-			<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
-		<![endif]-->
-	</head>
+---
+layout: base
+activepage: home
+---
 
-	<body>
-		<div class="container">
+<div id="Features">
+	<div class="row">
+		<div class="span4">
+			<h2><img src="images/glyphicons_043_group.png"> Designed for Admins</h2>
+			<p>Managing your disk usage can be hard, especially when you're hosting someone else's files. We know this well and built a tool to fit that need.</p>
+		</div>
+		<div class="span4">
+			<h2><img src="images/glyphicons_289_podium.png"> Secure by Simplicity</h2>
+			<p>The more complex things get, the more insecure they become. Reports are completely static, so there is no chance of server-side vulnerabilities.</p>
+		</div>
+		<div class="span4">
+			<h2><img src="images/glyphicons_160_imac.png"> Cross Platform +</h2>
+			<p>Built for portability using PHP 4.3+. But sometimes speed is everything, so we built platform-specific scripts as well.</p>
+		</div>
+	</div>
+	<div class="row">
+		<div class="span4">
+			<h2><img src="images/glyphicons_319_sort.png"> Reports Stored as JSON</h2>
+			<p>Reports are kept as small as possible by storing the data as JSON, and using a single web UI to view them all.</p>
+		</div>
+		<div class="span4">
+			<h2><img src="images/glyphicons_012_heart.png"> Open Source</h2>
+			<p><a href="https://github.com/amekkawi/diskusagereports">Fork on GitHub</a> to customize it to fit your needs, and share your changes with the community!</p>
+		</div>
+		<div class="span4">
+			<h2><img src="images/glyphicons_214_resize_small.png"> Centralize It</h2>
+			<p>No need to waste CPU time on your servers. Scanning and report generation are separted to allow you offload the heavy work elsewhere.</p>
+		</div>
+	</div>
+</div>
 
-			<div id="Hero" class="hero-unit">
-				<div id="HeroIcon">
-					<h1>Disk Usage Reports</h1>
-					<p id="HeroTag">A web-based way to remotely view disk usage.</p>
-					<p>
-						<a href="https://sourceforge.net/projects/diskusagereport/files/latest/download" class="btn btn-primary btn-large">Download <small>(v1.0.2)</small></a>
-						<span class="hide"> or </span>
-						<a href="https://github.com/amekkawi/diskusagereports" class="btn btn-large btn-success">Watch on Github &raquo;</a>
-					</p>
-				</div>
-			</div>
-			
-			<!--
-			Designed for Admins
-			Cross-Platform
-			Keeping It Simple (no server-side code or database)
-			Reports Stored as JSON
-			Centralize It
-			Open Source
-			-->
-			
-			<!--<div class="row">
-				<div class="span8 features">
-					<div class="row">
-						<div class="span4">
-							<h2><img src="images/glyphicons_043_group.png"> Designed for Admins</h2>
-							<p>Managing your disk space can be hard, especially when you are working remotely.</p>
-						</div>
-						<div class="span4">
-							<h2><img src="images/glyphicons_160_imac.png"> Cross Platform</h2>
-							<p>A web-based way to view disk usage on remote computers or servers.</p>
-						</div>
-					</div>
-					<div class="row">
-						<div class="span4">
-							<h2><img src="images/glyphicons_289_podium.png"> Keeping It Simple</h2>
-							<p>Managing your disk space can be hard, especially when you are working remotely.</p>
-						</div>
-						<div class="span4">
-							<h2><img src="images/glyphicons_319_sort.png"> Reports Stored as JSON</h2>
-							<p>A web-based way to view disk usage on remote computers or servers.</p>
-						</div>
-					</div>
-					<div class="row">
-						<div class="span4">
-							<h2><img src="images/glyphicons_012_heart.png"> Open Source</h2>
-							<p>Managing your disk space can be hard, especially when you are working remotely.</p>
-						</div>
-						<div class="span4">
-							<h2><img src="images/glyphicons_214_resize_small.png"> Centralize It</h2>
-							<p>A web-based way to view disk usage on remote computers or servers.</p>
-						</div>
-					</div>
-					
-				</div>
-				<div class="span4">
-					<ul class="thumbnails">
-						<li class="span4"><a href="#" class="thumbnail"><img src="http://placehold.it/360x268" alt=""></a></li>
-					</u>
-				</div>
-			</div>-->
-			
-			<div class="row features">
-				<div class="span4">
-					<h2><img src="images/glyphicons_043_group.png"> Designed for Admins</h2>
-					<p>Managing your disk usage can be hard, especially when you're hosting someone else's files. We know this well and built a tool to fit that need.</p>
-				</div>
-				<div class="span4">
-					<h2><img src="images/glyphicons_289_podium.png"> Secure by Simplicity</h2>
-					<p>The more complex things get, the more insecure they become. Reports are completely static, so there is no chance of server-side vulnerabilities.</p>
-				</div>
-				<div class="span4">
-					<h2><img src="images/glyphicons_160_imac.png"> Cross Platform +</h2>
-					<p>Built for portability using PHP 4.3+. But sometimes speed is everything, so we built platform-specific scripts as well.</p>
-				</div>
-			</div>
-			<div class="row features">
-				<div class="span4">
-					<h2><img src="images/glyphicons_319_sort.png"> Reports Stored as JSON</h2>
-					<p>Reports are kept as small as possible by storing the data as JSON, and using a single web UI to view them all.</p>
-				</div>
-				<div class="span4">
-					<h2><img src="images/glyphicons_012_heart.png"> Open Source</h2>
-					<p><a href="https://github.com/amekkawi/diskusagereports">Fork on GitHub</a> to customize it to fit your needs, and share your changes with the community!</p>
-				</div>
-				<div class="span4">
-					<h2><img src="images/glyphicons_214_resize_small.png"> Centralize It</h2>
-					<p>No need to waste CPU time on your servers. Scanning and report generation are separted to allow you offload the heavy work elsewhere.</p>
-				</div>
-			</div>
-
-			<div class="row">
-				<div class="span12">
-					<ul class="thumbnails">
-						<li class="span4"><a href="images/screenshot1.jpg" class="thumbnail"><img src="images/screenshot1.jpg" alt=""></a></li>
-						<li class="span4"><a href="images/screenshot3.jpg" class="thumbnail"><img src="images/screenshot3.jpg" alt=""></a></li>
-						<li class="span4"><a href="images/screenshot4.jpg" class="thumbnail"><img src="images/screenshot4.jpg" alt=""></a></li>
-					</u>
-				</div>
-			</div>
-
-			<hr style="margin-top: 0">
-
-			<footer>
-				<p>&copy; 2012 André Mekkawi - Available under an <a href="license.html">MIT License</a></p>
-			</footer>
-
-		</div> <!-- /container -->
-
-	</body>
-</html>
+<ul id="Thumbnails" class="thumbnails">
+	<li class="span4"><a href="images/screenshot1.jpg" class="thumbnail"><img src="images/screenshot1.jpg" alt=""></a></li>
+	<li class="span4"><a href="images/screenshot3.jpg" class="thumbnail"><img src="images/screenshot3.jpg" alt=""></a></li>
+	<li class="span4"><a href="images/screenshot4.jpg" class="thumbnail"><img src="images/screenshot4.jpg" alt=""></a></li>
+</u>

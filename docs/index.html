@@ -1,0 +1,281 @@
+---
+layout: default
+title: Documentation
+basepath: ../
+activepage: docs
+---
+<p class="toc-header">What's on this page:</p>
+<ul>
+	<li><a href="#Requirements">Requirements</a></li>
+	<li><a href="#Installation">Installation</a></li>
+	<li><a href="#Overview">Overview of Generating Reports</a></li>
+	<li><a href="#Step1">Step 1: Creating the List of Directories and Files</a></li>
+	<li><a href="#Step2">Step 2: Processing the List and Generating the Report</a></li>
+	<li><a href="#SavingReports">Where to Save Reports</a></li>
+	<li><a href="#Viewing">Viewing Reports</a></li>
+	<li><a href="#Organizing">Organizing Your Reports</a></li>
+	<li><a href="#SecuringReports">Securing Reports</a></li>
+	<li><a href="#OptionalConfig">Optional Report Settings</a></li>
+	<li><a href="#VersionNumbers">About Version Numbers</a></li>
+</ul>
+<p class="toc-header">See Also...</p>
+<ul>
+	<li><a href="../changelogs/index.html">Change Logs</a></li>
+	<li><a href="../license.html">License</a></li>
+</ul>
+<hr size="1" noshade="noshade" />
+<section>
+<h2><a name="Requirements" id="Requirements"></a>Requirements</h2>
+<div class="indent">
+<ul>
+	<li>A web server.</li>
+	<li>PHP 4+ CLI (command-line interface).<br />
+	Note: It is <em>not</em> required for the web server to be configured to execute PHP scripts.</li>
+</ul>
+</div>
+</section>
+<h2><a name="Installation" id="Installation"></a>Installation</h2>
+<div class="indent">
+<ol>
+	<li>Download the <a href="../download.html">latest version of Disk Usage Reports</a>.</li>
+	<li>Unzip the files into your Web server's public directory.
+		<table border="0" cellspacing="0" cellpadding="0" class="tree-sortedby-label" style="margin: 6px">
+			<tr>
+				<td style="padding: 6px; padding-bottom: 2px;">Linux Example:</td>
+				<td></td>
+				<td style="padding: 6px; padding-bottom: 2px;">Windows Example:</td>
+			</tr>
+			<tr>
+				<td style="border: 1px solid #cccbc6; padding: 10px 16px;"><div id="DirectoryTree" unselectable="on" style="-moz-user-select: none;" class="ui-tree"><ul class="ui-tree-rootul"><li id="ui-tree_ff2838fd76611dd12d3c71ba0264f3f7" class="ui-tree-root ui-tree-open selectedx" style=""><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">/var/www/html</span></div></div></div><ul><li id="ui-tree_ee1e1aa6fa2b20b9c1e481f3876d98fd" class="ui-tree-lastdir ui-tree-open ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">diskusage</span></div></div></div><ul><li id="ui-tree_076ede8b85a0e01ac320da663f6efd15" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">css</span></div></div></div></li><li id="ui-tree_6461c9633df1079e159e44f1198e8d17" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">data</span></div></div></div></li><li id="ui-tree_1028c4d01f6a146ed68f471bdf9a52ba" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">images</span></div></div></div></li><li id="ui-tree_7e2eac4e6a21f3e3daa26703c71c4414" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">js</span></div></div></div></li><li id="ui-tree_e54e26982ea2136cd02b9b4bad190d27" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">lang</span></div></div></div></li><li id="ui-tree_9c4f711f5734a2ca009eeaf150df61b8" class="ui-tree-lastdir ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">scripts</span></div></div></div></li><li id="ui-tree_files_ee1e1aa6fa2b20b9c1e481f3876d98fd" class="ui-tree-last ui-tree-files ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">Files in this directory</span></div></div></div></li></ul></li><li id="ui-tree_files_ff2838fd76611dd12d3c71ba0264f3f7" class="ui-tree-files ui-tree-nosubdirs ui-tree-last"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">Files in this directory</span></div></div></div></li></ul></li></ul></div></td>
+				<td style="padding-left: 10px;">&nbsp;</td>
+				<td style="border: 1px solid #cccbc6; padding: 6px 10px;"><div id="DirectoryTree" unselectable="on" style="-moz-user-select: none;" class="ui-tree"><ul class="ui-tree-rootul"><li id="ui-tree_ff2838fd76611dd12d3c71ba0264f3f7" class="ui-tree-root ui-tree-open selectedx" style=""><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">C:\Inetpub\wwwroot</span></div></div></div><ul><li id="ui-tree_ee1e1aa6fa2b20b9c1e481f3876d98fd" class="ui-tree-lastdir ui-tree-open ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">diskusage</span></div></div></div><ul><li id="ui-tree_076ede8b85a0e01ac320da663f6efd15" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">css</span></div></div></div></li><li id="ui-tree_6461c9633df1079e159e44f1198e8d17" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">data</span></div></div></div></li><li id="ui-tree_1028c4d01f6a146ed68f471bdf9a52ba" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">images</span></div></div></div></li><li id="ui-tree_7e2eac4e6a21f3e3daa26703c71c4414" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">js</span></div></div></div></li><li id="ui-tree_e54e26982ea2136cd02b9b4bad190d27" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">lang</span></div></div></div></li><li id="ui-tree_9c4f711f5734a2ca009eeaf150df61b8" class="ui-tree-lastdir ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">scripts</span></div></div></div></li><li id="ui-tree_files_ee1e1aa6fa2b20b9c1e481f3876d98fd" class="ui-tree-last ui-tree-files ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">Files in this directory</span></div></div></div></li></ul></li><li id="ui-tree_files_ff2838fd76611dd12d3c71ba0264f3f7" class="ui-tree-files ui-tree-nosubdirs ui-tree-last"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">Files in this directory</span></div></div></div></li></ul></li></ul>
+				</div></td>
+			</tr>
+		</table>
+	</li>
+	<li>If your web server executes PHP scripts, you must either secure the 'scripts' directory so it is not publicly accessible, or move the 'scripts' directory to a location on your server that is not publicly accessible.</li>
+</ol>
+</div>
+<h2><a name="Overview" id="Overview"></a>Overview of Generating Reports</h2>
+<div class="indent">
+	<p>There are two steps to generating the reports:</p>
+	<ol>
+		<li>Create a list of directories and files that are in the directory on which you wish to report.</li>
+		<li>Process the list to generate the report files.</li>
+	</ol>
+</div>
+<h2><a name="Step1" id="Step1"></a>Step 1: Creating the List of Directories and Files</h2>
+<div class="indent">
+	<p>For Linux systems, the fastest way is to use the bash script <code>scripts/find.sh</code>, which uses the GNU find command. It has the following syntax:</p>
+	<div class="indent">
+		<pre class="console">Syntax: bash find.sh [OPTIONS] &lt;directory-to-list&gt;
+
+&lt;directory-to-scan&gt;
+The directory that the list of sub-directories and files will be created for.
+
+The OPTIONS are:
+
+-d &lt;delim&gt;
+The field delimiter for each line in the output.
+The default is the NULL character.</pre>
+	</div>
+	<p>For Windows systems, the fastest way is to use the <code>scripts/find.exe</code> command. It has the following syntax:</p>
+	<div class="indent">
+		<pre class="console">Syntax: find.exe [OPTIONS] &lt;directory-to-scan&gt;
+
+&lt;directory-to-scan&gt;
+The directory that the list of sub-directories and files will be created for.
+
+The OPTIONS are:
+
+-d &lt;delim&gt;
+The field delimiter for each line in the output.
+The default is the NULL character.
+
+-ds &lt;directoryseparator&gt;
+The directory separator used between directory names.
+The default is the directory separator for the operating system.</pre>
+	</div>
+	<p>For other systems, you may use scripts/find.php. 
+		It has the following syntax:</p>
+	<div class="indent">
+	<pre class="console">Syntax: php find.php [OPTIONS] &lt;directory-to-scan&gt;
+
+&lt;directory-to-scan&gt;
+The directory that the list of sub-directories and files will be created for.
+
+The OPTIONS are:
+
+-d &lt;delim&gt;
+The field delimiter for each line in the output.
+The default is the NULL character.
+
+-ds &lt;directoryseparator&gt;
+The directory separator used between directory names.
+The default is the directory separator for the operating system.</pre>
+	</div>
+	<p>All the above scripts will output to STDOUT.</p>
+	<p>Here are some examples of their usage:</p>
+	<div class="indent">
+		<p><code>bash scripts/find.sh path/to/directory &gt; list-of-files.dat</code></p>
+		<p><code>scripts\find.exe path\to\directory &gt; list-of-files.dat</code></p>
+		<p><code>php scripts/find.php path/to/directory &gt; list-of-files.dat</code></p>
+	</div>
+	<p>Here are some examples of the OPTIONS:</p>
+	<div class="indent">
+		<p><code>bash scripts/find.sh -d &quot; &quot; path/do/directory</code></p>
+		<p>Use a space as the field delimiter in the output. This is useful if you want to visually inspect the output, since the default NULL delimiter does not display on the console.</p>
+		<p><code>scripts\find.exe -ds / path\to\directory &gt; list-of-files.dat</code></p>
+		<p>If the files are on a Windows server but you will be processing the report on a Linux computer, you must force the script to use a forward slash as a directory separator using <code>-ds</code>.</p>
+	</div>
+</div>
+<h2><a name="Step2" id="Step2"></a>Step 2: Processing the List and Generating the Report</h2>
+<div class="indent">
+	<p>Processing the output of the &quot;find&quot; scripts is done by the PHP script <code>scripts/process.php</code>. It has the following  syntax:</p>
+	<div class="indent">
+		<pre class="console">Syntax: php process.php [OPTIONS] &lt;report-directory&gt; [&lt;filelist&gt;]
+
+&lt;report-directory&gt;
+The directory where the report files will be saved. This should point to a
+directory under the 'data' directory.
+Examples: /var/www/html/diskusage/data/myreport
+  C:\Inetpub\wwwroot\diskusage\data\myreport
+
+&lt;filelist&gt;
+The file that was created using one of the 'find' scripts (e.g. find.php).
+If you ommit this, process.php will attempt to read the file list from STDIN.
+
+The OPTIONS are:
+
+-d &lt;delim&gt;
+The field delimiter that each line of the filelist will be split using.
+The default is the NULL character.
+
+-ds &lt;directoryseparator&gt;
+Specify the directory separator used in the file list. This is useful
+if the list from step 1 was generated on a different operating system
+which uses a different directory separator. For example, Windows uses
+a backslash (\) while Linux/BSD/Mac/etc systems use a forward slash (/).
+The default is the directory separator for the operating system
+processing the report.
+
+-fp
+Display the full path of the directories in the report. This is off by
+default since it could potentially pose a security risk.
+
+-l &lt;num&gt;
+Lines in the report that are longer than &lt;num&gt; will not be processed.
+This is just a failsafe to prevent the script from processing a list
+file that is not formatted properly. The default is 1024.
+
+-mt &lt;bytes&gt;
+The maximum number of bytes that the 'directory tree' file can be.
+The default is 819200. If the 'directory tree' file gets larger than
+this number, then the script will act as if -nt had been specified.
+
+-n &lt;reportname&gt;
+This text will display in the header of the report.
+
+-nt
+Disable the directory tree that appears on the left side of the report.
+
+-su &lt;suffix&gt;
+Set the suffix of report files. This is '.txt' by default. You must
+also edit the 'suffix' variable in index.html to include any suffix
+besides the default or an empty suffix.
+
+-q
+Do not output any text to STDOUT. The script will return a non-zero
+if it fails.
+
+-t &lt;num&gt;
+Limit the "File Sizes", "Modified", and "File Types" totals to only
+&lt;num&gt; directories deep in the report. This is useful if the directory
+being reported on has many files, which can cause the report to take a
+long time to generate. For example, if this is set to 3 the directory
+./a, ./a/b and ./a/b/c will have these totals available, but ./a/b/c/d
+will not. The default is 6.
+
+-td &lt;num&gt;
+Similar to -t but instead limits the "Top 100" list to only &lt;num&gt;
+directories deep in the report. This is useful if the directory being
+reported on has many files, which can cause the report to take a long
+time to generate. The default is 3.
+
+-tz &lt;timezone&gt;
+Set the report timezone. These are the same timezones as
+http://php.net/manual/en/timezones.php. The default is the system's
+timezone (if it can be determined).
+
+-v
+Output additional information as the script executes.
+
+-vv
+Output more information than -v.
+
+Notes:
+
+o All OPTIONS must be before &lt;report-directory&gt;.
+
+o You should set the -tz option as trying to determine the system's
+timezone is unreliable.
+
+o You may execute process.php on a separate server than the 'find'
+script if you are worried about it using CPU time.
+
+o The directory separator used in &lt;filelist&gt; must be a forward slash
+if this script is executed on a *nix system.</pre>
+	</div>
+</div>
+<h2><a name="SavingReports" id="SavingReports"></a>Where to Save Reports</h2>
+<div class="indent">
+	<p>By default, Disk Usage Reports will look for all reports within the <code>data</code> directory of your installation. You can change this by editing the <code>reportsBaseURL</code> variable in <code>index.html</code>.</p>
+	<p>Let's assume you installed Disk Usage Reports at <code>/var/www/html/reports</code> (or <code>C:\Inetpub\wwwroot\reports</code> for Windows).</p>
+	<p>You would want to save your reports as directories within <code>/var/www/html/reports/data</code> (or <code>C:\Inetpub\wwwroot\reports\data</code> for Windows).</p>
+	<p>Here are some examples of process.php with this in mind:</p>
+	<div class="indent">
+		<p><code>php scripts/process.php /var/www/html/reports/data/myreport list-of-files.dat</code></p>
+		<p><code>php scripts\process.php C:\Inetpub\wwwroot\reports\data\myreport list-of-files.dat</code></p>
+	</div>
+</div>
+<h2><a name="Viewing" id="Viewing"></a>Viewing Reports</h2>
+<div class="indent">
+	<p>URLs for viewing reports are in the following format:<br />
+	<code>http://hostname.com/path/to/diskusage/?reportpath</code></p>
+	<p>By default, the <code>reportpath</code> is relative to <code>http://mysite.com/path/to/diskusage/data/</code>. You can change this by editing the <code>reportsBaseURL</code> variable in <code>index.html</code>.</p>
+	<p>Let's continue the example in <a href="#SavingReports">Where to Save Reports</a> where we saved out report to <code>/var/www/html/reports/data/myreport</code> (or <code>C:\Inetpub\wwwroot\reports\data\myreport</code> on Windows).</p>
+	<p>Our URL for the report would be:<br />
+		<code>http://mysite.com/reports/?myreport</code></p>
+	<p>Which will load the report from:<br />
+		<code>http://mysite.com/reports/data/myreport/</code></p>
+</div>
+<h2><a name="Organizing" id="Organizing"></a>Organizing Your Reports</h2>
+<div class="indent">
+	<p>You can organize your reports into subdirectories as necessary.</p>
+	<p>For example, let's assume a report was created at <code>/var/www/html/reports/data/edu/mit</code> (or <code>C:\Inetpub\wwwroot\reports\data\edu\mit</code> on Windows). This report is for MIT and is organized into a directory called &quot;edu&quot;.</p>
+	<p>You would view that report by browsing to <code>http://mysite.com/reports/?edu/mit</code></p>
+	<p>You can take this a step further by creating a historical archive of reports by organizing them by date.</p>
+	<p>For example, let's assume the report was created at <code>/var/www/html/reports/data/edu/mit/2011-06</code> (or <code>C:\inetpub\wwwroot\reports\data\edu\mit\2011-06</code> on Windows).</p>
+	<p>You would view that report by browsing to <code>http://mysite.com/reports/?edu/mit/2011-06</code></p>
+</div>
+<h2><a name="SecuringReports" id="SecuringReports"></a>Securing Reports</h2>
+<div class="indent">
+	<p>It is possible that a person could guess the path to a report. For example, you could guess that the report for the mathematics department is at <code>http://mysite.com/reports/?math</code></p>
+	<p>An easy way to avoid this issue is by including extra characters in the report directory that act as a password.</p>
+	<p>For example, by naming the report directory math_diw9481 (which would be viewed at <code>http://mysite.com/reports?math_diw9481</code>) you make it very difficult to guess the Web address for a report.</p>
+</div>
+<h2><a name="OptionalConfig" id="OptionalConfig"></a>Optional Report Settings</h2>
+<div class="indent">
+	<p>There are several optional settings that can be edited in <code>index.html</code>. A description is included for each setting.</p>
+</div>
+<h2><a name="VersionNumbers" id="VersionNumbers"></a>About Version Numbers:</h2>
+<div class="indent">
+	<p>As of 1.0.0 the version numbers will now follow the Semantic Versioning guidelines at <a href="http://semver.org/">semver.org</a> as closely as possible. </p>
+	<p>Releases will be numbered with the following format: <code>&lt;major&gt;.&lt;minor&gt;.&lt;patch&gt;</code></p>
+	<p>The following are some of the rules that will be followed:</p>
+	<ul>
+		<li>Breaking backwards compatibility will increase the <code>&lt;major&gt;</code>.</li>
+		<li>New additions that do not break backwards compatibility will increase the <code>&lt;minor&gt;</code>.</li>
+		<li>Bug fixes and minor changes will increase the <code>&lt;patch&gt;</code>.</li>
+	</ul>
+</div>
