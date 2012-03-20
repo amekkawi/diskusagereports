@@ -1,5 +1,5 @@
 body {
-	padding-top: 60px;
+	padding-top: 20px;
 	padding-bottom: 16px;
 	background-color: #F5F5F5;
 }
@@ -13,12 +13,22 @@ body {
 	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.1);
 	border-color: #DDD;
 	border-color: rgba(0, 0, 0, 0.1);
+	
+	background-color: #343434;
+	background-image: url(http://diskusagereports.com/images/template/background.gif);
+	background-position: top left;
+	background-repeat: repeat-x;
+	color: white;
 }
 #HeroIcon {
 	background-image: url(../images/disk_128w.png);
 	background-repeat: no-repeat;
 	background-position: left center;
 	padding-left: 160px;
+}
+#HeroTag {
+	color: #CCC;
+	margin-top: 6px;
 }
 footer {
 	padding-left: 20px;
