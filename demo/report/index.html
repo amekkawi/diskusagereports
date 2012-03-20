@@ -1,0 +1,303 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Disk Usage Report</title>
+
+<!--
+Disk Usage Reports
+http://diskusagereports.com/
+
+Copyright (c) 2011 André Mekkawi <contact@andremekkawi.com>
+Version: $Source Version$
+
+LICENSE
+
+This source file is subject to the MIT license in the file LICENSE.txt.
+The license is also available at http://diskusagereports.com/license.html
+-->
+
+<link rel="shortcut icon" href="images/favicon.png" type="image/png" /> 
+<link href="css/jquery.ui.tree.css" type="text/css" rel="stylesheet" />
+<link href="css/jquery.ui.dialog.css" type="text/css" rel="stylesheet" />
+<link href="css/layout.css" type="text/css" rel="stylesheet" />
+
+<!-- Third-Party Scripts -->
+<script type="text/javascript" src="js/external/jquery.js"></script>
+<script type="text/javascript" src="js/external/jquery.ui.core.js"></script>
+<script type="text/javascript" src="js/external/jquery.ui.widget.js"></script>
+<script type="text/javascript" src="js/external/jquery.sortelements.js"></script>
+<script type="text/javascript" src="js/external/jquery.json.js"></script>
+
+<!-- Plugins & Extensions -->
+<script type="text/javascript" src="js/plugins/general.js"></script>
+<script type="text/javascript" src="js/plugins/jquery.scrollintoview.js"></script>
+<script type="text/javascript" src="js/plugins/jquery.scrollbarsize.js"></script>
+<script type="text/javascript" src="js/plugins/jquery.scrollerresize.js"></script>
+<script type="text/javascript" src="js/plugins/jquery.ui.dialog.js"></script>
+<script type="text/javascript" src="js/plugins/jquery.ui.tree.js"></script>
+<script type="text/javascript" src="js/plugins/jquery.history.js"></script>
+<script type="text/javascript" src="js/plugins/jquery.consolex.js"></script>
+
+<!-- Controller -->
+<script type="text/javascript" src="js/controller.js"></script>
+<script type="text/javascript" src="js/controller.errors.js"></script>
+<script type="text/javascript" src="js/controller.loading.js"></script>
+<script type="text/javascript" src="js/controller.populate.js"></script>
+<script type="text/javascript" src="js/controller.language.js"></script>
+
+<!-- Packed Version -->
+<!-- <script type="text/javascript" src="js/packed.js"></script> -->
+
+<!-- Disk Usage Reporting Scripts -->
+<script type="text/javascript">
+	$(function() {
+		window.controller = new Controller();
+		
+		// Optional setting examples
+		// =============================================================
+		
+		// Path to the directory that contains the reports.
+		//controller.reportsBaseURL = '/path/to/report/data/';
+		
+		// Override the bar colors for the 'total size' and 'total count' columns.
+		// The first array index represents the color for 0%. The last array item is for 100%.
+		//controller.gradient = [ 'green', 'yellow', 'orange', 'red' ];
+		
+		// Override the normal way the report name is determined.
+		//controller.report = '<?php //echo $_GET['reportid']; ?>';
+		
+		// Change the maximum number of rows displayed at once in a table.
+		//controller.pageMax = 100;
+		
+		// Change the suffix that report files will have.
+		// Can either be set to a string or an array of suffixes that will be checked in order.
+		//controller.suffix = '.json';
+		//controller.suffix = [ '.txt', '' ];
+		
+		// Add additional languages. You must include the respective language files (e.g. de.txt) in the 'lang' directory.
+		//controller.addLanguage('de', 'Deutsch');
+		
+		// Change the default language that is used if the language passed via setLanguage() is not supported.
+		//controller.defaultLanguage = 'en-us';
+		
+		// Pass the browser's Accept-Language header to determine their preferred language.
+		//controller.setLanguage('<?php echo $_SERVER['HTTP_ACCEPT_LANGUAGE']; ?>');
+		
+		// =============================================================
+		
+		controller.load();
+	});
+</script>
+</head>
+<body>
+
+<iframe src="javascript:''" id="__gwt_historyFrame" style="width:0; height:0; border:0; position: absolute; left: 0; top: 0;"></iframe>
+	
+<div id="Title" style="display: none;"><!-- Disk Usage Report --></div>
+
+<div id="NoScript">You must enable JavaScript in your browser in order to view this report.</div>
+<script type="text/javascript">$('#NoScript').remove();</script>
+
+<div id="ErrorCountPositioner"><div id="ErrorCount"><span></span></div></div>
+
+<div id="Dimmer"></div>
+
+<div id="Container">
+	<div id="Loading"></div>
+	
+	<div id="LanguageDialog"></div>
+	<div id="ErrorsDialog"></div>
+	
+	<div id="Columns" style="display: none;">
+		
+		<div id="LeftColumn">
+			<div id="LeftColumnBorder">
+				<table class="styledtable" width="100%" id="TreeSort" border="0" cellspacing="0" cellpadding="4">
+					<thead>
+						<tr>
+							<th class="tree-sortby-label"><span><!-- Name --></span></th>
+							<th class="tree-sortby-byte" colspan="3"><span><!-- Size --></span></th>
+							<th class="tree-sortby-num" colspan="3"><span><!-- Count --></span></th>
+						</tr>
+					</thead>
+				</table>
+				<div id="LeftColumnScroller">
+					<div id="DirectoryTree"></div>
+				</div>
+			</div>
+		</div>
+		
+		<div id="LeftColumnResizer"></div>
+		
+		<div id="Error" style="display: none;"></div>
+		
+		<div id="RightColumn">
+			
+			<div id="ReportHead">
+				<div id="Path"></div>
+				<div id="DirSummary"></div>
+			</div>
+			
+			<div id="Tabs">
+				<ul>
+					<li id="Tab_SubDirs"></li>
+					<li id="Tab_Files"></li>
+					<li id="Tab_Modified"></li>
+					<li id="Tab_Sizes"></li>
+					<li id="Tab_Types"></li>
+					<li id="Tab_Top100"></li>
+				</ul>
+			</div>
+			
+			<div id="Report">
+		
+				<div id="Sections">
+					
+					<div class="pager pager-top">
+						<a href="#" class="pager-prev"></a>
+						<a href="#" class="pager-next"></a>
+						<span class="pager-range"></span>
+						<span class="pager-pages"></span>
+						<div style="clear: both;"></div>
+					</div>
+					
+					<div id="Section_SubDirs">
+						<table class="styledtable" id="SubDirs" border="1" cellspacing="0" cellpadding="4">
+							<thead>
+								<tr>
+									<th class="totals-sortby-label"><span></span></th>
+									<th class="totals-sortby-byte" colspan="3"><span></span></th>
+									<th class="totals-sortby-num" colspan="3"><span></span></th>
+								</tr>
+							</thead>
+							<tfoot>
+								<td><!-- Total --></td>
+								<td colspan="3"></td>
+								<td colspan="3"></td>
+							</tfoot>
+							<tbody>
+								
+							</tbody>
+						</table>
+					</div>
+					
+					<div id="Section_Modified">
+						<table class="styledtable" id="Modified" border="1" cellspacing="0" cellpadding="4">
+							<thead>
+								<tr>
+									<th class="totals-sortby-label"><span><!-- Age --></span></th>
+									<th class="totals-sortby-byte" colspan="3"><span><!-- Total Size --></span></th>
+									<th class="totals-sortby-num" colspan="3"><span><!-- File Count --></span></th>
+								</tr>
+							</thead>
+							<tfoot>
+								<td><!-- Total --></td>
+								<td colspan="3"></td>
+								<td colspan="3"></td>
+							</tfoot>
+							<tbody>
+								
+							</tbody>
+						</table>
+					</div>
+					
+					<div id="Section_Sizes">
+						<table class="styledtable" id="Sizes" border="1" cellspacing="0" cellpadding="4">
+							<thead>
+								<tr>
+									<th class="totals-sortby-label"><span><!-- Range --></span></th>
+									<th class="totals-sortby-byte" colspan="3"><span><!-- Total Size --></span></th>
+									<th class="totals-sortby-num" colspan="3"><span><!-- File Count --></span></th>
+								</tr>
+							</thead>
+							<tfoot>
+								<td><!-- Total --></td>
+								<td colspan="3"></td>
+								<td colspan="3"></td>
+							</tfoot>
+							<tbody>
+								
+							</tbody>
+						</table>
+					</div>
+					
+					<div id="Section_Types">
+						<table class="styledtable" id="Types" border="1" cellspacing="0" cellpadding="4">
+							<thead>
+								<tr>
+									<th class="totals-sortby-label"><span><!-- Extension --></span></th>
+									<th class="totals-sortby-byte" colspan="3"><span><!-- Total Size --></span></th>
+									<th class="totals-sortby-num" colspan="3"><span><!-- File Count --></span></th>
+								</tr>
+							</thead>
+							<tfoot>
+								<td><!-- Total --></td>
+								<td colspan="3"></td>
+								<td colspan="3"></td>
+							</tfoot>
+							<tbody>
+								
+							</tbody>
+						</table>
+					</div>
+					
+					<div id="Section_Files">
+						<table class="styledtable" id="Files" border="1" cellspacing="0" cellpadding="4">
+							<thead>
+								<tr>
+									<th id="Files-SortBy-name"><span><!-- Name --></span></th>
+									<th id="Files-SortBy-type"><span><!-- Type --></span></th>
+									<th id="Files-SortBy-size"><span><!-- Size --></span></th>
+									<th id="Files-SortBy-modified"><span><!-- Modified --></span></th>
+								</tr>
+							</thead>
+							<tbody>
+								
+							</tbody>
+						</table>
+					</div>
+					
+					<div id="Section_Top100">
+						<table class="styledtable" id="Top100" border="1" cellspacing="0" cellpadding="4">
+							<thead>
+								<tr>
+									<th id="Top100-SortBy-name"><span><!-- Name --></span></th>
+									<th id="Top100-SortBy-type"><span><!-- Type --></span></th>
+									<th id="Top100-SortBy-size"><span><!-- Size --></span></th>
+									<th id="Top100-SortBy-modified"><span><!-- Modified --></span></th>
+									<th id="Top100-SortBy-path"><span><!-- Path --></span></th>
+								</tr>
+							</thead>
+							<tbody>
+								
+							</tbody>
+						</table>
+					</div>
+					
+					<div class="pager pager-bottom">
+						<a href="#" class="pager-prev"></a>
+						<a href="#" class="pager-next"></a>
+						<span class="pager-range"></span>
+						<span class="pager-pages"></span>
+						<div style="clear: both;"></div>
+					</div>
+					
+					<div style="clear: both; display: block !important;"></div>
+					
+					<div id="Section_Message" style="display: none;"></div>
+				
+				</div>
+			
+			</div> <!-- Report -->
+		
+		</div> <!-- Right Column -->
+	
+	</div> <!-- Columns -->
+
+</div> <!-- Container -->
+
+<div id="Footer"><a href="http://diskusagereport.sourceforge.net/" target="_blank">Disk Usage Reports</a></div>
+
+</body>
+</html>

@@ -1,0 +1,123 @@
+/* 
+ * Copyright (c) 2011 André Mekkawi <contact@andremekkawi.com>
+ * Version: $Source Version$
+ * 
+ * LICENSE
+ * 
+ * This source file is subject to the MIT license in the file LICENSE.txt.
+ * The license is also available at http://diskusagereports.com/license.html
+ */
+
+.ui-tree ul, .ui-tree li {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: block;
+	position: relative;
+}
+
+.ui-tree ul ul {
+	background-image: url(../images/jquery.ui.tree/vert.png);
+	background-repeat: repeat-y;
+	background-position: 6px 0;
+}
+.ui-tree ul ul ul {
+	background-position: 22px 0;
+}
+.ui-tree ul.ui-tree-rootul {
+	background-image: none;
+}
+
+.ui-tree li {
+	margin-left: 16px;
+	padding-top: 2px;
+	white-space: nowrap;
+	background-image: url(../images/jquery.ui.tree/horiz.png);
+	background-repeat: no-repeat;
+	background-position: 8px 10px;
+}
+
+.ui-tree div.ui-tree-linecover {
+	position: relative;
+	top: 9px;
+}
+
+.tree-sortedby-label .ui-tree li.ui-tree-lastdir > div.ui-tree-linecover,
+.tree-sortedby-label .ui-tree li.ui-tree-lastdir > ul,
+
+.ui-tree li.ui-tree-last > div.ui-tree-linecover,
+.ui-tree li.ui-tree-last > ul {
+	background-color: #F7F6F0;
+}
+
+.ui-tree li div.ui-tree-expander {
+	position: relative;
+	top: -9px;
+	background-image: url(../images/jquery.ui.tree/closed.gif);
+	background-repeat: no-repeat;
+	background-position: 2px 3px;
+	cursor: pointer;
+	padding-left: 16px;
+}
+
+.ui-tree li.ui-tree-open > div div.ui-tree-expander {
+	background-image: url(../images/jquery.ui.tree/open.gif);
+}
+
+.ui-tree li.ui-tree-root {
+	margin-left: 0;
+}
+.ui-tree li.ui-tree-root > div div.ui-tree-expander {
+	padding-left: 0;
+	background-image: none !important;
+}
+.ui-tree li.ui-tree-root > ul > li {
+	margin-left: 0;
+}
+
+.ui-tree li.ui-tree-nosubdirs > div div.ui-tree-expander {
+	background-image: none !important;
+}
+
+.ui-tree div.ui-tree-icon:hover {
+	text-decoration: underline;
+}
+
+.ui-tree div.ui-tree-icon {
+	background-image: url(../images/folder-closed.png);
+	background-repeat: no-repeat;
+	background-position: 0 0;
+	padding-left: 22px;
+	cursor: pointer;
+}
+
+.ui-tree .ui-tree-open > div div.ui-tree-icon {
+	background-image: url(../images/folder-open.png);
+}
+
+.ui-tree-label {
+	z-index: 1;
+	position: relative;
+}
+
+.tree-sortedby-label .ui-tree li.ui-tree-files {
+	display: none;
+}
+
+.ui-tree li.ui-tree-files div.ui-tree-icon {
+	background-image: url(../images/files.png);
+}
+.ui-tree li.ui-tree-files span.ui-tree-label {
+	font-style: italic;
+}
+
+.ui-tree li.selected > div span {
+	background-color: #CCCCFF;
+	margin-left: -2px;
+	padding: 2px;
+}
+
+.ui-tree li > div span.ui-tree-prefix {
+    color: #666666;
+    padding-right: 0;
+}
