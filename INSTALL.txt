@@ -1,2 +1,2 @@
 For installation instructions see:
-http://diskusagereport.sourceforge.net/docs/
+http://diskusagereports.com/docs/
