@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>{% if page.title %}{{ page.title }} | Disk Usage Reports{% else %}Disk Usage Reports: A web-based way to view disk usage{% endif %}</title>
+		<link rel="shortcut icon" href="{{ page.basepath }}images/favicon.png" type="image/png">
+		<link href="{{ page.basepath }}css/bootstrap.css" type="text/css" rel="stylesheet">
+		<link href="{{ page.basepath }}css/base.css" type="text/css" rel="stylesheet">
+		<!--[if lt IE 9]>
+			<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+	</head>
+
+	<body class="{{ page.activepage }}">
+		<div class="container">
+			
+			<header>
+				<div class="hero">
+					<div class="hero-icon">
+						<h1>Disk Usage Reports</h1>
+						<p class="hero-tag">A web-based way to remotely view disk usage.</p>
+						<p class="hero-buttons">
+							<a href="{{ page.basepath }}download-latest.html" class="btn btn-primary btn-large">Download Latest <small>(v1.0.2)</small></a>
+							<span class="hide"> or </span>
+							<a href="https://github.com/amekkawi/diskusagereports" class="btn btn-large btn-success">Watch on Github &raquo;</a>
+						</p>
+					</div>
+				</div>
+				<nav>
+					<ul>
+						<li><a href="#" class="home">Home</a></li>
+						<li><a href="#" class="demo">Demo</a></li>
+						<li><a href="#" class="docs">Documentation</a></li>
+						<li><a href="#" class="downloads">Downloads</a></li>
+						<li><a href="#" class="help">Get Help</a></li>
+						<li><a href="#" class="github">Watch on Github &raquo;</a></li>
+						<li><a href="#" class="license">License</a></li>
+					</ul>
+				</nav>
+			</header>
+			
+			{{ content }}
+
+			<hr style="margin-top: 0;">
+
+			<footer>
+				<p>&copy; 2012 André Mekkawi - Available under an <a href="{{ page.basepath }}license.html">MIT License</a></p>
+			</footer>
+
+		</div>
+
+	</body>
+</html>
