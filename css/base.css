@@ -30,6 +30,13 @@ body {
 	color: #CCC;
 	margin-top: 6px;
 }
+#Hero .btn {
+	font-weight: bold;
+}
+#Hero .btn small {
+	color: rgba(255, 255, 255, 0.75);
+	font-size: 12px;
+}
 footer {
 	padding-left: 20px;
 }
