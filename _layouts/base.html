@@ -4,8 +4,24 @@
 		<meta charset="utf-8">
 		<title>{% if page.title %}{{ page.title }} | Disk Usage Reports{% else %}Disk Usage Reports: A web-based way to view disk usage{% endif %}</title>
 		<link rel="shortcut icon" href="{{ page.basepath }}images/favicon.png" type="image/png">
-		<link href="{{ page.basepath }}css/bootstrap.css" type="text/css" rel="stylesheet">
-		<link href="{{ page.basepath }}css/base.css" type="text/css" rel="stylesheet">
+		<!--<link href="{{ page.basepath }}css/bootstrap.css" type="text/css" rel="stylesheet">-->
+		<!--<link href="{{ page.basepath }}css/base.css" type="text/css" rel="stylesheet">-->
+		<link rel="stylesheet/less" type="text/css" href="{{ page.basepath }}css/base.less">
+		
+		{% for file in page.css %}
+		<link href="{{ page.basepath }}css/{{ file }}" type="text/css" rel="stylesheet">
+		{% endfor %}
+		
+		{% if page.js %}
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		{% endif %}
+		
+		{% for file in page.js %}
+		<script src="{{ page.basepath }}js/{{ file }}"></script>
+		{% endfor %}
+		
+		<script src="{{ page.basepath }}js/less.min.js"></script>
+		
 		<!--[if lt IE 9]>
 			<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
 		<![endif]-->
@@ -16,7 +32,7 @@
 			
 			<header>
 				<div class="hero">
-					<h1>Disk Usage Reports</h1>
+					<h1><a href="{{ page.basepath }}./">Disk Usage Reports</a></h1>
 					<p class="hero-tag">A web-based way to remotely view disk usage.</p>
 					{% if page.activepage == 'home' %}
 					<p class="hero-buttons">
@@ -28,7 +44,7 @@
 				</div>
 				<nav>
 					<ul>
-						<li><a href="{{ page.basepath }}" class="{% if page.activepage == 'home' %}active{% endif %}">Home</a></li>
+						<li><a href="{{ page.basepath }}./" class="{% if page.activepage == 'home' %}active{% endif %}">Home</a></li>
 						<li><a href="{{ page.basepath }}demo/" class="{% if page.activepage == 'demo' %}active{% endif %}">Demo</a></li>
 						<li><a href="{{ page.basepath }}docs/" class="{% if page.activepage == 'docs' %}active{% endif %}">Documentation</a></li>
 						<li><a href="{{ page.basepath }}download.html" class="{% if page.activepage == 'downloads' %}active{% endif %}">Downloads</a></li>
@@ -44,7 +60,7 @@
 			<hr style="margin-top: 0;">
 
 			<footer>
-				<p>&copy; 2012 André Mekkawi - Available under an <a href="{{ page.basepath }}license.html">MIT License</a></p>
+				<p>&copy; 2012 André Mekkawi | Available under an <a href="{{ page.basepath }}license.html">MIT License</a> | Hosting provided by <a href="http://github.com/">GitHub</a></p>
 			</footer>
 
 		</div>

@@ -122,13 +122,13 @@ jQuery.fn.extend({
 	disableTextSelection: function() {
 		return this
 			.attr('unselectable', 'on')
-			.css('MozUserSelect', 'none')
+			.css({ 'MozUserSelect': 'none', 'WebkitUserSelect': 'none' })
 			.bind('selectstart.ui', function() { return false; });
 	},
 	enableTextSelection: function() {
 		return this
 			.attr('unselectable', 'off')
-			.css('MozUserSelect', '')
+			.css({'MozUserSelect': '', 'WebkitUserSelect': ''})
 			.unbind('selectstart.ui');
 	}
 });

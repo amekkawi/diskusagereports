@@ -3,27 +3,34 @@ layout: default
 title: Documentation
 basepath: ../
 activepage: docs
+js: [ docs.js ]
 ---
-<p class="toc-header">What's on this page:</p>
-<ul>
-	<li><a href="#Requirements">Requirements</a></li>
-	<li><a href="#Installation">Installation</a></li>
-	<li><a href="#Overview">Overview of Generating Reports</a></li>
-	<li><a href="#Step1">Step 1: Creating the List of Directories and Files</a></li>
-	<li><a href="#Step2">Step 2: Processing the List and Generating the Report</a></li>
-	<li><a href="#SavingReports">Where to Save Reports</a></li>
-	<li><a href="#Viewing">Viewing Reports</a></li>
-	<li><a href="#Organizing">Organizing Your Reports</a></li>
-	<li><a href="#SecuringReports">Securing Reports</a></li>
-	<li><a href="#OptionalConfig">Optional Report Settings</a></li>
-	<li><a href="#VersionNumbers">About Version Numbers</a></li>
-</ul>
-<p class="toc-header">See Also...</p>
-<ul>
-	<li><a href="../changelogs/index.html">Change Logs</a></li>
-	<li><a href="../license.html">License</a></li>
-</ul>
-<hr size="1" noshade="noshade" />
+<div id="Docs" class="row">
+	<div class="span3">
+		<div id="TOC">
+			<p class="toc-header">Table of Contents:</p>
+			<ul>
+				<li><a href="#Requirements">Requirements</a></li>
+				<li><a href="#Installation">Installation</a></li>
+				<li><a href="#Overview">Overview of Generating Reports</a></li>
+				<li><a href="#Step1">Step 1: Creating the List of Directories and Files</a></li>
+				<li><a href="#Step2">Step 2: Processing the List and Generating the Report</a></li>
+				<li><a href="#SavingReports">Where to Save Reports</a></li>
+				<li><a href="#Viewing">Viewing Reports</a></li>
+				<li><a href="#Organizing">Organizing Your Reports</a></li>
+				<li><a href="#SecuringReports">Securing Reports</a></li>
+				<li><a href="#OptionalConfig">Optional Report Settings</a></li>
+				<li><a href="#VersionNumbers">About Version Numbers</a></li>
+			</ul>
+			<p class="toc-header">See Also...</p>
+			<ul>
+				<li><a href="../changelogs/index.html">Change Logs</a></li>
+				<li><a href="../license.html">License</a></li>
+			</ul>
+		</div>
+		<div>&nbsp;</div>
+	</div>
+<div class="span9">
 <section>
 <h2><a name="Requirements" id="Requirements"></a>Requirements</h2>
 <div class="indent">
@@ -46,9 +53,9 @@ activepage: docs
 				<td style="padding: 6px; padding-bottom: 2px;">Windows Example:</td>
 			</tr>
 			<tr>
-				<td style="border: 1px solid #cccbc6; padding: 10px 16px;"><div id="DirectoryTree" unselectable="on" style="-moz-user-select: none;" class="ui-tree"><ul class="ui-tree-rootul"><li id="ui-tree_ff2838fd76611dd12d3c71ba0264f3f7" class="ui-tree-root ui-tree-open selectedx" style=""><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">/var/www/html</span></div></div></div><ul><li id="ui-tree_ee1e1aa6fa2b20b9c1e481f3876d98fd" class="ui-tree-lastdir ui-tree-open ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">diskusage</span></div></div></div><ul><li id="ui-tree_076ede8b85a0e01ac320da663f6efd15" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">css</span></div></div></div></li><li id="ui-tree_6461c9633df1079e159e44f1198e8d17" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">data</span></div></div></div></li><li id="ui-tree_1028c4d01f6a146ed68f471bdf9a52ba" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">images</span></div></div></div></li><li id="ui-tree_7e2eac4e6a21f3e3daa26703c71c4414" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">js</span></div></div></div></li><li id="ui-tree_e54e26982ea2136cd02b9b4bad190d27" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">lang</span></div></div></div></li><li id="ui-tree_9c4f711f5734a2ca009eeaf150df61b8" class="ui-tree-lastdir ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">scripts</span></div></div></div></li><li id="ui-tree_files_ee1e1aa6fa2b20b9c1e481f3876d98fd" class="ui-tree-last ui-tree-files ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">Files in this directory</span></div></div></div></li></ul></li><li id="ui-tree_files_ff2838fd76611dd12d3c71ba0264f3f7" class="ui-tree-files ui-tree-nosubdirs ui-tree-last"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">Files in this directory</span></div></div></div></li></ul></li></ul></div></td>
+				<td style="border: 1px solid #cccbc6; padding: 10px 16px;"><div id="DirectoryTree" unselectable="on" style="-moz-user-select: none;" class="ui-tree"><ul class="ui-tree-rootul"><li id="ui-tree_ff2838fd76611dd12d3c71ba0264f3f7" class="ui-tree-root ui-tree-open selectedx" style=""><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">/var/www/html</span></div></div></div><ul><li id="ui-tree_ee1e1aa6fa2b20b9c1e481f3876d98fd" class="ui-tree-lastdir ui-tree-open ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">diskusage</span></div></div></div><ul><li id="ui-tree_076ede8b85a0e01ac320da663f6efd15" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">css</span></div></div></div></li><li id="ui-tree_6461c9633df1079e159e44f1198e8d17" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">data</span></div></div></div></li><li id="ui-tree_1028c4d01f6a146ed68f471bdf9a52ba" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">images</span></div></div></div></li><li id="ui-tree_7e2eac4e6a21f3e3daa26703c71c4414" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">js</span></div></div></div></li><li id="ui-tree_e54e26982ea2136cd02b9b4bad190d27" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">lang</span></div></div></div></li><li id="ui-tree_9c4f711f5734a2ca009eeaf150df61b8" class="ui-tree-lastdir ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">scripts</span></div></div></div></li></ul></li></ul></li></ul></div></td>
 				<td style="padding-left: 10px;">&nbsp;</td>
-				<td style="border: 1px solid #cccbc6; padding: 6px 10px;"><div id="DirectoryTree" unselectable="on" style="-moz-user-select: none;" class="ui-tree"><ul class="ui-tree-rootul"><li id="ui-tree_ff2838fd76611dd12d3c71ba0264f3f7" class="ui-tree-root ui-tree-open selectedx" style=""><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">C:\Inetpub\wwwroot</span></div></div></div><ul><li id="ui-tree_ee1e1aa6fa2b20b9c1e481f3876d98fd" class="ui-tree-lastdir ui-tree-open ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">diskusage</span></div></div></div><ul><li id="ui-tree_076ede8b85a0e01ac320da663f6efd15" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">css</span></div></div></div></li><li id="ui-tree_6461c9633df1079e159e44f1198e8d17" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">data</span></div></div></div></li><li id="ui-tree_1028c4d01f6a146ed68f471bdf9a52ba" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">images</span></div></div></div></li><li id="ui-tree_7e2eac4e6a21f3e3daa26703c71c4414" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">js</span></div></div></div></li><li id="ui-tree_e54e26982ea2136cd02b9b4bad190d27" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">lang</span></div></div></div></li><li id="ui-tree_9c4f711f5734a2ca009eeaf150df61b8" class="ui-tree-lastdir ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">scripts</span></div></div></div></li><li id="ui-tree_files_ee1e1aa6fa2b20b9c1e481f3876d98fd" class="ui-tree-last ui-tree-files ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">Files in this directory</span></div></div></div></li></ul></li><li id="ui-tree_files_ff2838fd76611dd12d3c71ba0264f3f7" class="ui-tree-files ui-tree-nosubdirs ui-tree-last"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">Files in this directory</span></div></div></div></li></ul></li></ul>
+				<td style="border: 1px solid #cccbc6; padding: 6px 10px;"><div id="DirectoryTree" unselectable="on" style="-moz-user-select: none;" class="ui-tree"><ul class="ui-tree-rootul"><li id="ui-tree_ff2838fd76611dd12d3c71ba0264f3f7" class="ui-tree-root ui-tree-open selectedx" style=""><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">C:\Inetpub\wwwroot</span></div></div></div><ul><li id="ui-tree_ee1e1aa6fa2b20b9c1e481f3876d98fd" class="ui-tree-lastdir ui-tree-open ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">diskusage</span></div></div></div><ul><li id="ui-tree_076ede8b85a0e01ac320da663f6efd15" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">css</span></div></div></div></li><li id="ui-tree_6461c9633df1079e159e44f1198e8d17" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">data</span></div></div></div></li><li id="ui-tree_1028c4d01f6a146ed68f471bdf9a52ba" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">images</span></div></div></div></li><li id="ui-tree_7e2eac4e6a21f3e3daa26703c71c4414" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">js</span></div></div></div></li><li id="ui-tree_e54e26982ea2136cd02b9b4bad190d27" class="ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">lang</span></div></div></div></li><li id="ui-tree_9c4f711f5734a2ca009eeaf150df61b8" class="ui-tree-lastdir ui-tree-nosubdirs"><div class="ui-tree-linecover"><div class="ui-tree-expander"><div class="ui-tree-icon"><span class="ui-tree-prefix"></span><span class="ui-tree-label">scripts</span></div></div></div></li></ul></li></ul></li></ul>
 				</div></td>
 			</tr>
 		</table>
@@ -279,3 +286,5 @@ if this script is executed on a *nix system.</pre>
 		<li>Bug fixes and minor changes will increase the <code>&lt;patch&gt;</code>.</li>
 	</ul>
 </div>
+</div> <!-- span9 -->
+</div> <!-- row -->
