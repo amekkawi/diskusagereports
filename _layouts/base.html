@@ -36,9 +36,9 @@
 					<p class="hero-tag">A web-based way to remotely view disk usage.</p>
 					{% if page.activepage == 'home' %}
 					<p class="hero-buttons">
-						<a href="{{ page.basepath }}download-latest.html" class="btn btn-primary btn-large">Download Latest <small>(v1.0.2)</small></a>
+						<a href="{{ site.LatestURL }}" class="btn btn-primary btn-large">Download Latest <small>({{ site.LatestVersion }})</small></a>
 						<span class="hide"> or </span>
-						<a href="https://github.com/amekkawi/diskusagereports" target="_blank" class="btn btn-large btn-success">Fork on Github &raquo;</a>
+						<a href="https://github.com/amekkawi/diskusagereports" target="_blank" class="btn btn-large btn-success">Get Involved on Github &raquo;</a>
 					</p>
 					{% endif %}
 				</div>
@@ -50,7 +50,7 @@
 						<li><a href="{{ page.basepath }}download.html" class="{% if page.activepage == 'downloads' %}active{% endif %}">Downloads</a></li>
 						<li><a href="{{ page.basepath }}help/" class="{% if page.activepage == 'help' %}active{% endif %}">Get Help</a></li>
 						<li><a href="{{ page.basepath }}license.html" class="{% if page.activepage == 'license' %}active{% endif %}">License</a></li>
-						<li class="{% if page.activepage == 'home' %}hide{% endif %}"><a href="https://github.com/amekkawi/diskusagereports" target="_blank" class="{% if page.activepage == 'github' %}active{% endif %}">Fork on Github &raquo;</a></li>
+						<li class="{% if page.activepage == 'home' %}hidex{% endif %}"><a href="https://github.com/amekkawi/diskusagereports" target="_blank" class="{% if page.activepage == 'github' %}active{% endif %}">Fork on Github &raquo;</a></li>
 					</ul>
 				</nav>
 			</header>
@@ -60,7 +60,7 @@
 			<hr style="margin-top: 0;">
 
 			<footer>
-				<p>&copy; 2012 André Mekkawi | Available under an <a href="{{ page.basepath }}license.html">MIT License</a> | Hosting provided by <a href="http://github.com/">GitHub</a></p>
+				<p>&copy; {{ site.time | date: "%Y" }} André Mekkawi | Available under an <a href="{{ page.basepath }}license.html">MIT License</a> | Hosting provided by <a href="http://github.com/">GitHub</a></p>
 			</footer>
 
 		</div>
