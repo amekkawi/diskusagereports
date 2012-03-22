@@ -37,15 +37,31 @@
 			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
 		})();
 		
-		function RE(link, category, action, label) {
+		function RE(category, action, label) {
 			_gaq.push(['_trackEvent', category, action, label]);
-			//_gat._getTrackerByName()._trackEvent(category, action);
-			//setTimeout('document.location = "' + link + '"', 100);
 		}
 		
-		function ROL(link) {
-			RE(link.href, 'Outbound', 'Link', link.href);
-			return true;
+		function ROL(anchor) {
+			try {
+				RE('Outbound', 'Link', anchor.href);
+				setTimeout(function(){
+					if (anchor.target == '_blank')
+						window.open(anchor.href);
+					else
+						document.location = anchor.href;
+				}, 100)
+				return false;
+			} catch(err) { }
+		}
+		
+		function ROD(anchor, version) {
+			try {
+				RE('Outbound', 'Download', version);
+				setTimeout(function(){
+					document.location = anchor.href;
+				}, 100)
+				return false;
+			} catch(err) { }
 		}
 		</script>
 	</head>
@@ -59,7 +75,7 @@
 					<p class="hero-tag">A web-based way to remotely view disk usage.</p>
 					{% if page.activepage == 'home' %}
 					<p class="hero-buttons">
-						<a href="{{ site.LatestURL }}" class="btn btn-primary btn-large" onclick"return ROL(this);">Download Latest <small>({{ site.LatestVersion }})</small></a>
+						<a href="{{ site.LatestURL }}" class="btn btn-primary btn-large" onclick="return ROD(this, 'latest header');">Download Latest <small>({{ site.LatestVersion }})</small></a>
 						<span class="hide"> or </span>
 						<a href="https://github.com/amekkawi/diskusagereports" target="_blank" class="btn btn-large btn-success" onclick="return ROL(this);">Get Involved via Github &raquo;</a>
 					</p>
