@@ -58,7 +58,10 @@
 			try {
 				RE('Outbound', 'Download', version);
 				setTimeout(function(){
-					document.location = anchor.href;
+					if (anchor.target == '_blank')
+						window.open(anchor.href);
+					else
+						document.location = anchor.href;
 				}, 100)
 				return false;
 			} catch(err) { }
