@@ -1,0 +1,46 @@
+---
+layout: default
+title: Features
+activepage: features
+---
+
+<div class="features">
+{% include topfeatures.html %}
+</div>
+
+<hr>
+
+<div class="row tall-list">
+	<div class="span4">
+		<ul>
+			<li>Tested in Internet Explorer, Firefox, Chrome, and Safari.</li>
+			<li>Tested in Apache HTTP Server and Microsoft IIS.</li>
+			<li>The script that scans disk usage is available in three forms:
+				<ol>
+					<li><strong>Windows EXE:</strong><br/>Uses WinAPI-based C++ for speed.<br/>Fully supports UTF-8 file names.</li>
+					<li><strong>Linux Bash Script:</strong><br/>Uses the speedy GNU <code>find</code> tool.</li>
+					<li><strong>Multi-Platform PHP Script:</strong><br/>Not as fast, but works anywhere!</li>
+				</ol>
+			</li>
+		</ul>
+	</div>
+	<div class="span4">
+		<ul>
+			<li>Navigate the report using a sortable directory tree. Sort by name, size or file count.</li>
+			<li>Each directory has a separate JSON file, allowing the report to be very large with no impact on the client.</li>
+			<li>Errors encountered during scanning and report generation are displayed in the report for easy troubleshooting.</li>
+			<li>Supports Windows network shares.</li>
+			<li>The original path of the scanned directory is hidden by default, just in case you want to keep it secret.</li>
+		</ul>
+	</div>
+	<div class="span4">
+		<ul>
+			<li>Lists <strong>top 100 largest files</strong> within a directory.</li>
+			<li><strong>Last modified distribution</strong>, grouped by customizable time frames. Each time frame shows the total size and file count.</li>
+			<li><strong>File size distribution</strong>, grouped by customizable size ranges (e.g. 500 KB - 1 MB). Each time size group shows the total size and file count.</li>
+			<li><strong>File type distribution</strong> (e.g. .txt). Each file type shows the total size and file count.</li>
+			<li>Supports UTF-8 file names.</li>
+			<li>Support for translating the web UI.</li>
+		</ul>
+	</div>
+</div>

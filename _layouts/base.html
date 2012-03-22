@@ -55,13 +55,14 @@
 					<p class="hero-buttons">
 						<a href="{{ site.LatestURL }}" class="btn btn-primary btn-large">Download Latest <small>({{ site.LatestVersion }})</small></a>
 						<span class="hide"> or </span>
-						<a href="https://github.com/amekkawi/diskusagereports" target="_blank" class="btn btn-large btn-success">Get Involved on Github &raquo;</a>
+						<a href="https://github.com/amekkawi/diskusagereports" target="_blank" class="btn btn-large btn-success">Get Involved via Github &raquo;</a>
 					</p>
 					{% endif %}
 				</div>
 				<nav>
 					<ul>
 						<li><a href="{{ page.basepath }}./" class="{% if page.activepage == 'home' %}active{% endif %}">Home</a></li>
+						<li><a href="{{ page.basepath }}features.html" class="{% if page.activepage == 'features' %}active{% endif %}">Features</a></li>
 						<li><a href="{{ page.basepath }}demo/" class="{% if page.activepage == 'demo' %}active{% endif %}">Demo</a></li>
 						<li><a href="{{ page.basepath }}docs/" class="{% if page.activepage == 'docs' %}active{% endif %}">Documentation</a></li>
 						<li><a href="{{ page.basepath }}download.html" class="{% if page.activepage == 'downloads' %}active{% endif %}">Downloads</a></li>
