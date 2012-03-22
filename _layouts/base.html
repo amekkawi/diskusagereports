@@ -40,12 +40,12 @@
 		function RE(link, category, action, label) {
 			_gaq.push(['_trackEvent', category, action, label]);
 			//_gat._getTrackerByName()._trackEvent(category, action);
-			setTimeout('document.location = "' + link.href + '"', 100);
-			return false;
+			//setTimeout('document.location = "' + link + '"', 100);
 		}
 		
 		function ROL(link) {
-			return RE(link.href, 'Outbound', 'Link', this.href);
+			RE(link.href, 'Outbound', 'Link', this.href);
+			return true;
 		}
 		</script>
 	</head>
