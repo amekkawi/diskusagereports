@@ -27,20 +27,26 @@
 		<![endif]-->
 		
 		<script type="text/javascript">
-		  var _gaq = _gaq || [];
-		  _gaq.push(['_setAccount', 'UA-21143641-1']);
-		  _gaq.push(['_trackPageview']);
+			var _gaq = _gaq || [];
+			_gaq.push(['_setAccount', 'UA-21143641-1']);
+			_gaq.push(['_trackPageview']);
 		
-		  (function() {
+		(function() {
 			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
 			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
 			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-		  })();
-		  
-		  function recordOutboundLink(link, category, action) {
-			_gat._getTrackerByName()._trackEvent(category, action);
+		})();
+		
+		function RE(link, category, action, label) {
+			_gaq.push(['_trackEvent', category, action, label]);
+			//_gat._getTrackerByName()._trackEvent(category, action);
 			setTimeout('document.location = "' + link.href + '"', 100);
-		  }
+			return false;
+		}
+		
+		function ROL(link) {
+			return RE(link.href, 'Outbound', 'Link', this.href);
+		}
 		</script>
 	</head>
 
@@ -53,9 +59,9 @@
 					<p class="hero-tag">A web-based way to remotely view disk usage.</p>
 					{% if page.activepage == 'home' %}
 					<p class="hero-buttons">
-						<a href="{{ site.LatestURL }}" class="btn btn-primary btn-large">Download Latest <small>({{ site.LatestVersion }})</small></a>
+						<a href="{{ site.LatestURL }}" class="btn btn-primary btn-large" onclick"return ROL(this);">Download Latest <small>({{ site.LatestVersion }})</small></a>
 						<span class="hide"> or </span>
-						<a href="https://github.com/amekkawi/diskusagereports" target="_blank" class="btn btn-large btn-success">Get Involved via Github &raquo;</a>
+						<a href="https://github.com/amekkawi/diskusagereports" target="_blank" class="btn btn-large btn-success" onclick="return ROL(this);">Get Involved via Github &raquo;</a>
 					</p>
 					{% endif %}
 				</div>
@@ -68,7 +74,7 @@
 						<li><a href="{{ page.basepath }}download.html" class="{% if page.activepage == 'downloads' %}active{% endif %}">Downloads</a></li>
 						<li><a href="{{ page.basepath }}help/" class="{% if page.activepage == 'help' %}active{% endif %}">Get Help</a></li>
 						<li><a href="{{ page.basepath }}license.html" class="{% if page.activepage == 'license' %}active{% endif %}">License</a></li>
-						<li class="{% if page.activepage == 'home' %}hidex{% endif %}"><a href="https://github.com/amekkawi/diskusagereports" target="_blank" class="{% if page.activepage == 'github' %}active{% endif %}">Fork on Github &raquo;</a></li>
+						<li class="{% if page.activepage == 'home' %}hidex{% endif %}"><a href="https://github.com/amekkawi/diskusagereports" target="_blank" class="{% if page.activepage == 'github' %}active{% endif %}" onclick="return ROL(this);">Fork on Github &raquo;</a></li>
 					</ul>
 				</nav>
 			</header>
