@@ -10,18 +10,6 @@
 			isFixed = 0,
 			isBottom = 0;
 		
-		var calcSizes = function() {
-			tocTop = toc.size() && toc.offset().top - 20;
-			tocHeight = toc.size() && toc.outerHeight(true) + 25;
-			docTop = doc.offset().top;
-			docHeight = doc.height();
-		};
-		
-		win.on('resize', function() {
-			tocTop = toc.size() && toc.offset().top - 20;
-			docTop = doc.offset().top;
-		});
-		
 		var processScroll = function() {
 			var i, scrollTop = win.scrollTop(),
 				isShort = docHeight + docTop - scrollTop <= tocHeight,
@@ -48,6 +36,24 @@
 				toc.removeClass('fixed bottom');
 			}
 		};
+		
+		var calcSizes = function() {
+			toc.removeClass('fixed bottom');
+			isFixed = 0;
+			isBottom = 0;
+			
+			tocTop = toc.size() && toc.offset().top - 20;
+			tocHeight = toc.size() && toc.outerHeight(true) + 25;
+			docTop = doc.offset().top;
+			docHeight = doc.height();
+			
+			processScroll();
+		};
+		
+		win.on('resize', function() {
+			tocTop = toc.size() && toc.offset().top - 20;
+			docTop = doc.offset().top;
+		});
 		
 		calcSizes();
 		processScroll();
