@@ -167,15 +167,17 @@ The OPTIONS are:
 
       -d &lt;delim&gt;
       The field delimiter that each line of the filelist will be split using.
-      The default is the NULL character.
-
+      The default is the NULL character. Will be ignored if &lt;filelist&gt; has a
+      header line (see notes).
+      
       -ds &lt;directoryseparator&gt;
       Specify the directory separator used in the file list. This is useful
       if the list from step 1 was generated on a different operating system
       which uses a different directory separator. For example, Windows uses
       a backslash (\) while Linux/BSD/Mac/etc systems use a forward slash (/).
       The default is the directory separator for the operating system
-      processing the report.
+      processing the report.  Will be ignored if &lt;filelist&gt; has a header
+      line (see notes).
 
       -fp
       Display the full path of the directories in the report. This is off by
@@ -236,13 +238,43 @@ Notes:
       o All OPTIONS must be before &lt;report-directory&gt;.
 
       o You should set the -tz option as trying to determine the system's
-      timezone is unreliable.
+        timezone is unreliable.
 
       o You may execute process.php on a separate server than the 'find'
-      script if you are worried about it using CPU time.
+        script if you are worried about it using CPU time.
 
       o The directory separator used in &lt;filelist&gt; must be a forward slash
-      if this script is executed on a *nix system.</pre>
+        if this script is executed on a *nix system.
+        
+      o If the &lt;filelist&gt; has a header line (starts with a #) then the -d
+        and -ds OPTIONS will be ignored since the header explicitly
+        defines what their values should be.</pre>
+	</div>
+	<p>Here are some examples of its usage:</p>
+	<div class="indent">
+		<p><code>php scripts/process.php path/to/report/dir list-of-files.dat</code></p>
+		<p><code>cat list-of-files.dat | php scripts/process.php /var/www/html/usage/data/myreport</code></p>
+		<p><code>php scripts\process.php c:\path\to\report\dir list-of-files.dat</code></p>
+	</div>
+	<p>Here are some examples of combining the 'find' scripts and process.php into one command:</p>
+	<div class="indent">
+		<p><code>bash scripts/find.sh path/to/directory | php scripts/process.php path/to/report/dir</code></p>
+		<p><code>scripts\find.exe c:\path\to\directory | php scripts\process.php c:\Inetpub\wwwroot\diskusage\data\myreport</code></p>
+		<p><code>php scripts/find.php path/to/directory | php scripts/process.php /var/www/html/diskusage/data/myreport</code></p>
+	</div>
+	<p>Here are some examples of the OPTIONS:</p>
+	<div class="indent">
+		<p><code>php scripts/process.php -n "My Report" path/to/report/dir list-of-files.dat</code></p>
+		<p>Show the name of the report in the header. It will appear as "Disk Usage Report for: My Report".</p>
+		
+		<p><code>php scripts/process.php -t 1 -td 1 diskusageinstall/data/myreport</code></p>
+		<p>Only show the "Files Sizes", "Modified" and "File Types" totals for the root directory. This can speed up the report generation if there are a lot of sub directories. This also cuts back on the total size of the report.</p>
+		
+		<p><code>php scripts\process.php -tz "America/New_York" c:\path\to\report\dir list-of-files.dat</code></p>
+		<p>Set the timezone to EST.</p>
+		
+		<p><code>php scripts/process.php -d ":" -ds "/" -fp -l 1024 -mt 819200 -n "My Report" -nt -su ".txt" -t 6 -td 6 -tz "America/New_York" diskusageinstall/data/myreport list-of-files.dat</code></p>
+		<p>This example just shows example usage of all the OPTIONS.</p>
 	</div>
 </div>
 <h2><a name="SavingReports" id="SavingReports"></a>Where to Save Reports</h2>
