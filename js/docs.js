@@ -3,12 +3,24 @@
 		var win = $(window),
 			doc = $('#Docs'),
 			toc = $('#TOC'),
-			tocTop = toc.size() && toc.offset().top - 20,
-			tocHeight = toc.size() && toc.outerHeight(true) + 25,
-			docTop = doc.offset().top,
-			docHeight = doc.height(),
+			tocTop,
+			tocHeight,
+			docTop,
+			docHeight,
 			isFixed = 0,
 			isBottom = 0;
+		
+		var calcSizes = function() {
+			tocTop = toc.size() && toc.offset().top - 20;
+			tocHeight = toc.size() && toc.outerHeight(true) + 25;
+			docTop = doc.offset().top;
+			docHeight = doc.height();
+		};
+		
+		win.on('resize', function() {
+			tocTop = toc.size() && toc.offset().top - 20;
+			docTop = doc.offset().top;
+		});
 		
 		var processScroll = function() {
 			var i, scrollTop = win.scrollTop(),
@@ -37,7 +49,9 @@
 			}
 		};
 		
+		calcSizes();
 		processScroll();
+		win.on('resize', calcSizes);
 		win.on('scroll', processScroll);
 	});
 })(jQuery);

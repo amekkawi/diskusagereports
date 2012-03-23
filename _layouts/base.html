@@ -6,7 +6,11 @@
 		<link rel="shortcut icon" href="{{ page.basepath }}images/favicon.png" type="image/png">
 		<!--<link href="{{ page.basepath }}css/bootstrap.css" type="text/css" rel="stylesheet">-->
 		<!--<link href="{{ page.basepath }}css/base.css" type="text/css" rel="stylesheet">-->
-		<link rel="stylesheet/less" type="text/css" href="{{ page.basepath }}css/base.less">
+		<link media="all" rel="stylesheet/less" type="text/css" href="{{ page.basepath }}css/base.less">
+		<link media="screen" rel="stylesheet/less" type="text/css" href="{{ page.basepath }}css/screen.less">
+		<style media="print" type="text/css">
+		.noprint { display: none; }
+		</style>
 		
 		{% for file in page.css %}
 		<link href="{{ page.basepath }}css/{{ file }}" type="text/css" rel="stylesheet">
@@ -77,23 +81,23 @@
 					<h1><a href="{{ page.basepath }}./">Disk Usage Reports</a></h1>
 					<p class="hero-tag">A web-based way to remotely view disk usage.</p>
 					{% if page.activepage == 'home' %}
-					<p class="hero-buttons">
+					<p class="hero-buttons noprint">
 						<a href="{{ site.LatestURL }}" class="btn btn-primary btn-large" onclick="return ROD(this, 'latest header');">Download Latest <small>({{ site.LatestVersion }})</small></a>
 						<span class="hide"> or </span>
 						<a href="https://github.com/amekkawi/diskusagereports" target="_blank" class="btn btn-large btn-success" onclick="return ROL(this);">Get Involved via Github &raquo;</a>
 					</p>
 					{% endif %}
 				</div>
-				<nav>
+				<nav class="noprint">
 					<ul>
 						<li><a href="{{ page.basepath }}./" class="{% if page.activepage == 'home' %}active{% endif %}">Home</a></li>
-						<li><a href="{{ page.basepath }}features.html" class="{% if page.activepage == 'features' %}active{% endif %}">Features</a></li>
+						<li><a href="{{ page.basepath }}features.html" class=" {% if page.activepage == 'features' %}active{% endif %}">Features</a></li>
 						<li><a href="{{ page.basepath }}demo/" class="{% if page.activepage == 'demo' %}active{% endif %}">Demo</a></li>
-						<li><a href="{{ page.basepath }}docs/" class="{% if page.activepage == 'docs' %}active{% endif %}">Documentation</a></li>
-						<li><a href="{{ page.basepath }}download.html" class="{% if page.activepage == 'downloads' %}active{% endif %}">Downloads</a></li>
-						<li><a href="{{ page.basepath }}help/" class="{% if page.activepage == 'help' %}active{% endif %}">Get Help</a></li>
-						<li><a href="{{ page.basepath }}license.html" class="{% if page.activepage == 'license' %}active{% endif %}">License</a></li>
-						<li class="{% if page.activepage == 'home' %}hidex{% endif %}"><a href="https://github.com/amekkawi/diskusagereports" target="_blank" class="{% if page.activepage == 'github' %}active{% endif %}" onclick="return ROL(this);">Fork on Github &raquo;</a></li>
+						<li><a href="{{ page.basepath }}docs/" class="{% if page.activepage == 'docs' %}active{% endif %}">Doc<span class="hidden-inline-phone">umentation</span><span class="visible-inline-phone">s</span></a></li>
+						<li class="hidden-inline-phone-mini"><a href="{{ page.basepath }}download.html" class="{% if page.activepage == 'downloads' %}active{% endif %}">Downloads</a></li>
+						<li><a href="{{ page.basepath }}help/" class="{% if page.activepage == 'help' %}active{% endif %}"><span class="hidden-inline-phone">Get </span>Help</a></li>
+						<li class="visible-inline-desktop"><a href="{{ page.basepath }}license.html" class="{% if page.activepage == 'license' %}active{% endif %}">License</a></li>
+						<li class="hidden-inline-phone {% if page.activepage == 'home' %}hidex{% endif %}"><a href="https://github.com/amekkawi/diskusagereports" target="_blank" class="{% if page.activepage == 'github' %}active{% endif %}" onclick="return ROL(this);"><span class="visible-inline-desktop">Fork on </span>Github &raquo;</a></li>
 					</ul>
 				</nav>
 			</header>

@@ -1,4 +1,5 @@
 @import "bootstrap/bootstrap.less";
+@import "bootstrap/responsive.less";
 
 html {
 	overflow-y: scroll;
@@ -6,40 +7,9 @@ html {
 body {
 	padding-top: 20px;
 	padding-bottom: 16px;
-	
-	background-color: #FCFCFC;
-	background-image: -moz-linear-gradient(top, #EEE, #FCFCFC 200px);
-	background-image: -ms-linear-gradient(top, #EEE, #FCFCFC 200px);
-	background-image: -webkit-linear-gradient(top, #EEE, #FCFCFC 200px);
-	background-image: -o-linear-gradient(top, #EEE, #FCFCFC 200px);
-	background-image: linear-gradient(top, #EEE, #FCFCFC 200px);
-	background-repeat: repeat-x;
 }
-h1, h2, h3, h4, h5, h6 {
-	color: #444;
-}
-
 header {
-	margin: 0 -10px;
-	margin-bottom: 16px;
-	
-	background-color: #2c2c2c;
-	background-image: url(../images/hero-bg2.png);
-	background-position: top left;
-	background-repeat: repeat-x;
-	color: white;
-	
-	.border-radius(6px);
-	.box-shadow(0 6px 4px rgba(0,0,0,0.1));
-	
 	.hero {
-		padding: 30px;
-		padding-left: 260px;
-		
-		background-image: url(../images/disk_128w.png);
-		background-repeat: no-repeat;
-		background-position: 100px 10px;
-		
 		h1 {
 			margin-bottom: 0;
 			font-size: 60px;
@@ -48,7 +18,7 @@ header {
 			letter-spacing: -1px;
 			
 			a {
-				color: #FFF !important;
+				color: #000;
 				text-decoration: none !important;
 			}
 		}
@@ -70,8 +40,14 @@ header {
 		}
 	}
 	
+	.hero-buttons {
+		margin: 0;
+		a, span {
+			margin-bottom: 9px;
+		}
+	}
+	
 	.hero-tag {
-		color: #CCC;
 		margin-top: 6px;
 	}
 	
@@ -88,7 +64,7 @@ header {
 		border-bottom-left-radius: 6px;
 		
 		text-align: center;
-		padding: 12px 0;
+		padding: 13px 0;
 		background-color: #EEE;
 		
 		border: 1px solid #BBB;
@@ -143,7 +119,6 @@ hr {
 	h2 {
 		font-size: 22px;
 		font-weight: 300;
-		text-shadow: 1px 1px #FFF;
 		
 		img {
 			float: left;
@@ -157,16 +132,9 @@ hr {
 	padding: 8px 0;
 }
 
-pre.console {
-	color: #EEE;
-	background-color: #404040;
-	border: 0 none transparent;
-}
-
 code {
 	color: #333;
 	border: 0 none transparent;
-	background-color: #F4F4F4;
 }
 
 .indent {
@@ -220,4 +188,96 @@ code {
 
 footer {
 	padding-left: 20px;
+}
+
+// For desktops
+.visible-inline-phone      { display: none; }
+.visible-inline-phone-mini { display: none; }
+.visible-inline-tablet     { display: none; }
+.visible-inline-desktop    { display: inline; }
+.hidden-inline-phone       { display: inline; }
+.hidden-inline-phone-mini  { display: inline; }
+.hidden-inline-tablet      { display: inline; }
+.hidden-inline-desktop     { display: none; }
+
+// TABLETS AND BELOW
+// -----------------
+@media (max-width: 979px) {
+	.features h2 {
+		font-size: 18px;
+	}
+	header nav {
+		padding: 9px;
+		
+		a {
+			padding: 10px;
+		}
+	}
+	pre {
+		overflow: auto;
+		white-space: pre;
+		word-break: normal;
+		word-wrap: normal;
+		&.console {
+			font-size: 11px;
+		}
+	}
+}
+
+// LANDSCAPE PHONE TO SMALL DESKTOP & PORTRAIT TABLET
+@media (max-width: 767px) {
+	.visible-inline-phone     { display: inline; }
+	.hidden-inline-phone      { display: none; }
+	.hidden-inline-desktop    { display: inline; }
+	.visible-inline-desktop   { display: none; }
+	
+	nav li a {
+		padding: 10px 5px;
+		margin: 0 2px;
+	}
+	
+	#TOC.fixed {
+		width: auto;
+		position: static;
+		top: auto;
+	}
+}
+
+// PORTRAIT TABLET TO DEFAULT DESKTOP
+@media (min-width: 768px) and (max-width: 979px) {
+	.visible-inline-tablet    { display: inline; }
+	.hidden-inline-tablet     { display: none; }
+	.hidden-inline-desktop    { display: inline; }
+	.visible-inline-desktop   { display: none; }
+	
+	#TOC {
+		&.fixed {
+			width: 166px;
+		}
+		ul {
+			margin-left: 0;
+		}
+		li {
+			margin-bottom: 8px;
+			list-style: none;
+		}
+	}
+}
+
+// UP TO LANDSCAPE PHONE
+@media (max-width: 480px) {
+	.visible-inline-phone-mini { display: inline; }
+	.hidden-inline-phone-mini  { display: none; }
+	
+	.indent {
+		margin-left: 0;
+	}
+}
+
+// DEFAULT DESKTOP
+@media (min-width: 980px) {
+}
+
+// LARGE DESKTOP & UP
+@media (min-width: 1200px) {
 }
