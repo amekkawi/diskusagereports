@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>404 Not Found | Disk Usage Reports</title>
+		<link rel="shortcut icon" href="images/favicon.png" type="image/png">
+		<!--<link href="css/bootstrap.css" type="text/css" rel="stylesheet">-->
+		<!--<link href="css/base.css" type="text/css" rel="stylesheet">-->
+		<link media="all" rel="stylesheet/less" type="text/css" href="css/base.less">
+		<link media="screen" rel="stylesheet/less" type="text/css" href="css/screen.less">
+		<style media="print" type="text/css">
+		.noprint { display: none; }
+		</style>
+		
+		
+		
+		
+		
+		
+		
+		<script src="js/less.min.js"></script>
+		
+		<!--[if lt IE 9]>
+			<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+		
+		<script type="text/javascript">
+			var _gaq = _gaq || [];
+			_gaq.push(['_setAccount', 'UA-21143641-1']);
+			
+			
+			_gaq.push(['_trackPageview']);
+			
+			
+		
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+		
+		function RE(category, action, label) {
+			_gaq.push(['_trackEvent', category, action, label]);
+		}
+		
+		function ROL(anchor) {
+			try {
+				RE('Outbound', 'Link', anchor.href);
+				setTimeout(function(){
+					if (anchor.target == '_blank')
+						window.open(anchor.href);
+					else
+						document.location = anchor.href;
+				}, 100)
+				return false;
+			} catch(err) { }
+		}
+		
+		function ROD(anchor, version) {
+			try {
+				RE('Outbound', 'Download', version);
+				setTimeout(function(){
+					if (anchor.target == '_blank')
+						window.open(anchor.href);
+					else
+						document.location = anchor.href;
+				}, 100)
+				return false;
+			} catch(err) { }
+		}
+		</script>
+	</head>
+
+	<body>
+		<div class="container">
+			
+			<header>
+				<div class="hero">
+					<h1><a href="./">Disk Usage Reports</a></h1>
+					<p class="hero-tag">A web-based way to remotely view disk usage.</p>
+					
+				</div>
+				<nav class="noprint">
+					<ul>
+						<li><a href="./" class="">Home</a></li>
+						<li><a href="features.html" class=" ">Features</a></li>
+						<li><a href="demo/" class="">Demo</a></li>
+						<li><a href="docs/" class="">Doc<span class="hidden-inline-phone">umentation</span><span class="visible-inline-phone">s</span></a></li>
+						<li class="hidden-inline-phone-mini"><a href="download.html" class="">Downloads</a></li>
+						<li><a href="help/" class=""><span class="hidden-inline-phone">Get </span>Help</a></li>
+						<li class="visible-inline-desktop"><a href="license.html" class="">License</a></li>
+						<li class="hidden-inline-phone "><a href="https://github.com/amekkawi/diskusagereports" target="_blank" class="" onclick="return ROL(this);"><span class="visible-inline-desktop">Fork on </span>Github &raquo;</a></li>
+					</ul>
+				</nav>
+			</header>
+			
+			<div class="content">
+
+<h1 class="content-title">404 Not Found</h1>
+
+<hr>
+
+<p>Oh no! The page you tried to view doesn't seem to exist.</p>
+
+</div>
+
+			<hr style="margin-top: 0;">
+
+			<footer>
+				<p>&copy; 2012 André Mekkawi | Available under an <a href="license.html">MIT License</a> | Hosting provided by <a href="http://github.com/">GitHub</a></p>
+			</footer>
+
+		</div>
+
+	</body>
+</html>
