@@ -207,7 +207,7 @@ footer {
 		font-size: 18px;
 	}
 	header nav {
-		padding: 9px;
+		padding: 9px 0;
 		
 		a {
 			padding: 10px;
@@ -231,7 +231,7 @@ footer {
 	.hidden-inline-desktop    { display: inline; }
 	.visible-inline-desktop   { display: none; }
 	
-	nav li a {
+	header nav a {
 		padding: 10px 5px;
 		margin: 0 2px;
 	}
@@ -268,6 +268,11 @@ footer {
 @media (max-width: 480px) {
 	.visible-inline-phone-mini { display: inline; }
 	.hidden-inline-phone-mini  { display: none; }
+	
+	header nav a {
+		margin: 0;
+		padding: 10px 4px;
+	}
 	
 	.indent {
 		margin-left: 0;
