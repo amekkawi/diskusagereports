@@ -9,9 +9,7 @@
 		<!--<link href="{{ page.basepath }}css/base.css" type="text/css" rel="stylesheet">-->
 		<link media="all" rel="stylesheet/less" type="text/css" href="{{ page.basepath }}css/base.less">
 		<link media="screen" rel="stylesheet/less" type="text/css" href="{{ page.basepath }}css/screen.less">
-		<style media="print" type="text/css">
-		.noprint { display: none; }
-		</style>
+		<link media="print" rel="stylesheet/less" type="text/css" href="{{ page.basepath }}css/print.less">
 		
 		{% for file in page.css %}
 		<link href="{{ page.basepath }}css/{{ file }}" type="text/css" rel="stylesheet">
