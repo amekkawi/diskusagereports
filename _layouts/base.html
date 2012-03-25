@@ -11,7 +11,14 @@
 		<link media="print" rel="stylesheet{%if site.LessExt == 'less' %}/less{%endif%}" type="text/css" href="{{ page.basepath }}css/print.{{site.LessExt}}">
 		
 		{% for file in page.css %}
-		<link href="{{ page.basepath }}css/{{ file }}" type="text/css" rel="stylesheet">
+			{% capture firstchar %}{{ file | truncate: 1, '' }}{% endcapture %}
+			{% capture first7char %}{{ file | truncate: 7, '' }}{% endcapture %}
+			{% capture first8char %}{{ file | truncate: 8, '' }}{% endcapture %}
+			{% if firstchar == '.' or firstchar == '/' or first7char == 'http://' or first8char == 'https://' %}
+				<link href="{{ file }}" type="text/css" rel="stylesheet">
+			{% else %}
+				<link href="{{ page.basepath }}css/{{ file }}" type="text/css" rel="stylesheet">
+			{% endif %}
 		{% endfor %}
 		
 		{% if page.js %}
@@ -19,7 +26,14 @@
 		{% endif %}
 		
 		{% for file in page.js %}
-		<script src="{{ page.basepath }}js/{{ file }}"></script>
+			{% capture firstchar %}{{ file | truncate: 1, '' }}{% endcapture %}
+			{% capture first7char %}{{ file | truncate: 7, '' }}{% endcapture %}
+			{% capture first8char %}{{ file | truncate: 8, '' }}{% endcapture %}
+			{% if firstchar == '.' or firstchar == '/' or first7char == 'http://' or first8char == 'https://' %}
+				<script src="{{ file }}"></script>
+			{% else %}
+				<script src="{{ page.basepath }}js/{{ file }}"></script>
+			{% endif %}
 		{% endfor %}
 		
 		{% if site.LessExt == 'less' %}
