@@ -5,11 +5,10 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>{% if page.title %}{{ page.title }} | Disk Usage Reports{% else %}Disk Usage Reports: A web-based way to view disk usage{% endif %}</title>
 		<link rel="shortcut icon" href="{{ page.basepath }}images/favicon.png" type="image/png">
-		<!--<link href="{{ page.basepath }}css/bootstrap.css" type="text/css" rel="stylesheet">-->
-		<!--<link href="{{ page.basepath }}css/base.css" type="text/css" rel="stylesheet">-->
-		<link media="all" rel="stylesheet/less" type="text/css" href="{{ page.basepath }}css/base.less">
-		<link media="screen" rel="stylesheet/less" type="text/css" href="{{ page.basepath }}css/screen.less">
-		<link media="print" rel="stylesheet/less" type="text/css" href="{{ page.basepath }}css/print.less">
+		
+		<link media="all" rel="stylesheet{%if site.LessExt == 'less' %}/less{%endif%}" type="text/css" href="{{ page.basepath }}css/base.{{site.LessExt}}">
+		<link media="screen" rel="stylesheet{%if site.LessExt == 'less' %}/less{%endif%}" type="text/css" href="{{ page.basepath }}css/screen.{{site.LessExt}}">
+		<link media="print" rel="stylesheet{%if site.LessExt == 'less' %}/less{%endif%}" type="text/css" href="{{ page.basepath }}css/print.{{site.LessExt}}">
 		
 		{% for file in page.css %}
 		<link href="{{ page.basepath }}css/{{ file }}" type="text/css" rel="stylesheet">
@@ -23,7 +22,9 @@
 		<script src="{{ page.basepath }}js/{{ file }}"></script>
 		{% endfor %}
 		
+		{% if site.LessExt == 'less' %}
 		<script src="{{ page.basepath }}js/less.min.js"></script>
+		{% endif %}
 		
 		<!--[if lt IE 9]>
 			<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>

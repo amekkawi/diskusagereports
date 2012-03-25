@@ -1,0 +1,9 @@
+#!/bin/bash
+
+SCRIPTPATH="$(cd "$(dirname "$0")"; pwd)"
+lessc -x "$SCRIPTPATH/css/base.less" > "$SCRIPTPATH/css/base.css"
+lessc -x "$SCRIPTPATH/css/print.less" > "$SCRIPTPATH/css/print.css"
+lessc -x "$SCRIPTPATH/css/screen.less" > "$SCRIPTPATH/css/screen.css"
+
+jekyll
+
