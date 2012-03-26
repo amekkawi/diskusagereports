@@ -7,3 +7,4 @@ lessc -x "$SCRIPTPATH/css/screen.less" > "$SCRIPTPATH/css/screen.css"
 
 jekyll
 
+cp "$SCRIPTPATH/_site/404template.html" "$SCRIPTPATH/404.html"
