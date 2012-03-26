@@ -59,5 +59,9 @@
 		processScroll();
 		win.on('resize', calcSizes);
 		win.on('scroll', processScroll);
+		
+		if (navigator.userAgent.match(/\b(Android|iPad|iPhone)\b/i) != null) {
+			$('body').addClass('detectmobile');
+		}
 	});
 })(jQuery);

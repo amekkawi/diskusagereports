@@ -194,6 +194,7 @@ code{color:#333;border:0 none transparent;}
 .tall-list li{margin-bottom:6px;}
 .btn.btn-primary small,.btn.btn-success small,.btn.btn-info small,.btn.btn-warning small,.btn.btn-danger small,.btn.btn-inverse small{color:rgba(255, 255, 255, 0.75);}
 .topjump{display:none;font-weight:normal;text-decoration:none;}
+.iOS .topjump{display:inline;}
 h2 .topjump{font-size:15px;padding:4px;border:1px solid #CCC;background-color:#EEE;-webkit-border-radius:8px;-moz-border-radius:8px;border-radius:8px;}
 footer{padding-left:20px;}
 .visible-inline-phone{display:none;}
