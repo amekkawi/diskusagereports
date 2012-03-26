@@ -168,7 +168,7 @@ a.thumbnail:hover{border-color:#0066cc;-webkit-box-shadow:0 1px 4px rgba(0, 105,
 body{padding-top:20px;padding-bottom:16px;}
 header .hero h1{margin-bottom:0;font-size:60px;line-height:1;color:inherit;letter-spacing:-1px;}header .hero h1 a{color:#000;text-decoration:none !important;}
 header .hero p{font-size:18px;font-weight:200;line-height:27px;color:inherit;}
-header .hero .btn{font-weight:bold;}header .hero .btn small{color:rgba(255, 255, 255, 0.75);font-size:12px;}
+header .hero .btn{font-weight:bold;margin-right:6px;}header .hero .btn small{color:rgba(255, 255, 255, 0.75);font-size:12px;}
 header .hero.homepage{padding-bottom:20px;padding-top:17px;}header .hero.homepage .hero-tag{display:none;}
 header .hero.homepage .hero-buttons{margin-top:17px;}
 header .hero-buttons{margin:0;}header .hero-buttons a,header .hero-buttons span{margin-bottom:9px;}
