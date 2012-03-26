@@ -116,15 +116,17 @@ The OPTIONS are:
 
       -d <delim>
       The field delimiter that each line of the filelist will be split using.
-      The default is the NULL character.
-
+      The default is the NULL character. Will be ignored if <filelist> has a
+      header line (see notes).
+      
       -ds <directoryseparator>
       Specify the directory separator used in the file list. This is useful
       if the list from step 1 was generated on a different operating system
       which uses a different directory separator. For example, Windows uses
       a backslash (\) while Linux/BSD/Mac/etc systems use a forward slash (/).
       The default is the directory separator for the operating system
-      processing the report.
+      processing the report.  Will be ignored if <filelist> has a header
+      line (see notes).
 
       -fp
       Display the full path of the directories in the report. This is off by
@@ -192,6 +194,10 @@ Notes:
         
       o The directory separator used in <filelist> must be a forward slash
         if this script is executed on a *nix system.
+        
+      o If the <filelist> has a header line (starts with a #) then the -d
+        and -ds OPTIONS will be ignored since the header explicitly
+        defines what their values should be.
 
 See also: diskusagereports.com/docs
 
