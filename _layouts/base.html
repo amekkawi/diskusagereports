@@ -68,26 +68,30 @@
 		function ROL(anchor) {
 			try {
 				RE('Outbound', 'Link', anchor.href);
-				setTimeout(function(){
-					if (anchor.target == '_blank')
-						window.open(anchor.href);
-					else
+				if (anchor.target == '_blank') {
+					return true;
+				}
+				else {
+					setTimeout(function(){
 						document.location = anchor.href;
-				}, 100)
-				return false;
+					}, 100);
+					return false;
+				}
 			} catch(err) { }
 		}
 		
 		function ROD(anchor, version) {
 			try {
 				RE('Outbound', 'Download', version);
-				setTimeout(function(){
-					if (anchor.target == '_blank')
-						window.open(anchor.href);
-					else
+				if (anchor.target == '_blank') {
+					return true;
+				}
+				else {
+					setTimeout(function(){
 						document.location = anchor.href;
-				}, 100)
-				return false;
+					}, 100);
+					return false;
+				}
 			} catch(err) { }
 		}
 		</script>
