@@ -1,0 +1,26 @@
+---
+layout: default
+title: Set GA Skip
+js: [ foo.js ]
+---
+
+<script type="text/javascript">
+$(function() {
+	try {
+		var val = localStorage.getItem('skipGA');
+		$('#GASkip code').text(val === null ? 'null' : val);
+		
+		$('#GASkipBtn').click(function() {
+			localStorage.setItem('skipGA', 'true');
+			window.location.reload();
+		}).show();
+	}
+	catch (e) {
+		$('#GASkip').text('localStorage not supported');
+	}
+});
+</script>
+
+<p id="GASkip">GA Skip: <code></code></p>
+
+<button id="GASkipBtn" class="btn hide">Set GA Skip</button>
