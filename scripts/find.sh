@@ -8,6 +8,10 @@
 # Set the timezone to UTC
 export TZ=UTC
 
+# Check that the find commands supports -printf
+find . -maxdepth 0 -printf "%y%TY-%Tm-%Td%TH:%TM:%TS%s%d%P\n" &> /dev/null
+[ "$?" != "0" ] && echo "The 'find' command on your system does not support the '-printf' flag. Please use scripts/find.php instead." && exit 1
+
 function syntax() {
 	[ "$*" != "" ] && echo "$*" 1>&2
 	echo "Syntax: $0 [OPTIONS] <directory-to-list>" 1>&2
@@ -72,4 +76,4 @@ echo -n $base
 printf "$delim"
 date '+%Y-%m-%d %H:%M:%S'
 
-find "$real" -mindepth 1 -printf "%y$delim%TY-%Tm-%Td$delim%TT$delim%s$delim%d$delim%P\n"
+find "$real" -mindepth 1 -printf "%y$delim%TY-%Tm-%Td$delim%TH:%TM:%TS$delim%s$delim%d$delim%P\n"
