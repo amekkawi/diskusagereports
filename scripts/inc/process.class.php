@@ -171,9 +171,9 @@ class Process {
 				}
 				
 				// Return a critical failure if an error constant was returned from verify.
-				elseif ($verify !== FALSE) {
+				elseif ($split !== FALSE) {
 					fclose($fh);
-					return $verify;
+					return $split;
 				}
 			}
 			
