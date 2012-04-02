@@ -20,16 +20,16 @@ cd "$REPODIR"
 git archive --format=tar "$TAG" | tar x -C "$PREPAREDIR"
 [ "${PIPESTATUS[0]} $?" != "0 0" ] && echo "FAILED" && exit 1
 
+echo "Editing index.html..."
+sed -Ei '' -f "$SCRIPTDIR/inc/prepare.sed" "$PREPAREDIR/index.html"
+[ "$?" != "0" ] && echo "FAILED" && exit 1
+
 echo "Packing JavaScript..."
 bash "$PREPAREDIR/\$dev/pack.sh"
 [ "$?" != "0" ] && echo "FAILED" && exit 1
 
 echo "Removing \$dev..."
 rm -rf "$PREPAREDIR/\$dev"
-[ "$?" != "0" ] && echo "FAILED" && exit 1
-
-echo "Editing index.html..."
-sed -Ei '' -f "$SCRIPTDIR/inc/prepare.sed" "$PREPAREDIR/index.html"
 [ "$?" != "0" ] && echo "FAILED" && exit 1
 
 echo "Replacing \$Source Version\$ with tag name in scripts..."
