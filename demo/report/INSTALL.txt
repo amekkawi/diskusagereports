@@ -1,2 +1,0 @@
-For installation instructions see:
-http://diskusagereport.sourceforge.net/docs/

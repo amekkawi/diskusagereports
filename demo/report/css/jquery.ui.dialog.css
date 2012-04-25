@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2011 André Mekkawi <contact@andremekkawi.com>
+ * Copyright (c) 2011 André Mekkawi <diskusage@andremekkawi.com>
  * Version: $Source Version$
  * 
  * LICENSE
