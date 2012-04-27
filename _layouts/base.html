@@ -5,7 +5,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>{% if page.title %}{{ page.title }} | Disk Usage Reports{% else %}Disk Usage Reports: A web-based way to view disk usage{% endif %}</title>
 		<link rel="shortcut icon" href="{{ page.basepath }}images/favicon.png" type="image/png">
-		<link rel="alternate" type="application/rss+xml" title="RSS" href="http://api.twitter.com/1/statuses/user_timeline.rss?screen_name=DiskUsageReport" />
+		<link rel="alternate" type="application/rss+xml" title="RSS" href="{{ page.basepath }}feed.rss" />
 		
 		<link media="all" rel="stylesheet{%if site.LessExt == 'less' %}/less{%endif%}" type="text/css" href="{{ page.basepath }}css/base.{{site.LessExt}}">
 		<link media="screen" rel="stylesheet{%if site.LessExt == 'less' %}/less{%endif%}" type="text/css" href="{{ page.basepath }}css/screen.{{site.LessExt}}">

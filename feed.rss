@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+	<channel>
+		<title>Disk Usage Reports</title>
+		<link>http://diskusagereports.com/</link>
+		<description>Announcements for Disk Usage Reports, a web-based way to view disk usage.</description>
+		<language>en-us</language>
+		<ttl>60</ttl>
+		<webMaster>feed@diskusagereports.com</webMaster>
+		<image>
+			<title>Disk Usage Reports</title>
+			<description>Disk Usage Reports</description>
+			<link>http://diskusagereports.com/</link>
+			<url>http://diskusagereports.com/images/disk_80w.png</url>
+			<width>80</width>
+			<height>80</height>
+		</image>
+		<item>
+			<title>Disk Usage Reports v1.0.3 Released!</title>
+			<description>Version 1.0.3 Released! Contains important bug fixes and documentation updates. Download at <a href="http://diskusagereports.com/download.html">http://diskusagereports.com/download.html</a>.</description>
+			<pubDate>Fri, 27 Apr 2012 07:12:07 +0000</pubDate>
+			<guid>http://diskusagereports.com/#v1.0.3Announcement</guid>
+			<link>http://diskusagereports.com/download.html</link>
+		</item>
+	</channel>
+</rss>
