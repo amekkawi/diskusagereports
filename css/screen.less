@@ -29,6 +29,7 @@ header {
 	.box-shadow(0 6px 4px rgba(0,0,0,0.1));
 	
 	.hero {
+		position: relative;
 		padding: 30px;
 		padding-left: 260px;
 		
@@ -38,6 +39,38 @@ header {
 		
 		h1 a {
 			color: #FFF;
+		}
+		
+		.feeds {
+			position: absolute;
+			right: 0;
+			top: -5px;
+			
+			p {
+				float: left;
+				margin: 0 5px 5px 0;
+				padding: 0;
+				
+				a {
+					display: block;
+					width: 24px;
+					height: 24px;
+					
+					span {
+						position: absolute;
+						top: -1000px;
+						left: 0;
+					}
+				}
+				
+				&.rss a {
+					background-image: url(../images/Feed_24x24.png);
+				}
+				
+				&.twitter a {
+					background-image: url(../images/Twitter_24x24.png);
+				}
+			}
 		}
 	}
 	
@@ -100,6 +133,11 @@ code {
 			.hero-buttons {
 				display: none;
 			}
+		}
+		
+		.hero .feeds {
+			top: 7px;
+			width: 29px;
 		}
 		
 		.hero-tag {

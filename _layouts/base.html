@@ -5,6 +5,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>{% if page.title %}{{ page.title }} | Disk Usage Reports{% else %}Disk Usage Reports: A web-based way to view disk usage{% endif %}</title>
 		<link rel="shortcut icon" href="{{ page.basepath }}images/favicon.png" type="image/png">
+		<link rel="alternate" type="application/rss+xml" title="RSS" href="http://api.twitter.com/1/statuses/user_timeline.rss?screen_name=DiskUsageReport" />
 		
 		<link media="all" rel="stylesheet{%if site.LessExt == 'less' %}/less{%endif%}" type="text/css" href="{{ page.basepath }}css/base.{{site.LessExt}}">
 		<link media="screen" rel="stylesheet{%if site.LessExt == 'less' %}/less{%endif%}" type="text/css" href="{{ page.basepath }}css/screen.{{site.LessExt}}">
@@ -125,6 +126,10 @@
 						<a href="https://github.com/amekkawi/diskusagereports" target="_blank" class="btn btn-large btn-success" onclick="return ROL(this);">Get Involved via Github &raquo;</a>
 					</p>
 					{% endif %}
+					<div class="feeds noprint">
+						<p class="twitter"><a href="http://twitter.com/DiskUsageReport" target="_blank"><span>Twitter</span></a></p>
+						<p class="rss"><a href="http://api.twitter.com/1/statuses/user_timeline.rss?screen_name=DiskUsageReport" target="_blank"><span>RSS</span></a></p>
+					</div>
 				</div>
 				<nav class="noprint">
 					<ul>
@@ -145,7 +150,7 @@
 			<hr style="margin-top: 0;">
 
 			<footer>
-				<p>&copy; {{ site.time | date: "%Y" }} André Mekkawi | Available under an <a href="{{ page.basepath }}license.html">MIT License</a> | Hosting provided by <a href="http://github.com/">GitHub</a></p>
+				<p>&copy; {{ site.time | date: "%Y" }} <a href="{{ page.basepath }}help/">André Mekkawi</a> | Available under an <a href="{{ page.basepath }}license.html">MIT License</a> | Hosting provided by <a href="http://github.com/">GitHub</a></p>
 			</footer>
 
 		</div>
