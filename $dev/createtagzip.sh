@@ -22,7 +22,7 @@ cd "$REPODIR"
 git archive --format=tar "$TAG" | tar x -C "$PREPAREDIR"
 [ "${PIPESTATUS[0]} $?" != "0 0" ] && echo "FAILED" && exit 1
 
-bash "$SCRIPTDIR/preparerelease.sh" "$PREPAREDIR"
+bash "$SCRIPTDIR/preparerelease.sh" "$PREPAREDIR" "$TAG"
 
 echo "Compressing to $SCRIPTDIR/local/diskusagereports_$TAG.zip..."
 cd "$TMPDIR"
