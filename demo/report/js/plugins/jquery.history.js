@@ -1,7 +1,7 @@
 /*
  * Modified to work without GWT. Requires jQuery.
  * By André Mekkawi diskusage@andremekkawi.com
- * Version: $Source Version$
+ * Version: master
  *
  * Tested in IE 6/7, Firefox 4, Safari 5, Chrome 11
  */

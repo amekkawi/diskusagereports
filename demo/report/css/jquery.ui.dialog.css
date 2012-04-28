@@ -1,6 +1,6 @@
 /* 
  * Copyright (c) 2011 André Mekkawi <diskusage@andremekkawi.com>
- * Version: $Source Version$
+ * Version: master
  * 
  * LICENSE
  * 
