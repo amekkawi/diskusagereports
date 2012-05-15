@@ -605,7 +605,7 @@ class Process {
 			implode(preg_quote($this->_delim), array(
 				'[dflcbpu]',
 				'[0-9]{4}-[0-9]{2}-[0-9]{2}', // Date
-				'[0-9]{2}:[0-9]{2}:[0-9]{2}', // Time
+				'[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?', // Time
 				'[0-9]+', // Size
 				'[0-9]+' // Depth
 			)) . preg_quote($this->_delim) . '/';
