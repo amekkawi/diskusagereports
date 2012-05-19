@@ -36,11 +36,11 @@ Quick Start
 
 6.  Execute one of the following, changing `path/to/directory` to something else:
     
-    * Linux: `bash scripts\find.sh path/to/directory | php scripts\process.php data\myreport`
+    * Linux: `bash scripts/find.sh path/to/directory | php scripts/process.php data/myreport`
     
     * Windows: `scripts\find.exe path\to\directory | php scripts\process.php data\myreport`
     
-    * Others: `php scripts\find.php path/to/directory | php scripts\process.php data\myreport`
+    * Others: `php scripts/find.php path/to/directory | php scripts/process.php data/myreport`
     
 7.  Open your browser and visit the following (changing anything before the `?` as necessary):
     
