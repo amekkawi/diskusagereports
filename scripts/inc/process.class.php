@@ -21,6 +21,7 @@ define('PROCESS_INVALID_HEADER', 5);
 define('PROCESS_WARN_WRITEFAIL', 6);
 define('PROCESS_INVALID_CHARACTERS', 7);
 define('PROCESS_UNEXPECTED_HEADER', 8);
+define('PROCESS_FAILED_REPORTDIR_PARENT', 9);
 
 define('PROCESS_COL_TYPE', 0);
 define('PROCESS_COL_DATE', 1);
@@ -102,6 +103,11 @@ class Process {
 			if (!is_dir($this->_reportDir)) {
 				return PROCESS_INVALID_REPORTDIR;
 			}
+		}
+		
+		// Make sure the parent of the report directory exists.
+		elseif (!is_dir(dirname($this->_reportDir))) {
+			return PROCESS_FAILED_REPORTDIR_PARENT;
 		}
 		
 		// Create the report directory if it does not exist.
