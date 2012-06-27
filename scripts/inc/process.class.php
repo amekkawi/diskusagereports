@@ -158,6 +158,7 @@ class Process {
 					
 					// Fail if the dirStack already contains directories. 
 					if (count($this->_dirStack) != 0) {
+						fclose($fh);
 						return PROCESS_UNEXPECTED_HEADER;
 					}
 					
