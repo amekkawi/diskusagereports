@@ -169,7 +169,10 @@ class Process {
 				}
 				
 				elseif (substr($line, 0, 1) == '!') {
-					$this->_processError($line);
+					if (($ret = $this->_processError($line)) !== TRUE) {
+						fclose($fh);
+						return $ret;
+					}
 				}
 				
 				// Validate the line, and if it is valid then process it.
@@ -233,9 +236,9 @@ class Process {
 			return PROCESS_INVALID_HEADER;
 		}
 		
-		// Make sure all the strings are UTF-8 valid
+		// Make sure all the strings are UTF-8.
 		for ($i = 1; $i < count($splitHeader); $i++) {
-			if (json_encode($splitHeader[$i]) == 'null' && ($splitHeader[$i] = iconv('Windows-1252', 'UTF-8', $splitHeader[$i])) === FALSE) {
+			if (json_encode($splitHeader[$i]) == 'null') {
 				return PROCESS_INVALID_CHARACTERS;
 			}
 		}
@@ -264,10 +267,10 @@ class Process {
 		// Change the '!' to an error code.
 		$split[0] = 'finderror';
 		
-		// Make sure all the strings are UTF-8 valid
+		// Make sure all the strings are UTF-8.
 		for ($i = 1; $i < count($split); $i++) {
-			if (json_encode($split[$i]) == 'null' && ($split[$i] = iconv('Windows-1252', 'UTF-8', $split[$i])) === FALSE) {
-				$split[$i] = '((Error message contained invalid characters))';
+			if (json_encode($split[$i]) == 'null') {
+				return PROCESS_INVALID_CHARACTERS;
 			}
 		}
 		
@@ -275,18 +278,20 @@ class Process {
 		
 		// Push to the normal error list and let the UI handle it.
 		array_push($this->_errors, $split);
+		
+		return TRUE;
 	}
 	
 	function _validateLine($line, $lineNum) {
 		if (strlen($line) > $this->_maxLineLength) {
 			if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Line $lineNum invalid: Exceeds max line length.\n";
-			array_push($this->_errors, array('invalidline', 'maxlinelength', $line));
+			array_push($this->_errors, array('invalidline', 'maxlinelength', $this->_stringToByteArray($line)));
 		}
 
 		// Validate the line up to the path column.
 		elseif (!preg_match($this->_lineRegEx, $line)) {
 			if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Line $lineNum is invalid: Does not match correct pattern.\n";
-			array_push($this->_errors, array('invalidline', 'regex', $line));
+			array_push($this->_errors, array('invalidline', 'regex', $this->_stringToByteArray($line)));
 		}
 
 		// Split the line and validate its length;
@@ -301,12 +306,10 @@ class Process {
 			array_push($this->_errors, array('invalidline', 'column', 'path', PROCESS_COL_PATH, $split));
 		}
 
-		// If a json_encode fails then the text is not UTF-8.
-		// Attempt to convert it from Windows-1252.
-		elseif (json_encode($split[PROCESS_COL_PATH]) == 'null'
-			&& ($split[PROCESS_COL_PATH] = iconv('Windows-1252', 'UTF-8', $split[PROCESS_COL_PATH])) === FALSE) {
-			
-			return PROCESS_INVALID_CHARACTERS;
+		// Make sure the path is UTF-8.
+		elseif (json_encode($split[PROCESS_COL_PATH]) == 'null') {
+			if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Line $lineNum is invalid: Includes invalid UTF-8 characters.\n";
+			array_push($this->_errors, array('invalidline', 'utf8', $split));
 		}
 		
 		else {
@@ -616,6 +619,22 @@ class Process {
 				'[0-9]+', // Size
 				'[0-9]+' // Depth
 			)) . preg_quote($this->_delim) . '/';
+	}
+	
+	function _stringToByteArray($str) {
+		if (is_array($str)) {
+			for ($i = 0; $i < count($str); $i++) {
+				$str[$i] = $this->_stringToByteArray($str[$i]);
+			}
+			return $str;
+		}
+		else {
+			$arr = array();
+			for ($i = 0; $i < strlen($str); $i++) {
+				$arr[] = ord($str[$i]);
+			}
+			return $arr;
+		}
 	}
 	
 	function getName() {
