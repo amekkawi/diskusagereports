@@ -328,6 +328,9 @@ if ($processor->getVerboseLevel() != PROCESS_VERBOSE_QUIET) {
 		case PROCESS_INVALID_HEADER:
 			echo "The header line in the <filelist> is invalid.\n";
 			break;
+		case PROCESS_FAILED_REPORTDIR_PARENT:
+			echo "The parent directory of <reportdir> does not exist.\n";
+			break;
 		case PROCESS_FAILED_REPORTDIR_MKDIR:
 			echo "The <reportdir> could not be created.\n";
 			break;
