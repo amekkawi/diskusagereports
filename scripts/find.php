@@ -29,6 +29,7 @@ if (!(function_exists("date_default_timezone_set") ? @(date_default_timezone_set
 
 $find = new Find();
 $directory = NULL;
+$force32Bit = false;
 
 $cliargs = array_slice($_SERVER['argv'], 1);
 $syntax = "Syntax: php find.php [OPTIONS] <directory-to-scan>\nUse -h for full help or visit diskusagereports.com/docs.\n";
@@ -48,6 +49,10 @@ The OPTIONS are:
       -ds <directoryseparator>
       The directory separator used between directory names.
       The default is the directory separator for the operating system.
+      
+      --force32bit
+      Force the script to execute on 32-bit versions of PHP.
+      This may lead to incorrect totals if find.php encounters files over 2 GB. 
 
 See also: diskusagereports.com/docs
 
@@ -76,6 +81,9 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 		case '-ds':
 			$find->setDS($shifted = array_shift($cliargs));
 			break;
+		case '--force32bit':
+			$force32Bit = true;
+			break;
 		
 		default:
 			$directory = $cliarg;
@@ -94,6 +102,11 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 
 if (is_null($directory)) {
 	fwrite($STDERR, "<directory-to-scan> argument is missing.\n".$syntax); exit(1);
+}
+
+if (!is_int( 9223372036854775807 ) && !$force32Bit) {
+	fwrite($STDERR, "You are running a 32-bit version of PHP.\nThis may lead to incorrect totals if find.php encounters files over 2 GB.\nUse --force32bit to override.");
+	exit(1);
 }
 
 switch($ret = $find->run($directory, NULL, $STDERR)) {
