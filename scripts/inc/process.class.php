@@ -11,6 +11,7 @@
  */
 
 define('PROCESS_VERSION', '1.0');
+define('LIST_VERSION', 2);
 
 define('PROCESS_OK', 0);
 define('PROCESS_INVALID_FILELIST', 1);
@@ -84,6 +85,7 @@ class Process {
 		$this->_verboseLevel = 1;
 		$this->_includeFullPath = FALSE;
 		$this->_suffix = ".txt";
+		$this->_listVersion = 1;
 	}
 	
 	function run() {
@@ -218,40 +220,121 @@ class Process {
 			return PROCESS_INVALID_HEADER;
 		}
 		
-		// The first character after the pound-sign is the delim.
-		$this->_delim = substr($line, 1, 1);
-		
-		// Recreate the lineRegEx with the new delim.
-		$this->_createLineRegEx();
+		// Version 2 and later syntax.
+		if (substr($line, 1, 2) == '# ') {
 			
-		// Explode the remaining part of the header.
-		$splitHeader = explode($this->_delim, substr($line, 2));
-		
-		// Only check that the header has a *minimum* number of columns,
-		// to allow future versions to add more.
-		if (count($splitHeader) < 3) {
-			return PROCESS_INVALID_HEADER;
-		}
-		
-		// Make sure all the strings are UTF-8 valid
-		for ($i = 1; $i < count($splitHeader); $i++) {
-			if (json_encode($splitHeader[$i]) == 'null' && ($splitHeader[$i] = iconv('Windows-1252', 'UTF-8', $splitHeader[$i])) === FALSE) {
-				return PROCESS_INVALID_CHARACTERS;
+			// A single splace is always the delimiter.
+			$this->_delim = ' ';
+			
+			$splitHeader = explode(' ', substr($line, 3), 6);
+			
+			// Make sure the header has the minimum number of columns.
+			if (count($splitHeader) < 6) {
+				return PROCESS_INVALID_HEADER;
+			}
+			
+			// Make sure the list version is supported.
+			elseif (($this->_listVersion = intval(substr($splitHeader[0], 1))) > LIST_VERSION) {
+				return PROCESS_INVALID_HEADER;
+			}
+			
+			else {
+				// Recreate the lineRegEx with the correct delim.
+				$this->_createLineRegEx();
+				
+				// Override the directory separator.
+				$this->_ds = $splitHeader[1];
+				
+				// Default format values. Null values are required to be set by the header.
+				$format = array( 'datetime' => null );
+				
+				// Set format values from the header.
+				$formatValues = explode(':', $splitHeader[4]);
+				foreach ($formatValues as $key => $value) {
+					if (!empty($value)) {
+						switch ($key) {
+							case 0: $format['datetime'] = $value; break;
+						}
+					}
+				}
+				
+				// Make sure all the required format values are set.
+				foreach ($format as $value) {
+					if (empty($value)) {
+						return PROCESS_INVALID_HEADER;
+					}
+				}
+				
+				// Find the position of the separator between the dirname and basename.
+				$index = -1;
+				while (!isset($basename) && ($index = strpos($splitHeader[5], ' ', $index + 1)) !== FALSE) {
+					// Count the number of slashes before the space.
+					$slashes = 0;
+					for ($i = $index - 1; $i >= 0; $i--) {
+						if (substr($splitHeader[5], $i, 1) == '\\') $slashes++;
+						else break;
+					}
+					
+					// If the slashes if even, then this space is not being escaped.
+					if ($slashes % 2 == 0) {
+						$dirname = str_replace('\\ ', ' ', str_replace('\\\\', '\\', substr($splitHeader[5], 0, $index)));
+						$basename = str_replace('\\ ', ' ', str_replace('\\\\', '\\', substr($splitHeader[5], $index + 1)));
+					}
+				}
+				
+				// Fail if we could not determine the basename.
+				if (empty($basename)) {
+					return PROCESS_INVALID_HEADER;
+				}
+				
+				$this->_header = array(
+					'dirname' => $dirname,
+					'basename' => $basename,
+					'datetime' => $splitHeader[2] . " " . $splitHeader[3],
+					'format' => $format
+				);
 			}
 		}
 		
-		// Override the directory separator.
-		$this->_ds = $splitHeader[0];
+		// Version 1 syntax
+		else {
+			
+			// The first character after the pound-sign is the delim.
+			$this->_delim = substr($line, 1, 1);
+			
+			// Recreate the lineRegEx with the new delim.
+			$this->_createLineRegEx();
+				
+			// Explode the remaining part of the header.
+			$splitHeader = explode($this->_delim, substr($line, 2));
+			
+			// Only check that the header has a *minimum* number of columns,
+			// to allow future versions to add more.
+			if (count($splitHeader) < 3) {
+				return PROCESS_INVALID_HEADER;
+			}
+			
+			// Make sure all the strings are UTF-8 valid
+			for ($i = 1; $i < count($splitHeader); $i++) {
+				if (json_encode($splitHeader[$i]) == 'null' && ($splitHeader[$i] = iconv('Windows-1252', 'UTF-8', $splitHeader[$i])) === FALSE) {
+					return PROCESS_INVALID_CHARACTERS;
+				}
+			}
+			
+			// Override the directory separator.
+			$this->_ds = $splitHeader[0];
+			
+			$this->_header = array(
+				'dirname' => $splitHeader[1],
+				'basename' => $splitHeader[2],
+				'datetime' => $splitHeader[3]
+			);
+		}
 		
+		// Make sure the directory separator is a single character.
 		if (strlen($this->_ds) != 1) {
 			return PROCESS_INVALID_HEADER;
 		}
-		
-		$this->_header = array(
-			'dirname' => $splitHeader[1],
-			'basename' => $splitHeader[2],
-			'datetime' => $splitHeader[3]
-		);
 		
 		return TRUE;
 	}
