@@ -123,7 +123,7 @@ determine_nosort
 #echo "$? $nosortarg"
 
 timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
-echo "## v2 / ${timestamp:0:19} $format $real"
+echo "## v2 / ${timestamp:0:19} $format $(echo "$dir" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g') $(echo "$base" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g')"
 
 if [ "$format" == "find-printf" ]; then
 	find "$real" -mindepth 1 -printf "%y %TY-%Tm-%Td %TH:%TM:%TS %s %P\n"
