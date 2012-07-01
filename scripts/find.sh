@@ -21,7 +21,15 @@ function determine_format() {
 	
 	# Make sure find supports -print0
 	find "$0" -print0 &> /dev/null
-	[ "$?" != "0" ] && return 1
+	[ "$?" != "0" ] && return 50
+	
+	# Make sure find outputs results with the correct prefix.
+	line="$(cd "$SCRIPT_DIR"; find . | head -n 2 | tail -n 1)"
+	[ "${line:0:2}" != "./" ] && return 51
+	
+	# Make sure ls keeps the prefix.
+	line="$(cd "$SCRIPT_DIR"; ls -d "./$(basename "$0")")"
+	[ "${line:0:2}" != "./" ] && return 52
 	
 	# Check if FreeBSD -D <format> argument is available.
 	# // TODO: Check if works on FreeBSD
@@ -50,7 +58,7 @@ function determine_format() {
 	
 	# // TODO: Possibly allow the default format since we include current date/time? Will not be able to determine time however.
 	
-	return 1
+	return 1001
 }
 
 function determine_nosort() {
@@ -65,7 +73,7 @@ function determine_nosort() {
 	line="$(ls -ldf .. . 2> /dev/null)"
 	[ "$?" == "0" -a "$(echo "$line" | awk '{ print $9 }' | tr '\n' ' ' | awk '{ print $1, $2 }')" == ".. ." ] && nosortarg='-f' && return 0
 	
-	return 1
+	return 1002
 }
 
 function syntax() {
@@ -115,12 +123,12 @@ fi
 
 # Determine the output format/method
 determine_format
-[ "$?" != "0" ] && echo "Neither 'find' nor 'ls' commands on this system do not support the features necessary to use this script. Please use scripts/find.php instead." && exit 1
-#echo "$? $format $formatarg $awkarg"
+ret="$?"
+[ "$ret" != "0" ] && echo "The commands on this system do not support the features necessary to use this script (error $ret). Please use scripts/find.php instead." && exit $ret
 
 determine_nosort
-[ "$?" != "0" ] && echo "The 'ls' command on this system do not support the feature necessary to use this script. Please use scripts/find.php instead." && exit 1
-#echo "$? $nosortarg"
+ret="$?"
+[ "$ret" != "0" ] && echo "The commands on this system do not support the features necessary to use this script (error $ret). Please use scripts/find.php instead." && exit $ret
 
 timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
 echo "## v2 / ${timestamp:0:19} $format $(echo "$dir" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g') $(echo "$base" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g')"
@@ -132,3 +140,5 @@ else
 	cd "$real"
 	find . -print0 | eval xargs -0 ls -ld $formatarg $nosortarg | tail -n +2 | awk "$awkarg"
 fi
+
+exit 0
