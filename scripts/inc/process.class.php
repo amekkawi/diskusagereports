@@ -24,13 +24,6 @@ define('PROCESS_INVALID_CHARACTERS', 7);
 define('PROCESS_UNEXPECTED_HEADER', 8);
 define('PROCESS_FAILED_REPORTDIR_PARENT', 9);
 
-define('PROCESS_COL_TYPE', 0);
-define('PROCESS_COL_DATE', 1);
-define('PROCESS_COL_TIME', 2);
-define('PROCESS_COL_SIZE', 3);
-define('PROCESS_COL_DEPTH', 4);
-define('PROCESS_COL_PATH', 5);
-
 define('PROCESS_VERBOSE_QUIET', 0);
 define('PROCESS_VERBOSE_NORMAL', 1);
 define('PROCESS_VERBOSE_HIGHER', 2);
@@ -64,11 +57,19 @@ class Process {
 	var $_lineRegEx;
 	var $_errors;
 	var $_header;
+	var $_listVersion;
 	
 	var $_dirStack;
 	var $_dirLookup; //TODO: Rename to 'dirTree'
 	var $_dirLookupStack;
 	var $_dirLookupSize;
+		
+	var $_col_type;
+	var $_col_date;
+	var $_col_time;
+	var $_col_size;
+	var $_col_depth;
+	var $_col_path;
 	
 	function Process() {
 		$this->_name = NULL;
@@ -86,6 +87,13 @@ class Process {
 		$this->_includeFullPath = FALSE;
 		$this->_suffix = ".txt";
 		$this->_listVersion = 1;
+		
+		$this->_col_type = 0;
+		$this->_col_date = 1;
+		$this->_col_time = 2;
+		$this->_col_size = 3;
+		$this->_col_depth = 4;
+		$this->_col_path = 5;
 	}
 	
 	function run() {
@@ -222,6 +230,14 @@ class Process {
 		
 		// Version 2 and later syntax.
 		if (substr($line, 1, 2) == '# ') {
+			
+			// Adjust the column indexes.
+			$this->_col_type = 0;
+			$this->_col_date = 1;
+			$this->_col_time = 2;
+			$this->_col_size = 3;
+			$this->_col_depth = -1;
+			$this->_col_path = 4;
 			
 			// A single splace is always the delimiter.
 			$this->_delim = ' ';
@@ -373,21 +389,21 @@ class Process {
 		}
 
 		// Split the line and validate its length;
-		elseif (count($split = explode($this->_delim, $line)) != 6) {
-			if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Line $lineNum is invalid: Too many columns.\n";
+		elseif (count($split = explode($this->_delim, $line, 5)) != 5) {
+			if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Line $lineNum is invalid: Incorrect column count. $line\n";
 			array_push($this->_errors, array('invalidline', 'columncount', $split));
 		}
 		
 		// Make sure the path is at least one character long.
-		elseif (strlen($split[PROCESS_COL_PATH]) == 0) {
+		elseif (strlen($split[$this->_col_path]) == 0) {
 			if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Line $lineNum is invalid: The path must be at least one character long.\n";
-			array_push($this->_errors, array('invalidline', 'column', 'path', PROCESS_COL_PATH, $split));
+			array_push($this->_errors, array('invalidline', 'column', 'path', $this->_col_path, $split));
 		}
 
 		// If a json_encode fails then the text is not UTF-8.
 		// Attempt to convert it from Windows-1252.
-		elseif (json_encode($split[PROCESS_COL_PATH]) == 'null'
-			&& ($split[PROCESS_COL_PATH] = iconv('Windows-1252', 'UTF-8', $split[PROCESS_COL_PATH])) === FALSE) {
+		elseif (json_encode($split[$this->_col_path]) == 'null'
+			&& ($split[$this->_col_path] = iconv('Windows-1252', 'UTF-8', $split[$this->_col_path])) === FALSE) {
 			
 			return PROCESS_INVALID_CHARACTERS;
 		}
@@ -403,27 +419,27 @@ class Process {
 	
 	function _processLine($split) {
 		// Break up the path into dirname/basename.
-		if (($dirname = dirname($split[PROCESS_COL_PATH])) == '.') $dirname = '';
-		$basename = basename($split[PROCESS_COL_PATH]);
+		if (($dirname = dirname($split[$this->_col_path])) == '.') $dirname = '';
+		$basename = basename($split[$this->_col_path]);
 		
 		$this->_checkDirStack($dirname);
 		
 		// Convert the file list's UTC date/time to the report's timezone.
-		$localtime = $this->_makeLocalTime($split[PROCESS_COL_DATE], $split[PROCESS_COL_TIME]);
-		$split[PROCESS_COL_DATE] = date('Y-m-d', $localtime);
-		$split[PROCESS_COL_TIME] = date('H:i:s', $localtime);
+		$localtime = $this->_makeLocalTime($split[$this->_col_date], $split[$this->_col_time]);
+		$split[$this->_col_date] = date('Y-m-d', $localtime);
+		$split[$this->_col_time] = date('H:i:s', $localtime);
 		
 		// Add the root directory to the stack,
 		// if the stack is empty and we're past depth zero (0).
-		if (count($this->_dirStack) == 0 && $split[PROCESS_COL_DEPTH] != '0') {
+		if (count($this->_dirStack) == 0 && ($this->_listVersion > 1 || $split[$this->_col_depth] != '0')) {
 			$this->_processDirectory('', '');
 		}
 		
-		if ($split[PROCESS_COL_TYPE] == 'd') {
-			$this->_processDirectory($split[PROCESS_COL_PATH], $basename);
+		if ($split[$this->_col_type] == 'd') {
+			$this->_processDirectory($split[$this->_col_path], $basename);
 		}
 		else {
-			$this->_processFile($split[PROCESS_COL_TYPE], $basename, $split[PROCESS_COL_SIZE], $split[PROCESS_COL_DATE], $split[PROCESS_COL_TIME]);
+			$this->_processFile($split[$this->_col_type], $basename, $split[$this->_col_size], $split[$this->_col_date], $split[$this->_col_time]);
 		}
 	}
 	
@@ -690,15 +706,23 @@ class Process {
 	}
 	
 	function _createLineRegEx() {
-		// Create the regular expression to validate lines.
-		$this->_lineRegEx = '/^' . 
-			implode(preg_quote($this->_delim), array(
-				'[dflcbpu]',
-				'[0-9]{4}-[0-9]{2}-[0-9]{2}', // Date
-				'[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?', // Time
-				'[0-9]+', // Size
-				'[0-9]+' // Depth
-			)) . preg_quote($this->_delim) . '/';
+		switch ($this->_listVersion) {
+			case 1:
+				// Create the regular expression to validate lines.
+				$this->_lineRegEx = '/^' . 
+					implode(preg_quote($this->_delim), array(
+						'[dflcbpu]',
+						'[0-9]{4}-[0-9]{2}-[0-9]{2}', // Date
+						'[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?', // Time
+						'[0-9]+', // Size
+						'[0-9]+' // Depth
+					)) . preg_quote($this->_delim) . '/';
+				break;
+			
+			case 2:
+				$this->_lineRegEx = '/^[dflcbpus\-] [0-9\-]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [0-9]+ ./';
+				break;
+		}
 	}
 	
 	function getName() {
