@@ -165,14 +165,7 @@ class Process {
 				
 				// Process the header.
 				if (substr($line, 0, 1) == '#') {
-					
-					// Fail if the dirStack already contains directories. 
-					if (count($this->_dirStack) != 0) {
-						fclose($fh);
-						return PROCESS_UNEXPECTED_HEADER;
-					}
-					
-					elseif (($ret = $this->_processHeader($line)) !== TRUE) {
+					if (($ret = $this->_processHeader($line)) !== TRUE) {
 						fclose($fh);
 						return $ret;
 					}
@@ -224,6 +217,13 @@ class Process {
 		
 		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo "Processing header...\n";
 		
+		// Fail if the dirStack already contains directories.
+		// TODO: TEST
+		if (count($this->_dirStack) != 0) {
+			return PROCESS_UNEXPECTED_HEADER;
+		}
+		
+		// Fail if the header is too short or too long.
 		if (strlen($line) < 2 || strlen($line) > $this->_maxLineLength) {
 			return PROCESS_INVALID_HEADER;
 		}
@@ -250,6 +250,7 @@ class Process {
 			}
 			
 			// Make sure the list version is supported.
+			// TODO: TEST
 			elseif (($this->_listVersion = intval(substr($splitHeader[0], 1))) > LIST_VERSION) {
 				return PROCESS_INVALID_HEADER;
 			}
@@ -313,6 +314,7 @@ class Process {
 		}
 		
 		// Version 1 syntax
+		// TODO: TEST with old version
 		else {
 			
 			// The first character after the pound-sign is the delim.
@@ -388,7 +390,7 @@ class Process {
 			array_push($this->_errors, array('invalidline', 'regex', $line));
 		}
 
-		// Split the line and validate its length;
+		// Split the line and validate its length.
 		elseif (count($split = explode($this->_delim, $line, 5)) != 5) {
 			if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Line $lineNum is invalid: Incorrect column count. $line\n";
 			array_push($this->_errors, array('invalidline', 'columncount', $split));
@@ -429,8 +431,8 @@ class Process {
 		$split[$this->_col_date] = date('Y-m-d', $localtime);
 		$split[$this->_col_time] = date('H:i:s', $localtime);
 		
-		// Add the root directory to the stack,
-		// if the stack is empty and we're past depth zero (0).
+		// Add the root directory to the stack, if the stack is empty
+		// (and we're past depth zero in version 1 lists).
 		if (count($this->_dirStack) == 0 && ($this->_listVersion > 1 || $split[$this->_col_depth] != '0')) {
 			$this->_processDirectory('', '');
 		}
@@ -587,6 +589,9 @@ class Process {
 	}
 	
 	function _processFile($type, $basename, $size, $date, $time) {
+		
+		// 'ls' will output '-' instead of 'f' for files.
+		if ($type == "-") $type = "f";
 		
 		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo "Processing file: $type $basename\n";
 		
