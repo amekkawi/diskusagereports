@@ -112,7 +112,7 @@ done
 [ "$real" == "" ] && syntax "The <directory-to-list> argument is missing." 1>&2
 
 # Make sure the <directory-to-list> is a directory.
-[ -d "$real" ] && syntax "The <directory-to-list> is not a directory." 1>&2
+[ ! -d "$real" ] && syntax "The <directory-to-list> is not a directory." 1>&2
 
 # Split the <directory-to-list>
 dir=$(dirname "$real")
