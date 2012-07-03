@@ -35,25 +35,25 @@ function determine_format() {
 	# // TODO: Check if works on FreeBSD
 	line="$(ls -ld -D '%Y-%m-%d %H:%M:%S' . 2> /dev/null)"
 	[ "$?" == "0" ] && echo "$line" | '{ print $6, substr($7, 0, 8), $8 }' | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} \.$' \
-		&& awkarg='{ print substr($1, 0, 1), $6, substr($7, 0, 8), $5, substr($0, index($0, " " $7 " " $8) + length($7) + 4, 1024) }' \
+		&& awkarg='{ printf "%s%c%s%c%s%c%s%c%s\n", substr($1, 0, 1), '$delimdec', $6, '$delimdec', substr($7, 0, 8), '$delimdec', $5, '$delimdec', substr($0, index($0, " " $7 " " $8) + length($7) + 4, 1024) }' \
 		&& format="timestamp" && formatarg="-D '%Y-%m-%d %H:%M:%S'" && return 0
 	
 	# Check if --time-style is available.
 	line="$(ls -ld --time-style='+%Y-%m-%d %H:%M:%S' . 2> /dev/null)"
 	[ "$?" == "0" ] && echo "$line" | awk '{ print $6, substr($7, 0, 8), $8 }' | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} \.$' \
-		&& awkarg='{ print substr($1, 0, 1), $6, substr($7, 0, 8), $5, substr($0, index($0, " " $7 " " $8) + length($7) + 4, 1024) }' \
+		&& awkarg='{ printf "%s%c%s%c%s%c%s%c%s\n", substr($1, 0, 1), '$delimdec', $6, '$delimdec', substr($7, 0, 8), '$delimdec', $5, '$delimdec', substr($0, index($0, " " $7 " " $8) + length($7) + 4, 1024) }' \
 		&& format="timestamp" && formatarg="--time-style='+%Y-%m-%d %H:%M:%S'" && return 0
 	
 	# Check if --full-time is available.
 	line="$(ls -ld --full-time . 2> /dev/null)"
 	[ "$?" == "0" ] && echo "$line" | awk '{ print $6, $7, $8, $9 }' | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+ \+0000 \.$' \
-		&& awkarg='{ print substr($1, 0, 1), $6, substr($7, 0, 8), $5, substr($0, index($0, " " $8 " " $9) + length($8) + 4, 1024) }' \
+		&& awkarg='{ printf "%s%c%s%c%s%c%s%c%s\n", substr($1, 0, 1), '$delimdec', $6, '$delimdec', substr($7, 0, 8), '$delimdec', $5, '$delimdec', substr($0, index($0, " " $8 " " $9) + length($8) + 4, 1024) }' \
 		&& format="timestamp" && formatarg="--full-time" && return 0
 	
 	# Check if -T for displaying full date/time is available.
 	line="$(ls -ldT . 2> /dev/null)"
 	[ "$?" == "0" ] && echo "$line" | awk '{ print $6, $7, $8, $9, $10 }' | grep -Eq '^[A-Z][a-z]{2} [0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2} [0-9]{4} \.$' \
-		&& awkarg='BEGIN { split("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec", month, " "); for (i=1; i<=12; i++) mdigit[month[i]] = sprintf("%02d", i) }; { print substr($1, 0, 1), $9 "-" mdigit[$6] "-" sprintf("%02d", $7), $8, $5, substr($0, index($0, " " $8 " " $9 " ") + 17, 1024) }' \
+		&& awkarg='BEGIN { split("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec", month, " "); for (i=1; i<=12; i++) mdigit[month[i]] = sprintf("%02d", i) }; { printf "%s%c%s%c%s%c%s%c%s\n", substr($1, 0, 1), '$delimdec', $9 "-" mdigit[$6] "-" sprintf("%02d", $7), '$delimdec', $8, '$delimdec', $5, '$delimdec', substr($0, index($0, " " $8 " " $9 " ") + 17, 1024) }' \
 		&& format="timestamp" && formatarg="-T" && return 0
 	
 	# // TODO: Possibly allow the default format since we include current date/time? Will not be able to determine time however.
@@ -78,27 +78,65 @@ function determine_nosort() {
 
 function syntax() {
 	[ "$*" != "" ] && echo "$*" 1>&2
-	echo "Syntax: $0 [OPTIONS] <directory-to-list>" 1>&2
+	echo "Syntax: $0 [-d <char|'null'>] <directory-to-list> [<find-expression>, ...]" 1>&2
 	echo "Use -h for full help or visit diskusagereports.com/docs." 1>&2
 	exit 1
 }
 
 function syntax_long() {
-	echo "Syntax: $0 <directory-to-list>
+	echo "Syntax: [-d <char|'null'>] $0 <directory-to-list> [<find-expression>, ...]
+
+-d <delim>
+Optionally specify the field delimiter for each line in the output.
+Must be a single ASCII character or the word 'null' for the null character.
+The default is the space character.
 
 <directory-to-scan>
 The directory that the list of sub-directories and files will be created for.
 
+<find-expression>
+One or more expressions that will be passed directly to the 'find' command.
+You must use the absolute path for any expressions that match the path (e.g. -path).
+See the 'find' man page for details.
+
+	Examples:
+		! -name '.DS_Store' -a ! -name 'Thumbs.db'
+		Exclude extra files created by Windows and Mac OS.
+		
+		! -size 0c
+		Exclude files that have a size of zero bytes.
+		
+		! -path '/var/www/html/somesite' -a ! -path '/var/www/html/somesite/*'
+		Exclude a directory from the search results.
+	
 See also: diskusagereports.com/docs
 "
 	exit 1
 }
 
 # Parse arguments.
-while (( "$#" )); do
+while [ "$#" -gt 0 -a "$real" != "" ]; do
 	if [ "$1" == '-h' -o "$1" == '-?' -o "$1" == '--help' ]; then
 		syntax_long
 	
+	elif [ "$1" == '-d' ]; then
+		shift
+		[ "$delim" != "" ] && syntax "Field delimiter already set."
+		[ "$#" == "0" ] && syntax "Missing argument for -d."
+		
+		if [ "$1" == "null" ]; then
+			delim="null"
+			delimoct=0
+			delimdec=0
+		else
+			[ "$(printf '%o' \'" ")" != "40" ] && echo "ERROR: printf is not outputting expected octal for field delimiter." 1>&2 && exit 2
+			[ "$(printf '%d' \'" ")" != "32" ] && echo "ERROR: printf is not outputting expected decimal for field delimiter." 1>&2 && exit 2
+			
+			delim="$1"
+			[ "${#delim}" != '1' ] && syntax "The field delimiter must be exactly one character long."
+			delimoct="$(printf '%o' \'"$delim")"
+			delimdec="$(printf '%d' \'"$delim")"
+		fi
 	else
 		[ "$real" != "" ] && syntax "Argument not expected: $1"
 		[ ! -d "$1" ] && syntax "<directory-to-list> does not exist or is not a directory: $real" 1>&2
@@ -118,6 +156,9 @@ done
 dir=$(dirname "$real")
 base=$(basename "$real")
 
+# Default the delim to a space
+[ "$delim" == "" ] && delim=" " && delimoct=40 && delimdec=32
+
 # Set the dir to an empty string if we are scanning '/'.
 if [ "$dir$base" == '//' ]; then
 	dir=
@@ -127,21 +168,35 @@ fi
 # Determine the output format/method
 determine_format
 ret="$?"
-[ "$ret" != "0" ] && echo "The commands on this system do not support the features necessary to use this script (error $ret). Please use scripts/find.php instead." && exit $ret
+[ "$ret" != "0" ] && echo "ERROR: The commands on this system do not support the features necessary to use this script (error $ret). Please use scripts/find.php instead." 1>&2 && exit $ret
 
 determine_nosort
 ret="$?"
-[ "$ret" != "0" ] && echo "The commands on this system do not support the features necessary to use this script (error $ret). Please use scripts/find.php instead." && exit $ret
+[ "$ret" != "0" ] && echo "ERROR: The commands on this system do not support the features necessary to use this script (error $ret). Please use scripts/find.php instead." 1>&2 && exit $ret
 
 timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
-echo "## v2 / ${timestamp:0:19} $format $(echo "$dir" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g') $(echo "$base" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g')"
+echo "## v2 $delimdec / ${timestamp:0:19} $format $(echo "$dir" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g') $(echo "$base" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g')"
 
 if [ "$format" == "find-printf" ]; then
-	find "$real" -mindepth 1 -printf "%y %TY-%Tm-%Td %TH:%TM:%TS %s %P\n"
+	
+	# Verify that the delim will output correctly.
+	[ "$delim" == "null" ] && [ "$(find "$0" -printf "\\$delimoct" | wc -c)" != "1" -o "$(find "$0" -printf "\\$delimoct" | tr -d '\0' | wc -c)" != "0" ] \
+		&& echo "ERROR: find is not outputting the expected null field delimiter." 1>&2 && exit 2
+	[ "$delim" != "null" -a "$(find "$0" -printf "\\$delimoct")" != "$delim" ] \
+		&& echo "ERROR: find is not outputting the expected field delimiter." 1>&2 && exit 2
+	
+	find "$real" -mindepth 1 "$@" -printf "%y\\$delimoct%TY-%Tm-%Td\\$delimoct%TH:%TM:%TS\\$delimoct%s\\$delimoct%P\n"
 	
 else
+	
+	# Verify that the delim will output correctly.
+	[ "$delim" == "null" ] && [ "$(echo | awk '{ printf "%c", '$delimdec' }' | wc -c | tr -d '[:blank:]')" != "1" -o "$(echo | awk '{ printf "%c", '$delimdec' }' | tr -d '\0' | wc -c | tr -d '[:blank:]')" != "0" ] \
+		&& echo "ERROR: awk is not outputting the expected null field delimiter." 1>&2 && exit 2
+	[ "$delim" != "null" -a "$(echo | awk '{ printf "%c", '$delimdec' }')" != "$delim" ] \
+		&& echo "ERROR: awk is not outputting the expected field delimiter." 1>&2 && exit 2
+	
 	cd "$real"
-	find . -print0 | eval xargs -0 ls -ld $formatarg $nosortarg | tail -n +2 | awk "$awkarg"
+	find . -print0 "$@" | eval xargs -0 ls -ld $formatarg $nosortarg | tail -n +2 | awk "$awkarg"
 fi
 
 exit 0
