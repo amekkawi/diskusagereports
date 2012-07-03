@@ -326,7 +326,7 @@ if ($processor->getVerboseLevel() != PROCESS_VERBOSE_QUIET) {
 			echo "The <reportdir> already exists and is not a directory.\n";
 			break;
 		case PROCESS_INVALID_HEADER:
-			echo "The header line in the <filelist> is invalid.\n";
+			echo "The header line in the <filelist> is invalid:\n" . $processor->getFailLine() . "\n";
 			break;
 		case PROCESS_FAILED_REPORTDIR_PARENT:
 			echo "The parent directory of <reportdir> does not exist.\n";
@@ -338,7 +338,10 @@ if ($processor->getVerboseLevel() != PROCESS_VERBOSE_QUIET) {
 			echo "<filelist> contains characters that are not UTF-8, Windows-1252 or ISO-8859-1.\n";
 			break;
 		case PROCESS_UNEXPECTED_HEADER:
-			echo "<filelist> contains a header line in an unexpected locatoin. It must always be the first non-error line in the file.";
+			echo "<filelist> contains a header line in an unexpected location. It must always be the first non-error line in the file:\n" . $processor->getFailLine() . "\n";
+			break;
+		case PROCESS_UNSUPPORTED_LIST_VERSION:
+			echo "<filelist> uses a version that does script does not support:\n" . $processor->getFailLine() . "\n";
 			break;
 	}
 }

@@ -23,6 +23,7 @@ define('PROCESS_WARN_WRITEFAIL', 6);
 define('PROCESS_INVALID_CHARACTERS', 7);
 define('PROCESS_UNEXPECTED_HEADER', 8);
 define('PROCESS_FAILED_REPORTDIR_PARENT', 9);
+define('PROCESS_UNSUPPORTED_LIST_VERSION', 10);
 
 define('PROCESS_VERBOSE_QUIET', 0);
 define('PROCESS_VERBOSE_NORMAL', 1);
@@ -58,6 +59,7 @@ class Process {
 	var $_errors;
 	var $_header;
 	var $_listVersion;
+	var $_failLine;
 	
 	var $_dirStack;
 	var $_dirLookup; //TODO: Rename to 'dirTree'
@@ -87,6 +89,7 @@ class Process {
 		$this->_includeFullPath = FALSE;
 		$this->_suffix = ".txt";
 		$this->_listVersion = 1;
+		$this->_failLine = null;
 		
 		$this->_col_type = 0;
 		$this->_col_date = 1;
@@ -217,14 +220,15 @@ class Process {
 		
 		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo "Processing header...\n";
 		
-		// Fail if the dirStack already contains directories.
-		// TODO: TEST
-		if (count($this->_dirStack) != 0) {
+		// Fail if the dirStack already contains directories or a header has already been processed.
+		if (count($this->_dirStack) != 0 || is_array($this->_header)) {
+			$this->_failLine = $line;
 			return PROCESS_UNEXPECTED_HEADER;
 		}
 		
 		// Fail if the header is too short or too long.
 		if (strlen($line) < 2 || strlen($line) > $this->_maxLineLength) {
+			$this->_failLine = $line;
 			return PROCESS_INVALID_HEADER;
 		}
 		
@@ -239,20 +243,22 @@ class Process {
 			$this->_col_depth = -1;
 			$this->_col_path = 4;
 			
-			// A single splace is always the delimiter.
+			// A single space is always the delimiter.
 			$this->_delim = ' ';
 			
 			$splitHeader = explode(' ', substr($line, 3), 6);
 			
 			// Make sure the header has the minimum number of columns.
 			if (count($splitHeader) < 6) {
+				$this->_failLine = $line;
 				return PROCESS_INVALID_HEADER;
 			}
 			
 			// Make sure the list version is supported.
 			// TODO: TEST
 			elseif (($this->_listVersion = intval(substr($splitHeader[0], 1))) > LIST_VERSION) {
-				return PROCESS_INVALID_HEADER;
+				$this->_failLine = $line;
+				return PROCESS_UNSUPPORTED_LIST_VERSION;
 			}
 			
 			else {
@@ -278,6 +284,7 @@ class Process {
 				// Make sure all the required format values are set.
 				foreach ($format as $value) {
 					if (empty($value)) {
+						$this->_failLine = $line;
 						return PROCESS_INVALID_HEADER;
 					}
 				}
@@ -301,6 +308,7 @@ class Process {
 				
 				// Fail if we could not determine the basename.
 				if (empty($basename)) {
+					$this->_failLine = $line;
 					return PROCESS_INVALID_HEADER;
 				}
 				
@@ -329,6 +337,7 @@ class Process {
 			// Only check that the header has a *minimum* number of columns,
 			// to allow future versions to add more.
 			if (count($splitHeader) < 3) {
+				$this->_failLine = $line;
 				return PROCESS_INVALID_HEADER;
 			}
 			
@@ -351,6 +360,7 @@ class Process {
 		
 		// Make sure the directory separator is a single character.
 		if (strlen($this->_ds) != 1) {
+			$this->_failLine = $line;
 			return PROCESS_INVALID_HEADER;
 		}
 		
@@ -825,6 +835,9 @@ class Process {
 	}
 	function setSuffix($suffix) {
 		$this->_suffix = $suffix;
+	}
+	function getFailLine() {
+		return $this->_failLine;
 	}
 }
 ?>
