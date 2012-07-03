@@ -15,9 +15,9 @@ export TZ=UTC
 export LC_TIME=C
 
 function determine_format() {
-	# Check if the find commands supports -printf
-	find . -maxdepth 0 -printf "%y %TY-%Tm-%Td %TH:%TM:%TS %s %P\n" &> /dev/null
-	[ "$?" == "0" ] && format="find-printf" && formatarg="" && return 0
+	# Check if the find commands supports -printf and -mindepth
+	line="$(find "$0" -mindepth 0 -printf "%y %TY-%Tm-%Td %TH:%TM:%TS %s %P\n" &> /dev/null)"
+	[ "$?" == "0" ] && echo "$line" | grep -Eq '^. [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [0-9]+ ' && format="find-printf" && formatarg="" && return 0
 	
 	# Make sure find supports -print0
 	find "$0" -print0 &> /dev/null
