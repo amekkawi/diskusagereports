@@ -511,6 +511,7 @@ class Process {
 		
 		$settings = array(
 			'version' => '1.0',
+			'listversion' => $this->_listVersion,
 			'name' => $this->_name,
 			'created' => date('M j, Y g:i:s A T'),
 			'directorytree' => !$this->_noTree,
