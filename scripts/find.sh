@@ -12,7 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 export TZ=UTC
 
 # Set the time locale to POSIX
-export LC_TIME=C
+export LC_ALL=C
 
 function determine_format() {
 	# Check if the find commands supports -printf and -mindepth
