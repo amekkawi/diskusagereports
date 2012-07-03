@@ -91,6 +91,8 @@ class Process {
 		$this->_listVersion = 1;
 		$this->_failLine = null;
 		
+		// Default to version 1 columns.
+		$this->_colCount = 6;
 		$this->_col_type = 0;
 		$this->_col_date = 1;
 		$this->_col_time = 2;
@@ -236,11 +238,12 @@ class Process {
 		if (substr($line, 1, 2) == '# ') {
 			
 			// Adjust the column indexes.
+			$this->_colCount = 5;
 			$this->_col_type = 0;
 			$this->_col_date = 1;
 			$this->_col_time = 2;
 			$this->_col_size = 3;
-			$this->_col_depth = -1;
+			$this->_col_depth = null;
 			$this->_col_path = 4;
 			
 			// A single space is always the delimiter.
@@ -255,7 +258,6 @@ class Process {
 			}
 			
 			// Make sure the list version is supported.
-			// TODO: TEST
 			elseif (($this->_listVersion = intval(substr($splitHeader[0], 1))) > LIST_VERSION) {
 				$this->_failLine = $line;
 				return PROCESS_UNSUPPORTED_LIST_VERSION;
@@ -322,7 +324,6 @@ class Process {
 		}
 		
 		// Version 1 syntax
-		// TODO: TEST with old version
 		else {
 			
 			// The first character after the pound-sign is the delim.
@@ -330,7 +331,7 @@ class Process {
 			
 			// Recreate the lineRegEx with the new delim.
 			$this->_createLineRegEx();
-				
+			
 			// Explode the remaining part of the header.
 			$splitHeader = explode($this->_delim, substr($line, 2));
 			
@@ -401,7 +402,7 @@ class Process {
 		}
 
 		// Split the line and validate its length.
-		elseif (count($split = explode($this->_delim, $line, 5)) != 5) {
+		elseif (count($split = explode($this->_delim, $line, $this->_colCount)) != $this->_colCount) {
 			if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Line $lineNum is invalid: Incorrect column count. $line\n";
 			array_push($this->_errors, array('invalidline', 'columncount', $split));
 		}
