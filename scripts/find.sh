@@ -92,7 +92,7 @@ function syntax_long() {
 
 Arguments:
 
--d <delim>
+-d <char|'null'>
 Optionally specify the field delimiter for each line in the output.
 Must be a single ASCII character or the word 'null' for the null character.
 The default is the space character.
@@ -106,10 +106,10 @@ do this if you ever expect the <directory-to-scan> to start with a minus sign.
 The directory that the list of sub-directories and files will be created for.
 
 <find-test>
-One or more tests that will be passed directly to the 'find' command.
-You must use the absolute path for any tests that match the path, such
-as '-path'. Do not use any expressions that would change the output of find,
-such as '-ls'. If using '-type', make sure that you do not exclude
+Optionally specify one or more tests that will be passed directly to the
+'find' command. You must use the absolute path for any tests that match the
+path, such as '-path'. Do not use any expressions that would change the output
+of find, such as '-ls'. If using '-type', make sure that you do not exclude
 directories. See the 'find' man page for details.
 
     Expression Examples:
