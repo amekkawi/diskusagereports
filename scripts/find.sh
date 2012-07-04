@@ -82,13 +82,13 @@ function determine_nosort() {
 
 function syntax() {
 	[ "$*" != "" ] && echo "$*" 1>&2
-	echo "Syntax: $(basename "$0") [-d <char|'null'>] <directory-to-list> [<find-test>, ...]" 1>&2
+	echo "Syntax: $(basename "$0") [-d <char|'null'>] [-] <directory-to-list> [<find-test>, ...]" 1>&2
 	echo "Use -h for full help or visit diskusagereports.com/docs." 1>&2
 	exit 1
 }
 
 function syntax_long() {
-	echo "Syntax: $(basename "$0") [-d <char|'null'>] <directory-to-list> [<find-test>, ...]
+	echo "Syntax: $(basename "$0") [-d <char|'null'>] [-] <directory-to-list> [<find-test>, ...]
 
 Arguments:
 
@@ -96,6 +96,11 @@ Arguments:
 Optionally specify the field delimiter for each line in the output.
 Must be a single ASCII character or the word 'null' for the null character.
 The default is the space character.
+
+- (minus sign)
+If the <directory-to-scan> is the same as one of the options for this script
+(e.g. "-d"), you must use a minus sign as an argument before it. You should
+do this if you ever expect the <directory-to-scan> to start with a minus sign.
 
 <directory-to-scan>
 The directory that the list of sub-directories and files will be created for.
@@ -151,9 +156,15 @@ while [ "$#" -gt 0 -a -z "$real" ]; do
 			delimoct="$(printf '%o' \'"$delim")"
 			delimdec="$(printf '%d' \'"$delim")"
 		fi
+	
 	else
-		[ ! -d "$1" ] && syntax "<directory-to-list> does not exist or is not a directory: $1" 1>&2
-		real=$(cd "$1" && pwd)
+		# Allow a single hyphen to indicate that the next argument is the <directory-to-list>
+		[ "$1" == "-" ] && shift
+		
+		if [ "$#" -gt 0 ]; then
+			[ ! -d "$1" ] && syntax "<directory-to-list> does not exist or is not a directory: $1" 1>&2
+			real=$(cd "$1" && pwd)
+		fi
 	fi
 	
 	shift
