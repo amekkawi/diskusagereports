@@ -32,10 +32,12 @@ $directory = NULL;
 $force32Bit = false;
 
 $cliargs = array_slice($_SERVER['argv'], 1);
-$syntax = "Syntax: php find.php [-d <char|'null'>] [-ds <char>] [--force32bit] [-] <directory-to-scan>\nUse -h for full help or visit diskusagereports.com/docs.\n";
+$syntax = "Syntax: php find.php [-d <char|'null'>] [-ds <char>] [--force32bit]\n                     [-] <directory-to-scan>\nUse -h for full help or visit diskusagereports.com/docs.\n";
 
 $syntax_long = <<<EOT
-Syntax: php find.php [-d <char|'null'>] [-ds <char>] [--force32bit] [-] <directory-to-scan>
+
+Syntax: php find.php [-d <char|'null'>] [-ds <char>] [--force32bit]
+                     [-] <directory-to-scan>
 
 Arguments:
 
@@ -50,7 +52,7 @@ The default is the directory separator for the operating system.
 
 --force32bit
 Force the script to execute on 32-bit versions of PHP.
-This may lead to incorrect totals if find.php encounters files over 2 GB. 
+This may lead to incorrect totals if find.php encounters files over 2 GB.
 
 - (minus sign)
 If the <directory-to-scan> is the same as one of the options for this script

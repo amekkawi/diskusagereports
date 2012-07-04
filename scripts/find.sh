@@ -83,13 +83,15 @@ function determine_nosort() {
 
 function syntax() {
 	[ "$*" != "" ] && echo "$*" 1>&2
-	echo "Syntax: $(basename "$0") [-d <char|'null'>] [-] <directory-to-scan> [<find-test>, ...]" 1>&2
+	echo "Syntax: find.sh [-d <char|'null'>] [-] <directory-to-scan> [<find-test>, ...]" 1>&2
 	echo "Use -h for full help or visit diskusagereports.com/docs." 1>&2
 	exit 1
 }
 
 function syntax_long() {
-	echo "Syntax: $(basename "$0") [-d <char|'null'>] [-] <directory-to-scan> [<find-test>, ...]
+	echo "
+Syntax: find.sh [-d <char|'null'>] [-] <directory-to-scan>
+                [<find-test>, ...]
 
 Arguments:
 
