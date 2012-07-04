@@ -30,7 +30,7 @@ class Find {
 	
 	function Find() {
 		$this->_ds = DIRECTORY_SEPARATOR;
-		$this->_delim = "\x00";
+		$this->_delim = " ";
 	}
 	
 	function run($directory, $out = NULL, $err = NULL) {
@@ -77,12 +77,14 @@ class Find {
 		}
 		
 		// Output the header for the find results.
-		fwrite($out, implode($this->_delim, array(
-			'#',
-			$this->_ds,
-			str_replace(DIRECTORY_SEPARATOR, $this->_ds, $dirname),
-			str_replace(DIRECTORY_SEPARATOR, $this->_ds, $basename),
-			date('Y-m-d H:i:s')
+		fwrite($out, implode(" ", array(
+			'## v2',
+			ord($this->_delim),
+			ord($this->_ds),
+			date('Y-m-d H:i:s'),
+			"timestamp",
+			str_replace(" ", "\\ ", str_replace("\\", "\\\\", str_replace(DIRECTORY_SEPARATOR, $this->_ds, $dirname))),
+			str_replace(" ", "\\ ", str_replace("\\", "\\\\", str_replace(DIRECTORY_SEPARATOR, $this->_ds, $basename)))
 		)) . "\n");
 		
 		$this->_processDirectory($out, $err, $realpath, '', 1);
@@ -162,7 +164,7 @@ class Find {
 			date('Y-m-d', intval($stat['mtime'])), 
 			date('H:i:s', intval($stat['mtime'])), 
 			$stat['size'],
-			$depth,
+			//$depth,
 			($pathext == '' ? '' : $pathext . $this->_ds) . $entry
 		)) . "\n");
 	}

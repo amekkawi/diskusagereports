@@ -32,36 +32,40 @@ $directory = NULL;
 $force32Bit = false;
 
 $cliargs = array_slice($_SERVER['argv'], 1);
-$syntax = "Syntax: php find.php [OPTIONS] <directory-to-scan>\nUse -h for full help or visit diskusagereports.com/docs.\n";
+$syntax = "Syntax: php find.php [-d <char|'null'>] [-ds <char>] [--force32bit] [-] <directory-to-scan>\nUse -h for full help or visit diskusagereports.com/docs.\n";
 
 $syntax_long = <<<EOT
-Syntax: php find.php [OPTIONS] <directory-to-scan>
+Syntax: php find.php [-d <char|'null'>] [-ds <char>] [--force32bit] [-] <directory-to-scan>
+
+Arguments:
+
+-d <char|'null'>
+Optionally specify the field delimiter for each line in the output.
+Must be a single ASCII character or the word 'null' for the null character.
+The default is the space character.
+
+-ds <directoryseparator>
+Optionally specify the directory separator used between directory names.
+The default is the directory separator for the operating system.
+
+--force32bit
+Force the script to execute on 32-bit versions of PHP.
+This may lead to incorrect totals if find.php encounters files over 2 GB. 
+
+- (minus sign)
+If the <directory-to-scan> is the same as one of the options for this script
+(e.g. "-d"), you must use a minus sign as an argument before it. You should
+do this if you ever expect the <directory-to-scan> to start with a minus sign.
 
 <directory-to-scan>
 The directory that the list of sub-directories and files will be created for.
-
-The OPTIONS are:
-
-      -d <delim>
-      The field delimiter for each line in the output.
-      The default is the NULL character.
-
-      -ds <directoryseparator>
-      The directory separator used between directory names.
-      The default is the directory separator for the operating system.
-      
-      --force32bit
-      Force the script to execute on 32-bit versions of PHP.
-      This may lead to incorrect totals if find.php encounters files over 2 GB. 
 
 See also: diskusagereports.com/docs
 
 
 EOT;
 
-while (!is_null($cliarg = array_shift($cliargs))) {
-	$shifted = TRUE;
-	
+while (!is_null($cliarg = $cliargOrig = array_shift($cliargs))) {
 	switch ($cliarg) {
 		case '/?':
 		case '-?':
@@ -70,28 +74,46 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 			fwrite($STDERR, $syntax_long);
 			exit(1);
 		/*case '-i':
-			array_push($args['include'], $shifted = array_shift($cliargs));
+			array_push($args['include'], $cliarg = array_shift($cliargs));
 			break;
 		case '-e':
-			array_push($args['exclude'], $shifted = array_shift($cliargs));
+			array_push($args['exclude'], $cliarg = array_shift($cliargs));
 			break;*/
 		case '-d':
-			$find->setDelim($shifted = array_shift($cliargs));
+			if (!is_null($cliarg = array_shift($cliargs))) {
+				if ($cliarg != "null" && strlen($cliarg) != 1) {
+					fwrite($STDERR, "The field delimiter must be exactly one character long.\n".$syntax); exit(1);
+				}
+				
+				$find->setDelim($cliarg == "null" ? "\x00" : $cliarg);
+			}
 			break;
 		case '-ds':
-			$find->setDS($shifted = array_shift($cliargs));
+			if (!is_null($cliarg = array_shift($cliargs))) {
+				if (strlen($cliarg) != 1) {
+					fwrite($STDERR, "The directory separator must be exactly one character long.\n".$syntax); exit(1);
+				}
+				
+				$find->setDS($cliarg);
+			}
 			break;
 		case '--force32bit':
 			$force32Bit = true;
 			break;
 		
+		case '-':
+			if (is_null($cliarg = array_shift($cliargs)))
+				continue;
 		default:
+			if (!is_null($directory)) {
+				fwrite($STDERR, "Unexpected argument: $cliarg\n".$syntax); exit(1);
+			}
+			
 			$directory = $cliarg;
-			//$cliargs = array();
 	}
 	
-	if (is_null($shifted)) {
-		fwrite($STDERR, "Missing value after argument $cliarg\n".$syntax);
+	if (is_null($cliarg)) {
+		fwrite($STDERR, "Missing value after argument $cliargOrig\n".$syntax);
 		exit(1);
 	}
 }
@@ -101,7 +123,7 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 // ==============================
 
 if (is_null($directory)) {
-	fwrite($STDERR, "<directory-to-scan> argument is missing.\n".$syntax); exit(1);
+	fwrite($STDERR, "The <directory-to-scan> argument is missing.\n".$syntax); exit(1);
 }
 
 if (!is_int( 9223372036854775807 ) && !$force32Bit) {
