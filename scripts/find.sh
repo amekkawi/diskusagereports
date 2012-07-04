@@ -204,7 +204,7 @@ ret="$?"
 [ "$ret" != "0" ] && echo "ERROR: The commands on this system do not support the features necessary to use this script (error $ret). Please use scripts/find.php instead." 1>&2 && exit $ret
 
 timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
-echo "## v2 $delimdec / ${timestamp:0:19} $format $(echo "$dir" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g') $(echo "$base" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g')"
+echo "## v2 $delimdec 47 ${timestamp:0:19} $format $(echo "$dir" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g') $(echo "$base" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g')"
 
 if [ "$mode" == "find-printf" ]; then
 	
