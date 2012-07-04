@@ -16,12 +16,16 @@ export LC_ALL=C
 
 function determine_format() {
 	# Check if the find commands supports -printf and -mindepth
-	line="$(find "$0" -mindepth 0 -printf "%y %TY-%Tm-%Td %TH:%TM:%TS %s %P\n" &> /dev/null)"
+	line="$(find "$0" -mindepth 0 -printf "%y %TY-%Tm-%Td %TH:%TM:%TS %s %P\n" 2> /dev/null)"
 	[ "$?" == "0" ] && echo "$line" | grep -Eq '^. [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [0-9]+ ' && format="find-printf" && formatarg="" && return 0
 	
 	# Make sure find supports -print0
 	find "$0" -print0 &> /dev/null
 	[ "$?" != "0" ] && return 50
+	
+	# Make sure xargs supports -0
+	echo | xargs -0 echo &> /dev/null
+	[ "$?" != "0" ] && return 53
 	
 	# Make sure find outputs results with the correct prefix.
 	line="$(cd "$SCRIPT_DIR"; find . | head -n 2 | tail -n 1)"
@@ -101,7 +105,7 @@ while (( "$#" )); do
 	
 	else
 		[ "$real" != "" ] && syntax "Argument not expected: $1"
-		[ ! -d "$1" ] && syntax "<directory-to-list> does not exist or is not a directory: $real" 1>&2
+		[ ! -d "$1" ] && syntax "<directory-to-list> does not exist or is not a directory: $1" 1>&2
 		real=$(cd "$1" && pwd)
 	fi
 	
@@ -127,11 +131,11 @@ fi
 # Determine the output format/method
 determine_format
 ret="$?"
-[ "$ret" != "0" ] && echo "The commands on this system do not support the features necessary to use this script (error $ret). Please use scripts/find.php instead." && exit $ret
+[ "$ret" != "0" ] && echo "ERROR: The commands on this system do not support the features necessary to use this script (error $ret). Please use scripts/find.php instead." 1>&2 && exit $ret
 
 determine_nosort
 ret="$?"
-[ "$ret" != "0" ] && echo "The commands on this system do not support the features necessary to use this script (error $ret). Please use scripts/find.php instead." && exit $ret
+[ "$ret" != "0" ] && echo "ERROR: The commands on this system do not support the features necessary to use this script (error $ret). Please use scripts/find.php instead." 1>&2 && exit $ret
 
 timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
 echo "## v2 / ${timestamp:0:19} $format $(echo "$dir" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g') $(echo "$base" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g')"
@@ -140,6 +144,7 @@ if [ "$format" == "find-printf" ]; then
 	find "$real" -mindepth 1 -printf "%y %TY-%Tm-%Td %TH:%TM:%TS %s %P\n"
 	
 else
+	
 	cd "$real"
 	find . -print0 | eval xargs -0 ls -ld $formatarg $nosortarg | tail -n +2 | awk "$awkarg"
 fi
