@@ -17,7 +17,8 @@ export LC_ALL=C
 function determine_format() {
 	# Check if the find commands supports -printf and -mindepth
 	line="$(find "$0" -mindepth 0 -printf "%y %TY-%Tm-%Td %TH:%TM:%TS %s %P\n" 2> /dev/null)"
-	[ "$?" == "0" ] && echo "$line" | grep -Eq '^. [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [0-9]+ ' && format="find-printf" && formatarg="" && return 0
+	[ "$?" == "0" ] && echo "$line" | grep -Eq '^. [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [0-9]+ $' \
+		&& mode="find-printf" && format="timestamp" && return 0
 	
 	# Make sure find supports -print0
 	find "$0" -print0 &> /dev/null
@@ -40,25 +41,25 @@ function determine_format() {
 	line="$(ls -ld -D '%Y-%m-%d %H:%M:%S' . 2> /dev/null)"
 	[ "$?" == "0" ] && echo "$line" | '{ print $6, substr($7, 0, 8), $8 }' | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} \.$' \
 		&& awkarg='{ printf "%s%c%s%c%s%c%s%c%s\n", substr($1, 0, 1), '$delimdec', $6, '$delimdec', substr($7, 0, 8), '$delimdec', $5, '$delimdec', substr($0, index($0, " " $7 " " $8) + length($7) + 4, 1024) }' \
-		&& format="timestamp" && formatarg="-D '%Y-%m-%d %H:%M:%S'" && return 0
+		&& mode="ls-awk" && format="timestamp" && lsarg="-D '%Y-%m-%d %H:%M:%S'" && return 0
 	
 	# Check if --time-style is available.
 	line="$(ls -ld --time-style='+%Y-%m-%d %H:%M:%S' . 2> /dev/null)"
 	[ "$?" == "0" ] && echo "$line" | awk '{ print $6, substr($7, 0, 8), $8 }' | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} \.$' \
 		&& awkarg='{ printf "%s%c%s%c%s%c%s%c%s\n", substr($1, 0, 1), '$delimdec', $6, '$delimdec', substr($7, 0, 8), '$delimdec', $5, '$delimdec', substr($0, index($0, " " $7 " " $8) + length($7) + 4, 1024) }' \
-		&& format="timestamp" && formatarg="--time-style='+%Y-%m-%d %H:%M:%S'" && return 0
+		&& mode="ls-awk" && format="timestamp" && lsarg="--time-style='+%Y-%m-%d %H:%M:%S'" && return 0
 	
 	# Check if --full-time is available.
 	line="$(ls -ld --full-time . 2> /dev/null)"
 	[ "$?" == "0" ] && echo "$line" | awk '{ print $6, $7, $8, $9 }' | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+ \+0000 \.$' \
 		&& awkarg='{ printf "%s%c%s%c%s%c%s%c%s\n", substr($1, 0, 1), '$delimdec', $6, '$delimdec', substr($7, 0, 8), '$delimdec', $5, '$delimdec', substr($0, index($0, " " $8 " " $9) + length($8) + 4, 1024) }' \
-		&& format="timestamp" && formatarg="--full-time" && return 0
+		&& mode="ls-awk" && format="timestamp" && lsarg="--full-time" && return 0
 	
 	# Check if -T for displaying full date/time is available.
 	line="$(ls -ldT . 2> /dev/null)"
 	[ "$?" == "0" ] && echo "$line" | awk '{ print $6, $7, $8, $9, $10 }' | grep -Eq '^[A-Z][a-z]{2} [0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2} [0-9]{4} \.$' \
 		&& awkarg='BEGIN { split("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec", month, " "); for (i=1; i<=12; i++) mdigit[month[i]] = sprintf("%02d", i) }; { printf "%s%c%s%c%s%c%s%c%s\n", substr($1, 0, 1), '$delimdec', $9 "-" mdigit[$6] "-" sprintf("%02d", $7), '$delimdec', $8, '$delimdec', $5, '$delimdec', substr($0, index($0, " " $8 " " $9 " ") + 17, 1024) }' \
-		&& format="timestamp" && formatarg="-T" && return 0
+		&& mode="ls-awk" && format="timestamp" && lsarg="-T" && return 0
 	
 	# // TODO: Possibly allow the default format since we include current date/time? Will not be able to determine time however.
 	
@@ -66,16 +67,16 @@ function determine_format() {
 }
 
 function determine_nosort() {
-	[ "$format" == "find-printf" ] && nosortarg="" && return 0
+	[ "$mode" == "find-printf" ] && return 0
 
 	# Check for -U version of 'no sort'.
 	line="$(ls -ldU .. . 2> /dev/null)"
-	[ "$?" == "0" -a "$(echo "$line" | awk '{ print $9 }' | tr '\n' ' ' | awk '{ print $1, $2 }')" == ".. ." ] && nosortarg='-U' && return 0
+	[ "$?" == "0" -a "$(echo "$line" | awk '{ print $9 }' | tr '\n' ' ' | awk '{ print $1, $2 }')" == ".. ." ] && lsnosortarg='-U' && return 0
 	
 	# Check for -f version of 'no sort'.
 	# This check must be after -U since -f can turn off -l on some systems.
 	line="$(ls -ldf .. . 2> /dev/null)"
-	[ "$?" == "0" -a "$(echo "$line" | awk '{ print $9 }' | tr '\n' ' ' | awk '{ print $1, $2 }')" == ".. ." ] && nosortarg='-f' && return 0
+	[ "$?" == "0" -a "$(echo "$line" | awk '{ print $9 }' | tr '\n' ' ' | awk '{ print $1, $2 }')" == ".. ." ] && lsnosortarg='-f' && return 0
 	
 	return 201
 }
@@ -205,7 +206,7 @@ ret="$?"
 timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
 echo "## v2 $delimdec / ${timestamp:0:19} $format $(echo "$dir" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g') $(echo "$base" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g')"
 
-if [ "$format" == "find-printf" ]; then
+if [ "$mode" == "find-printf" ]; then
 	
 	# Verify that the delim will output correctly.
 	[ "$delim" == "null" ] && [ "$(find "$0" -printf "\\$delimoct" | wc -c)" != "1" -o "$(find "$0" -printf "\\$delimoct" | tr -d '\0' | wc -c)" != "0" ] \
@@ -223,7 +224,7 @@ else
 		&& echo "ERROR: awk is not outputting the expected field delimiter." 1>&2 && exit 2
 	
 	cd "$real"
-	find . "$@" -print0 | eval xargs -0 ls -ld $formatarg $nosortarg | tail -n +2 | awk "$awkarg"
+	find . "$@" -print0 | eval xargs -0 ls -ld $lsarg $lsnosortarg | tail -n +2 | awk "$awkarg"
 fi
 
 exit 0
