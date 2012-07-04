@@ -83,13 +83,13 @@ function determine_nosort() {
 
 function syntax() {
 	[ "$*" != "" ] && echo "$*" 1>&2
-	echo "Syntax: $(basename "$0") [-d <char|'null'>] [-] <directory-to-list> [<find-test>, ...]" 1>&2
+	echo "Syntax: $(basename "$0") [-d <char|'null'>] [-] <directory-to-scan> [<find-test>, ...]" 1>&2
 	echo "Use -h for full help or visit diskusagereports.com/docs." 1>&2
 	exit 1
 }
 
 function syntax_long() {
-	echo "Syntax: $(basename "$0") [-d <char|'null'>] [-] <directory-to-list> [<find-test>, ...]
+	echo "Syntax: $(basename "$0") [-d <char|'null'>] [-] <directory-to-scan> [<find-test>, ...]
 
 Arguments:
 
@@ -159,11 +159,11 @@ while [ "$#" -gt 0 -a -z "$real" ]; do
 		fi
 	
 	else
-		# Allow a single hyphen to indicate that the next argument is the <directory-to-list>
+		# Allow a single hyphen to indicate that the next argument is the <directory-to-scan>
 		[ "$1" == "-" ] && shift
 		
 		if [ "$#" -gt 0 ]; then
-			[ ! -d "$1" ] && syntax "<directory-to-list> does not exist or is not a directory: $1" 1>&2
+			[ ! -d "$1" ] && syntax "<directory-to-scan> does not exist or is not a directory: $1" 1>&2
 			real=$(cd "$1" && pwd)
 		fi
 	fi
@@ -171,17 +171,17 @@ while [ "$#" -gt 0 -a -z "$real" ]; do
 	shift
 done
 
-# Make sure the <directory-to-list> has been set.
-[ "$real" == "" ] && syntax "The <directory-to-list> argument is missing." 1>&2
+# Make sure the <directory-to-scan> has been set.
+[ "$real" == "" ] && syntax "The <directory-to-scan> argument is missing." 1>&2
 
-# Make sure the <directory-to-list> is a directory.
-[ ! -d "$real" ] && syntax "The <directory-to-list> is not a directory." 1>&2
+# Make sure the <directory-to-scan> is a directory.
+[ ! -d "$real" ] && syntax "The <directory-to-scan> is not a directory." 1>&2
 
 # Check that the <find-test> arguments are supported.
 find "$0" "$@" &> /dev/null
 [ "$?" != "0" ] && echo "ERROR: One or more of the <find-test> arguments are not supported by find." 1>&2 && exit 2
 
-# Split the <directory-to-list>
+# Split the <directory-to-scan>
 dir=$(dirname "$real")
 base=$(basename "$real")
 
