@@ -16,12 +16,16 @@ export LC_ALL=C
 
 function determine_format() {
 	# Check if the find commands supports -printf and -mindepth
-	line="$(find "$0" -mindepth 0 -printf "%y %TY-%Tm-%Td %TH:%TM:%TS %s %P\n" &> /dev/null)"
+	line="$(find "$0" -mindepth 0 -printf "%y %TY-%Tm-%Td %TH:%TM:%TS %s %P\n" 2> /dev/null)"
 	[ "$?" == "0" ] && echo "$line" | grep -Eq '^. [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [0-9]+ ' && format="find-printf" && formatarg="" && return 0
 	
 	# Make sure find supports -print0
 	find "$0" -print0 &> /dev/null
 	[ "$?" != "0" ] && return 50
+	
+	# Make sure xargs supports -0
+	echo | xargs -0 echo &> /dev/null
+	[ "$?" != "0" ] && return 53
 	
 	# Make sure find outputs results with the correct prefix.
 	line="$(cd "$SCRIPT_DIR"; find . | head -n 2 | tail -n 1)"
@@ -78,13 +82,15 @@ function determine_nosort() {
 
 function syntax() {
 	[ "$*" != "" ] && echo "$*" 1>&2
-	echo "Syntax: $0 [-d <char|'null'>] <directory-to-list> [<find-expression>, ...]" 1>&2
+	echo "Syntax: $(basename "$0") [-d <char|'null'>] <directory-to-list> [<find-test>, ...]" 1>&2
 	echo "Use -h for full help or visit diskusagereports.com/docs." 1>&2
 	exit 1
 }
 
 function syntax_long() {
-	echo "Syntax: [-d <char|'null'>] $0 <directory-to-list> [<find-expression>, ...]
+	echo "Syntax: $(basename "$0") [-d <char|'null'>] <directory-to-list> [<find-test>, ...]
+
+Arguments:
 
 -d <delim>
 Optionally specify the field delimiter for each line in the output.
@@ -94,28 +100,36 @@ The default is the space character.
 <directory-to-scan>
 The directory that the list of sub-directories and files will be created for.
 
-<find-expression>
-One or more expressions that will be passed directly to the 'find' command.
-You must use the absolute path for any expressions that match the path (e.g. -path).
-See the 'find' man page for details.
+<find-test>
+One or more tests that will be passed directly to the 'find' command.
+You must use the absolute path for any tests that match the path, such
+as '-path'. Do not use any expressions that would change the output of find,
+such as '-ls'. If using '-type', make sure that you do not exclude
+directories. See the 'find' man page for details.
 
-	Examples:
-		! -name '.DS_Store' -a ! -name 'Thumbs.db'
-		Exclude extra files created by Windows and Mac OS.
-		
-		! -size 0c
-		Exclude files that have a size of zero bytes.
-		
-		! -path '/var/www/html/somesite' -a ! -path '/var/www/html/somesite/*'
-		Exclude a directory from the search results.
-	
+    Expression Examples:
+        ! -name '.DS_Store' -a ! -name 'Thumbs.db'
+        Exclude extra files created by Windows and Mac OS.
+
+        ! -size 0c
+        Exclude files that have a size of zero bytes.
+
+        ! -path '/var/www/html/somesite/*'
+        Exclude the contents of a directory from the results.
+
+        ! -path '/var/www/html/somesite' -a ! -path '/var/www/html/somesite/*'
+        Completely exclude a directory from the results.
+
+        -type d -a -type f
+        Only include directories and regular files.
+
 See also: diskusagereports.com/docs
 "
 	exit 1
 }
 
 # Parse arguments.
-while [ "$#" -gt 0 -a "$real" != "" ]; do
+while [ "$#" -gt 0 -a -z "$real" ]; do
 	if [ "$1" == '-h' -o "$1" == '-?' -o "$1" == '--help' ]; then
 		syntax_long
 	
@@ -138,8 +152,7 @@ while [ "$#" -gt 0 -a "$real" != "" ]; do
 			delimdec="$(printf '%d' \'"$delim")"
 		fi
 	else
-		[ "$real" != "" ] && syntax "Argument not expected: $1"
-		[ ! -d "$1" ] && syntax "<directory-to-list> does not exist or is not a directory: $real" 1>&2
+		[ ! -d "$1" ] && syntax "<directory-to-list> does not exist or is not a directory: $1" 1>&2
 		real=$(cd "$1" && pwd)
 	fi
 	
@@ -151,6 +164,10 @@ done
 
 # Make sure the <directory-to-list> is a directory.
 [ ! -d "$real" ] && syntax "The <directory-to-list> is not a directory." 1>&2
+
+# Check that the <find-test> arguments are supported.
+find "$0" "$@" &> /dev/null
+[ "$?" != "0" ] && echo "ERROR: One or more of the <find-test> arguments are not supported by find." 1>&2 && exit 2
 
 # Split the <directory-to-list>
 dir=$(dirname "$real")
@@ -186,7 +203,6 @@ if [ "$format" == "find-printf" ]; then
 		&& echo "ERROR: find is not outputting the expected field delimiter." 1>&2 && exit 2
 	
 	find "$real" -mindepth 1 "$@" -printf "%y\\$delimoct%TY-%Tm-%Td\\$delimoct%TH:%TM:%TS\\$delimoct%s\\$delimoct%P\n"
-	
 else
 	
 	# Verify that the delim will output correctly.
@@ -196,7 +212,7 @@ else
 		&& echo "ERROR: awk is not outputting the expected field delimiter." 1>&2 && exit 2
 	
 	cd "$real"
-	find . -print0 "$@" | eval xargs -0 ls -ld $formatarg $nosortarg | tail -n +2 | awk "$awkarg"
+	find . "$@" -print0 | eval xargs -0 ls -ld $formatarg $nosortarg | tail -n +2 | awk "$awkarg"
 fi
 
 exit 0
