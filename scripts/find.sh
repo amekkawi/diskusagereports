@@ -82,16 +82,41 @@ function determine_nosort() {
 
 function syntax() {
 	[ "$*" != "" ] && echo "$*" 1>&2
-	echo "Syntax: $0 [OPTIONS] <directory-to-list>" 1>&2
+	echo "Syntax: $(basename "$0") <directory-to-list> [<find-test>, ...]" 1>&2
 	echo "Use -h for full help or visit diskusagereports.com/docs." 1>&2
 	exit 1
 }
 
 function syntax_long() {
-	echo "Syntax: $0 <directory-to-list>
+	echo "Syntax: $(basename "$0") <directory-to-list> [<find-test>, ...]
+
+Arguments:
 
 <directory-to-scan>
 The directory that the list of sub-directories and files will be created for.
+
+<find-test>
+One or more tests that will be passed directly to the 'find' command.
+You must use the absolute path for any tests that match the path, such
+as '-path'. Do not use any expressions that would change the output of find,
+such as '-ls'. If using '-type', make sure that you do not exclude
+directories. See the 'find' man page for details.
+
+    Expression Examples:
+        ! -name '.DS_Store' -a ! -name 'Thumbs.db'
+        Exclude extra files created by Windows and Mac OS.
+
+        ! -size 0c
+        Exclude files that have a size of zero bytes.
+
+        ! -path '/var/www/html/somesite/*'
+        Exclude the contents of a directory from the results.
+
+        ! -path '/var/www/html/somesite' -a ! -path '/var/www/html/somesite/*'
+        Completely exclude a directory from the results.
+
+        -type d -a -type f
+        Only include directories and regular files.
 
 See also: diskusagereports.com/docs
 "
@@ -99,12 +124,11 @@ See also: diskusagereports.com/docs
 }
 
 # Parse arguments.
-while (( "$#" )); do
+while [ "$#" -gt 0 -a -z "$real" ]; do
 	if [ "$1" == '-h' -o "$1" == '-?' -o "$1" == '--help' ]; then
 		syntax_long
 	
 	else
-		[ "$real" != "" ] && syntax "Argument not expected: $1"
 		[ ! -d "$1" ] && syntax "<directory-to-list> does not exist or is not a directory: $1" 1>&2
 		real=$(cd "$1" && pwd)
 	fi
@@ -117,6 +141,10 @@ done
 
 # Make sure the <directory-to-list> is a directory.
 [ ! -d "$real" ] && syntax "The <directory-to-list> is not a directory." 1>&2
+
+# Check that the <find-test> arguments are supported.
+find "$0" "$@" &> /dev/null
+[ "$?" != "0" ] && echo "ERROR: One or more of the <find-test> arguments are not supported by find." 1>&2 && exit 2
 
 # Split the <directory-to-list>
 dir=$(dirname "$real")
@@ -141,12 +169,12 @@ timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
 echo "## v2 / ${timestamp:0:19} $format $(echo "$dir" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g') $(echo "$base" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g')"
 
 if [ "$format" == "find-printf" ]; then
-	find "$real" -mindepth 1 -printf "%y %TY-%Tm-%Td %TH:%TM:%TS %s %P\n"
-	
+	find "$real" -mindepth 1 "$@" -printf "%y %TY-%Tm-%Td %TH:%TM:%TS %s %P\n"
+
 else
 	
 	cd "$real"
-	find . -print0 | eval xargs -0 ls -ld $formatarg $nosortarg | tail -n +2 | awk "$awkarg"
+	find . "$@" -print0 | eval xargs -0 ls -ld $formatarg $nosortarg | tail -n +2 | awk "$awkarg"
 fi
 
 exit 0
