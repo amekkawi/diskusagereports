@@ -246,13 +246,10 @@ class Process {
 			$this->_col_depth = null;
 			$this->_col_path = 4;
 			
-			// A single space is always the delimiter.
-			$this->_delim = ' ';
-			
-			$splitHeader = explode(' ', substr($line, 3), 6);
+			$splitHeader = explode(' ', substr($line, 3), 7);
 			
 			// Make sure the header has the minimum number of columns.
-			if (count($splitHeader) < 6) {
+			if (count($splitHeader) < 7) {
 				$this->_failLine = $line;
 				return PROCESS_INVALID_HEADER;
 			}
@@ -263,18 +260,28 @@ class Process {
 				return PROCESS_UNSUPPORTED_LIST_VERSION;
 			}
 			
+			// Make sure the field and directory separators are valid.
+			elseif (!preg_match('/^[0-9]{1,3}$/', $splitHeader[1]) || intval($splitHeader[1]) >= 256 ||
+					!preg_match('/^[0-9]{1,3}$/', $splitHeader[2]) || intval($splitHeader[2]) >= 256) {
+				$this->_failLine = $line;
+				return PROCESS_INVALID_HEADER;
+			}
+			
 			else {
+				// Override the field separator.
+				$this->_delim = chr(intval($splitHeader[1]));
+				
 				// Recreate the lineRegEx with the correct delim.
 				$this->_createLineRegEx();
 				
 				// Override the directory separator.
-				$this->_ds = $splitHeader[1];
+				$this->_ds = chr(intval($splitHeader[2]));
 				
 				// Default format values. Null values are required to be set by the header.
 				$format = array( 'datetime' => null );
 				
 				// Set format values from the header.
-				$formatValues = explode(':', $splitHeader[4]);
+				$formatValues = explode(':', $splitHeader[5]);
 				foreach ($formatValues as $key => $value) {
 					if (!empty($value)) {
 						switch ($key) {
@@ -283,9 +290,23 @@ class Process {
 					}
 				}
 				
-				// Make sure all the required format values are set.
-				foreach ($format as $value) {
-					if (empty($value)) {
+				// Make sure all the required format values are valid.
+				foreach ($format as $key => $value) {
+					// Fail on null values.
+					if (is_null($value)) {
+						$this->_failLine = $line;
+						return PROCESS_INVALID_HEADER;
+					}
+					
+					$invalidFormat = false;
+					switch ($key) {
+						case 'datetime':
+							if ($value != 'timestamp')
+								$invalidFormat = true;
+							break;
+					}
+					
+					if ($invalidFormat) {
 						$this->_failLine = $line;
 						return PROCESS_INVALID_HEADER;
 					}
@@ -293,18 +314,18 @@ class Process {
 				
 				// Find the position of the separator between the dirname and basename.
 				$index = -1;
-				while (!isset($basename) && ($index = strpos($splitHeader[5], ' ', $index + 1)) !== FALSE) {
+				while (!isset($basename) && ($index = strpos($splitHeader[6], ' ', $index + 1)) !== FALSE) {
 					// Count the number of slashes before the space.
 					$slashes = 0;
 					for ($i = $index - 1; $i >= 0; $i--) {
-						if (substr($splitHeader[5], $i, 1) == '\\') $slashes++;
+						if (substr($splitHeader[6], $i, 1) == '\\') $slashes++;
 						else break;
 					}
 					
 					// If the slashes if even, then this space is not being escaped.
 					if ($slashes % 2 == 0) {
-						$dirname = str_replace('\\ ', ' ', str_replace('\\\\', '\\', substr($splitHeader[5], 0, $index)));
-						$basename = str_replace('\\ ', ' ', str_replace('\\\\', '\\', substr($splitHeader[5], $index + 1)));
+						$dirname = str_replace('\\ ', ' ', str_replace('\\\\', '\\', substr($splitHeader[6], 0, $index)));
+						$basename = str_replace('\\ ', ' ', str_replace('\\\\', '\\', substr($splitHeader[6], $index + 1)));
 					}
 				}
 				
@@ -313,11 +334,10 @@ class Process {
 					$this->_failLine = $line;
 					return PROCESS_INVALID_HEADER;
 				}
-				
 				$this->_header = array(
 					'dirname' => $dirname,
 					'basename' => $basename,
-					'datetime' => $splitHeader[2] . " " . $splitHeader[3],
+					'datetime' => $splitHeader[3] . " " . $splitHeader[4],
 					'format' => $format
 				);
 			}
@@ -722,10 +742,10 @@ class Process {
 		return BigVal($listitem['size']) - BigVal($needle);
 	}
 	
+	// Create the regular expression to validate lines.
 	function _createLineRegEx() {
 		switch ($this->_listVersion) {
 			case 1:
-				// Create the regular expression to validate lines.
 				$this->_lineRegEx = '/^' . 
 					implode(preg_quote($this->_delim), array(
 						'[dflcbpu]',
@@ -737,7 +757,13 @@ class Process {
 				break;
 			
 			case 2:
-				$this->_lineRegEx = '/^[dflcbpus\-] [0-9\-]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [0-9]+ ./';
+				$this->_lineRegEx = '/^' . 
+					implode(preg_quote($this->_delim), array(
+						'[dflcbpus\-]',
+						'[0-9]{4}-[0-9]{2}-[0-9]{2}', // Date
+						'[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?', // Time
+						'[0-9]+', // Size
+					)) . preg_quote($this->_delim) . '/';
 				break;
 		}
 	}
