@@ -62,7 +62,7 @@ function determine_format() {
 	
 	# // TODO: Possibly allow the default format since we include current date/time? Will not be able to determine time however.
 	
-	return 1001
+	return 200
 }
 
 function determine_nosort() {
@@ -77,7 +77,7 @@ function determine_nosort() {
 	line="$(ls -ldf .. . 2> /dev/null)"
 	[ "$?" == "0" -a "$(echo "$line" | awk '{ print $9 }' | tr '\n' ' ' | awk '{ print $1, $2 }')" == ".. ." ] && nosortarg='-f' && return 0
 	
-	return 1002
+	return 201
 }
 
 function syntax() {
