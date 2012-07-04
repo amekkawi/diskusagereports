@@ -105,8 +105,9 @@ Syntax: php process.php [OPTIONS] <report-directory> [<filelist>]
 <report-directory>
 The directory where the report files will be saved. This should point to a
 directory under the 'data' directory.
-Examples: /var/www/html/diskusage/data/myreport
-          C:\Inetpub\wwwroot\diskusage\data\myreport
+    Examples:
+        /var/www/html/diskusage/data/myreport
+        C:\Inetpub\wwwroot\diskusage\data\myreport
 
 <filelist>
 The file that was created using one of the 'find' scripts (e.g. find.php).
@@ -318,6 +319,8 @@ $processor->setWarningCallback('WarningHandler');
 
 $ret = $processor->run();
 if ($processor->getVerboseLevel() != PROCESS_VERBOSE_QUIET) {
+	$details = $processor->getFailDetails();
+	
 	switch ($ret) {
 		case PROCESS_FAILED_OPEN_FILELIST:
 			echo "The <filelist> could not be opened.\n";
@@ -326,7 +329,10 @@ if ($processor->getVerboseLevel() != PROCESS_VERBOSE_QUIET) {
 			echo "The <reportdir> already exists and is not a directory.\n";
 			break;
 		case PROCESS_INVALID_HEADER:
-			echo "The header line in the <filelist> is invalid:\n" . $processor->getFailLine() . "\n";
+			echo "The header line in the <filelist> is invalid:\n" . $details['line'] . "\n";
+			break;
+		case PROCESS_INVALID_HEADER_FORMAT_VALUE:
+			echo "The formatting value for '" . $details['name'] . "' in the header line in the <filelist> is invalid:\n" . $details['line'] . "\n";
 			break;
 		case PROCESS_FAILED_REPORTDIR_PARENT:
 			echo "The parent directory of <reportdir> does not exist.\n";
