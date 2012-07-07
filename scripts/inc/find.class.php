@@ -81,7 +81,7 @@ class Find {
 			'## v2',
 			ord($this->_delim),
 			ord($this->_ds),
-			date('Y-m-d H:i:s'),
+			substr(date('Y-m-d H:i:s'), 0, 19),
 			"datetimeformat:timestamp",
 			"dirname:" . str_replace(" ", "\\ ", str_replace("\\", "\\\\", str_replace(DIRECTORY_SEPARATOR, $this->_ds, $dirname))),
 			"basename:" . str_replace(" ", "\\ ", str_replace("\\", "\\\\", str_replace(DIRECTORY_SEPARATOR, $this->_ds, $basename)))

@@ -283,7 +283,7 @@ class Process {
 				$this->_header = array(
 					'dirname' => '',
 					'basename' => null,
-					'datetime' => $splitHeader[3] . " " . $splitHeader[4],
+					'datetime' => substr($splitHeader[3] . " " . $splitHeader[4], 0, 19),
 					'datetimeformat' => 'timestamp'
 				);
 				
@@ -361,16 +361,22 @@ class Process {
 			
 			// Override the directory separator.
 			$this->_ds = $splitHeader[0];
+		
+			// Make sure the directory separator is a single character.
+			if (strlen($this->_ds) != 1) {
+				$this->_failDetails = array('line' => $line);
+				return PROCESS_INVALID_HEADER;
+			}
 			
 			$this->_header = array(
 				'dirname' => $splitHeader[1],
 				'basename' => $splitHeader[2],
-				'datetime' => $splitHeader[3]
+				'datetime' => substr($splitHeader[3], 0, 19)
 			);
 		}
 		
-		// Make sure the directory separator is a single character.
-		if (strlen($this->_ds) != 1) {
+		// Validate the header's timestamp.
+		if (!preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$/', $this->_header['datetime'])) {
 			$this->_failDetails = array('line' => $line);
 			return PROCESS_INVALID_HEADER;
 		}
