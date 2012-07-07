@@ -247,10 +247,10 @@ class Process {
 			$this->_col_depth = null;
 			$this->_col_path = 4;
 			
-			$splitHeader = explode(' ', substr($line, 3), 7);
+			$splitHeader = explode(' ', substr($line, 3), 6);
 			
 			// Make sure the header has the minimum number of columns.
-			if (count($splitHeader) < 7) {
+			if (count($splitHeader) < 6) {
 				$this->_failDetails = array('line' => $line);
 				return PROCESS_INVALID_HEADER;
 			}
@@ -278,69 +278,58 @@ class Process {
 				// Override the directory separator.
 				$this->_ds = chr(intval($splitHeader[2]));
 				
-				// Default format values. Null values are required to be set by the header.
-				$format = array( 'datetime' => null );
+				// Default header settings.
+				// Null values are required to be set by the file list's header.
+				$this->_header = array(
+					'dirname' => '',
+					'basename' => null,
+					'datetime' => $splitHeader[3] . " " . $splitHeader[4],
+					'datetimeformat' => 'timestamp'
+				);
 				
-				// Set format values from the header.
-				$formatValues = explode(':', $splitHeader[5]);
-				foreach ($formatValues as $key => $value) {
-					if (!empty($value)) {
-						switch ($key) {
-							case 0: $format['datetime'] = $value; break;
-						}
-					}
-				}
+				// Settings from file list's header.
+				$settings = self::ExplodeEscaped(" ", $splitHeader[5]);
 				
-				// Make sure all the required format values are valid.
-				foreach ($format as $key => $value) {
-					// Fail on null values.
-					if (is_null($value)) {
-						$this->_failDetails = array('line' => $line, 'name' => $key);
-						return PROCESS_INVALID_HEADER_FORMAT_VALUE;
-					}
+				// Process the settings.
+				$invalidSetting = false;
+				foreach ($settings as $split) {
+					$split = explode(":", $split, 2);
 					
-					$invalidFormat = false;
-					switch ($key) {
-						case 'datetime':
-							if ($value != 'timestamp')
-								$invalidFormat = true;
+					// Validate the setting.
+					switch ($split[0]) {
+						case "basename":
+							if (empty($split[1]))
+								$invalidSetting = true;
 							break;
+						case "dirname":
+							break;
+						case "datetimeformat":
+							if ($split[1] !== 'timestamp')
+								$invalidSetting = true;
+							break;
+						default:
+							$invalidSetting = true;
 					}
 					
-					if ($invalidFormat) {
-						$this->_failDetails = array('line' => $line, 'name' => $key);
-						return PROCESS_INVALID_HEADER_FORMAT_VALUE;
+					// Stop the foreach if an invalid setting was found.
+					if ($invalidSetting)
+						break;
+					
+					$this->_header[$split[0]] = $split[1];
+				}
+				
+				// Make sure no settings are null.
+				foreach ($this->_header as $value) {
+					if (is_null($value)) {
+						$invalidSetting = true;
+						break;
 					}
 				}
 				
-				// Find the position of the separator between the dirname and basename.
-				$index = -1;
-				while (!isset($basename) && ($index = strpos($splitHeader[6], ' ', $index + 1)) !== FALSE) {
-					// Count the number of slashes before the space.
-					$slashes = 0;
-					for ($i = $index - 1; $i >= 0; $i--) {
-						if (substr($splitHeader[6], $i, 1) == '\\') $slashes++;
-						else break;
-					}
-					
-					// If the slashes if even, then this space is not being escaped.
-					if ($slashes % 2 == 0) {
-						$dirname = str_replace('\\ ', ' ', str_replace('\\\\', '\\', substr($splitHeader[6], 0, $index)));
-						$basename = str_replace('\\ ', ' ', str_replace('\\\\', '\\', substr($splitHeader[6], $index + 1)));
-					}
-				}
-				
-				// Fail if we could not determine the basename.
-				if (empty($basename)) {
+				if ($invalidSetting) {
 					$this->_failDetails = array('line' => $line);
 					return PROCESS_INVALID_HEADER;
 				}
-				$this->_header = array(
-					'dirname' => $dirname,
-					'basename' => $basename,
-					'datetime' => $splitHeader[3] . " " . $splitHeader[4],
-					'format' => $format
-				);
 			}
 		}
 		
@@ -767,6 +756,38 @@ class Process {
 					)) . preg_quote($this->_delim) . '/';
 				break;
 		}
+	}
+	
+	function ExplodeEscaped($delim, $str, $limit = 0, $escape = "\\") {
+		$arr = array();
+		$index = -1;
+	
+		while (($limit == 0 || $limit >= count($arr)) && ($index = strpos($str, $delim, $index + 1)) !== FALSE) {
+				
+			// Count the number of escape characters before the delim.
+			$escapes = 0;
+			for ($i = $index - 1; $i >= 0; $i--) {
+				if (substr($str, $i, 1) == $escape) $escapes++;
+				else break;
+			}
+			
+			// This delim is not being escaped if an even number of escape characters.
+			if ($escapes % 2 == 0) {
+				array_push($arr, str_replace($escape . $delim, $delim, str_replace($escape . $escape, $escape, substr($str, 0, $index))));
+				
+				if ($index + 1 > strlen($str))
+					$str = null;
+				else {
+					$str = substr($str, $index + 1);
+					$index = -1;
+				}
+			}
+		}
+		
+		if (!is_null($str))
+			array_push($arr, str_replace($escape . $delim, $delim, str_replace($escape . $escape, $escape, $str)));
+		
+		return $arr;
 	}
 	
 	function getName() {

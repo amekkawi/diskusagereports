@@ -82,9 +82,9 @@ class Find {
 			ord($this->_delim),
 			ord($this->_ds),
 			date('Y-m-d H:i:s'),
-			"timestamp",
-			str_replace(" ", "\\ ", str_replace("\\", "\\\\", str_replace(DIRECTORY_SEPARATOR, $this->_ds, $dirname))),
-			str_replace(" ", "\\ ", str_replace("\\", "\\\\", str_replace(DIRECTORY_SEPARATOR, $this->_ds, $basename)))
+			"datetimeformat:timestamp",
+			"dirname:" . str_replace(" ", "\\ ", str_replace("\\", "\\\\", str_replace(DIRECTORY_SEPARATOR, $this->_ds, $dirname))),
+			"basename:" . str_replace(" ", "\\ ", str_replace("\\", "\\\\", str_replace(DIRECTORY_SEPARATOR, $this->_ds, $basename)))
 		)) . "\n");
 		
 		$this->_processDirectory($out, $err, $realpath, '', 1);
