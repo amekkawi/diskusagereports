@@ -10,22 +10,45 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
+define('PROCESS_PROFILING', false);
+
 define('PROCESS_VERSION', '1.0');
 define('LIST_VERSION', 2);
 
 define('PROCESS_OK', 0);
-define('PROCESS_INVALID_FILELIST', 1);
-define('PROCESS_INVALID_REPORTDIR', 2);
-define('PROCESS_FAILED_REPORTDIR_MKDIR', 3);
-define('PROCESS_FAILED_OPEN_FILELIST', 4);
-define('PROCESS_INVALID_HEADER', 5);
-define('PROCESS_WARN_WRITEFAIL', 6);
-define('PROCESS_INVALID_CHARACTERS', 7);
-define('PROCESS_UNEXPECTED_HEADER', 8);
-define('PROCESS_FAILED_REPORTDIR_PARENT', 9);
-define('PROCESS_UNSUPPORTED_LIST_VERSION', 10);
-define('PROCESS_INVALID_HEADER_FORMAT_VALUE', 11);
 
+// Critical failure codes, returned by run().
+define('PROCESS_FAIL_INVALID_FILELIST', 1);
+define('PROCESS_FAIL_INVALID_REPORTDIR', 2);
+define('PROCESS_FAIL_REPORTDIR_MKDIR', 3);
+define('PROCESS_FAIL_OPEN_FILELIST', 4);
+define('PROCESS_FAIL_INVALID_HEADER', 5);
+define('PROCESS_FAIL_INVALID_CHARACTERS', 6);
+define('PROCESS_FAIL_UNEXPECTED_HEADER', 7);
+define('PROCESS_FAIL_REPORTDIR_PARENT', 8);
+define('PROCESS_FAIL_UNSUPPORTED_LIST_VERSION', 9);
+
+// Informational Codes.
+define('PROCESS_INFO_PROCESSING_FILELIST', 0);
+define('PROCESS_INFO_PROCESSING_HEADER', 1);
+define('PROCESS_INFO_PROCESSING_ERROR', 2);
+define('PROCESS_INFO_PROCESSING_FILE', 3);
+define('PROCESS_INFO_SAVETREE', 4);
+define('PROCESS_INFO_SAVESETTINGS', 5);
+define('PROCESS_INFO_ENTERDIR', 6);
+define('PROCESS_INFO_EXITDIR', 7);
+define('PROCESS_INFO_STATUS', 8);
+define('PROCESS_INFO_MEMORY', 9);
+define('PROCESS_INFO_COMPLETE', 10);
+
+// Warning Codes.
+define('PROCESS_WARN_TOOLONG', 50);
+define('PROCESS_WARN_BADMATCH', 51);
+define('PROCESS_WARN_COLCOUNT', 52);
+define('PROCESS_WARN_EMPTYPATH', 53);
+define('PROCESS_WARN_WRITEFAIL', 54);
+
+// Verbosity Levels.
 define('PROCESS_VERBOSE_QUIET', 0);
 define('PROCESS_VERBOSE_NORMAL', 1);
 define('PROCESS_VERBOSE_HIGHER', 2);
@@ -50,10 +73,11 @@ class Process {
 	var $_ds;
 	var $_sizeGroups;
 	var $_modifiedGroups;
-	var $_warningCallback;
+	var $_eventCallback;
 	var $_verboseLevel;
 	var $_includeFullPath;
 	var $_suffix;
+	var $_minStatusSeconds;
 	
 	// Internal only
 	var $_lineRegEx;
@@ -61,6 +85,9 @@ class Process {
 	var $_header;
 	var $_listVersion;
 	var $_failDetails;
+	var $_bytesRead;
+	var $_bytesWritten;
+	var $_filesWritten;
 	
 	var $_dirStack;
 	var $_dirLookup; //TODO: Rename to 'dirTree'
@@ -85,12 +112,17 @@ class Process {
 		$this->_noTree = FALSE;
 		$this->_delim = "\x00";
 		$this->_ds = DIRECTORY_SEPARATOR;
-		$this->_warningCallback = NULL;
-		$this->_verboseLevel = 1;
+		$this->_eventCallback = NULL;
+		$this->_verboseLevel = PROCESS_VERBOSE_NORMAL;
 		$this->_includeFullPath = FALSE;
 		$this->_suffix = ".txt";
 		$this->_listVersion = 1;
 		$this->_failDetails = array();
+		$this->_bytesRead = 0;
+		$this->_bytesWritten = 0;
+		$this->_filesWritten = 0;
+		$this->_bytesReadMax = NULL;
+		$this->_minStatusSeconds = 15;
 		
 		// Default to version 1 columns.
 		$this->_colCount = 6;
@@ -117,18 +149,18 @@ class Process {
 		// Verify the report directory is valid.
 		if (file_exists($this->_reportDir)) {
 			if (!is_dir($this->_reportDir)) {
-				return PROCESS_INVALID_REPORTDIR;
+				return PROCESS_FAIL_INVALID_REPORTDIR;
 			}
 		}
 		
 		// Make sure the parent of the report directory exists.
 		elseif (!is_dir(dirname($this->_reportDir))) {
-			return PROCESS_FAILED_REPORTDIR_PARENT;
+			return PROCESS_FAIL_REPORTDIR_PARENT;
 		}
 		
 		// Create the report directory if it does not exist.
 		elseif (!mkdir($this->_reportDir)) {
-			return PROCESS_FAILED_REPORTDIR_MKDIR;
+			return PROCESS_FAIL_REPORTDIR_MKDIR;
 		}
 		
 		// Clean up the reportDir path
@@ -155,15 +187,25 @@ class Process {
 			}
 		}
 		
-		if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Processing filelist...\n";
+		// Get the current time.
+		$time = time();
+		
+		if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER)
+			$this->_raiseEvent(PROCESS_INFO_PROCESSING_FILELIST);
 		
 		// Attempt to open the file list.
 		if (($fh = fopen($this->_fileList, 'r')) === FALSE) {
-			return PROCESS_FAILED_OPEN_FILELIST;
+			return PROCESS_FAIL_OPEN_FILELIST;
+		}
+		
+		$this->_bytesReadMax = NULL;
+		if (is_array($stat = @fstat($fh)) && $stat['mode'] & 0100000) {
+			$this->_bytesReadMax = $stat['size'];
 		}
 		
 		$lineNum = 0;
 		while (($line = fgets($fh, $this->_maxLineLength + 2)) !== FALSE) {
+			$this->_bytesRead += strlen($line);
 			$line = rtrim($line, "\n\r");
 			
 			// Ignore blank lines
@@ -193,14 +235,25 @@ class Process {
 				}
 			}
 			
+			if (PROCESS_PROFILING) $this->_startProfile('_readLines status');
+			if ($this->_verboseLevel >= PROCESS_VERBOSE_NORMAL && $this->_minStatusSeconds > 0 && $lineNum % 100 == 0 && time() - $time >= $this->_minStatusSeconds) {
+				if ($this->_bytesReadMax < $this->_bytesRead) $this->_bytesReadMax = null;
+				
+				$this->_raiseEvent(PROCESS_INFO_STATUS, $this->_bytesRead, $this->_bytesReadMax, $lineNum, $this->_bytesWritten, $this->_filesWritten);
+				$time = time();
+			}
+			if (PROCESS_PROFILING) $this->_endProfile('_readLines status');
+			
+			if (PROCESS_PROFILING) $this->_startProfile('_readLines memcheck');
 			if ($memLimit !== FALSE) {
 				$currMem = memory_get_usage();
 				$memPercent = $currMem / $memLimit * 100;
 				if ($memPercent > $nextMemPercent) {
 					$nextMemPercent = ceil($memPercent);
-					echo "Used " . intval($memPercent) . "% of memory limit (" . ini_get('memory_limit') . ")\n";
+					$this->_raiseEvent(PROCESS_INFO_MEMORY, intval($memPercent), ini_get('memory_limit'));
 				}
 			}
+			if (PROCESS_PROFILING) $this->_endProfile('_readLines memcheck');
 			
 			$lineNum++;
 		}
@@ -216,23 +269,31 @@ class Process {
 		$this->_saveDirTree();
 		$this->_saveSettings();
 		
+		if ($this->_verboseLevel >= PROCESS_VERBOSE_NORMAL) {
+			if ($this->_bytesReadMax < $this->_bytesRead) $this->_bytesReadMax = null;
+			$this->_raiseEvent(PROCESS_INFO_COMPLETE, $this->_bytesRead, $this->_bytesReadMax, $lineNum, $this->_bytesWritten, $this->_filesWritten);
+		}
+		
 		return PROCESS_OK;
 	}
 	
 	function _processHeader($line) {
 		
-		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo "Processing header...\n";
+		if (PROCESS_PROFILING) $this->_startProfile('_processHeader');
+		
+		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST)
+			$this->_raiseEvent(PROCESS_INFO_PROCESSING_HEADER);
 		
 		// Fail if the dirStack already contains directories or a header has already been processed.
 		if (count($this->_dirStack) != 0 || is_array($this->_header)) {
 			$this->_failDetails = array('line' => $line);
-			return PROCESS_UNEXPECTED_HEADER;
+			return PROCESS_FAIL_UNEXPECTED_HEADER;
 		}
 		
 		// Fail if the header is too short or too long.
 		if (strlen($line) < 2 || strlen($line) > $this->_maxLineLength) {
 			$this->_failDetails = array('line' => $line);
-			return PROCESS_INVALID_HEADER;
+			return PROCESS_FAIL_INVALID_HEADER;
 		}
 		
 		// Version 2 and later syntax.
@@ -252,20 +313,20 @@ class Process {
 			// Make sure the header has the minimum number of columns.
 			if (count($splitHeader) < 6) {
 				$this->_failDetails = array('line' => $line);
-				return PROCESS_INVALID_HEADER;
+				return PROCESS_FAIL_INVALID_HEADER;
 			}
 			
 			// Make sure the list version is supported.
 			elseif (($this->_listVersion = intval(substr($splitHeader[0], 1))) > LIST_VERSION) {
 				$this->_failDetails = array('line' => $line);
-				return PROCESS_UNSUPPORTED_LIST_VERSION;
+				return PROCESS_FAIL_UNSUPPORTED_LIST_VERSION;
 			}
 			
 			// Make sure the field and directory separators are valid.
 			elseif (!preg_match('/^[0-9]{1,3}$/', $splitHeader[1]) || intval($splitHeader[1]) >= 256 ||
 					!preg_match('/^[0-9]{1,3}$/', $splitHeader[2]) || intval($splitHeader[2]) >= 256) {
 				$this->_failDetails = array('line' => $line);
-				return PROCESS_INVALID_HEADER;
+				return PROCESS_FAIL_INVALID_HEADER;
 			}
 			
 			else {
@@ -328,7 +389,7 @@ class Process {
 				
 				if ($invalidSetting) {
 					$this->_failDetails = array('line' => $line);
-					return PROCESS_INVALID_HEADER;
+					return PROCESS_FAIL_INVALID_HEADER;
 				}
 			}
 		}
@@ -349,13 +410,13 @@ class Process {
 			// to allow future versions to add more.
 			if (count($splitHeader) < 3) {
 				$this->_failDetails = array('line' => $line);
-				return PROCESS_INVALID_HEADER;
+				return PROCESS_FAIL_INVALID_HEADER;
 			}
 			
 			// Make sure all the strings are UTF-8 valid
 			for ($i = 1; $i < count($splitHeader); $i++) {
 				if (json_encode($splitHeader[$i]) == 'null' && ($splitHeader[$i] = iconv('Windows-1252', 'UTF-8', $splitHeader[$i])) === FALSE) {
-					return PROCESS_INVALID_CHARACTERS;
+					return PROCESS_FAIL_INVALID_CHARACTERS;
 				}
 			}
 			
@@ -365,7 +426,7 @@ class Process {
 			// Make sure the directory separator is a single character.
 			if (strlen($this->_ds) != 1) {
 				$this->_failDetails = array('line' => $line);
-				return PROCESS_INVALID_HEADER;
+				return PROCESS_FAIL_INVALID_HEADER;
 			}
 			
 			$this->_header = array(
@@ -378,13 +439,17 @@ class Process {
 		// Validate the header's timestamp.
 		if (!preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$/', $this->_header['datetime'])) {
 			$this->_failDetails = array('line' => $line);
-			return PROCESS_INVALID_HEADER;
+			return PROCESS_FAIL_INVALID_HEADER;
 		}
+		
+		if (PROCESS_PROFILING) $this->_endProfile('_processHeader');
 		
 		return TRUE;
 	}
 	
 	function _processError($line) {
+		
+		if (PROCESS_PROFILING) $this->_startProfile('_processError');
 		
 		// Explode the error line.
 		$split = explode($this->_delim, $line);
@@ -399,33 +464,45 @@ class Process {
 			}
 		}
 		
-		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo "Processing error: " . implode(' ', array_slice($split, 1)) . "\n";
+		// TODO: Check what the imploding is doing.
+		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST)
+			$this->_raiseEvent(PROCESS_INFO_PROCESSING_ERROR, implode(' ', array_slice($split, 1)));
 		
 		// Push to the normal error list and let the UI handle it.
 		array_push($this->_errors, $split);
+		
+		if (PROCESS_PROFILING) $this->_endProfile('_processError');
 	}
 	
 	function _validateLine($line, $lineNum) {
+		
+		if (PROCESS_PROFILING) $this->_startProfile('_validateLine');
+		$ret = FALSE;
+		
 		if (strlen($line) > $this->_maxLineLength) {
-			if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Line $lineNum invalid: Exceeds max line length.\n";
+				$this->_raiseEvent(PROCESS_WARN_TOOLONG, $lineNum, $line);
+			
 			array_push($this->_errors, array('invalidline', 'maxlinelength', $line));
 		}
 
 		// Validate the line up to the path column.
 		elseif (!preg_match($this->_lineRegEx, $line)) {
-			if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Line $lineNum is invalid: Does not match correct pattern.\n";
+				$this->_raiseEvent(PROCESS_WARN_BADMATCH, $lineNum, $line);
+			
 			array_push($this->_errors, array('invalidline', 'regex', $line));
 		}
 
 		// Split the line and validate its length.
 		elseif (count($split = explode($this->_delim, $line, $this->_colCount)) != $this->_colCount) {
-			if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Line $lineNum is invalid: Incorrect column count. $line\n";
+				$this->_raiseEvent(PROCESS_WARN_COLCOUNT, $lineNum, $line);
+			
 			array_push($this->_errors, array('invalidline', 'columncount', $split));
 		}
 		
 		// Make sure the path is at least one character long.
 		elseif (strlen($split[$this->_col_path]) == 0) {
-			if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Line $lineNum is invalid: The path must be at least one character long.\n";
+				$this->_raiseEvent(PROCESS_WARN_EMPTYPATH, $lineNum, $line);
+			
 			array_push($this->_errors, array('invalidline', 'column', 'path', $this->_col_path, $split));
 		}
 
@@ -434,29 +511,41 @@ class Process {
 		elseif (json_encode($split[$this->_col_path]) == 'null'
 			&& ($split[$this->_col_path] = iconv('Windows-1252', 'UTF-8', $split[$this->_col_path])) === FALSE) {
 			
-			return PROCESS_INVALID_CHARACTERS;
+			$ret = PROCESS_FAIL_INVALID_CHARACTERS;
 		}
 		
 		else {
 			// Only if all the checks passed.
-			return $split;
+			$ret = $split;
 		}
 		
+		if (PROCESS_PROFILING) $this->_endProfile('_validateLine');
+		
 		// False if an error was pushed to the array.
-		return FALSE;
+		return $ret;
 	}
 	
 	function _processLine($split) {
+		if (PROCESS_PROFILING) $this->_startProfile('_processLine');
+		
+		if (PROCESS_PROFILING) $this->_startProfile('_processLine breakup');
+		
 		// Break up the path into dirname/basename.
 		if (($dirname = dirname($split[$this->_col_path])) == '.') $dirname = '';
 		$basename = basename($split[$this->_col_path]);
 		
+		if (PROCESS_PROFILING) $this->_endProfile('_processLine breakup');
+		
 		$this->_checkDirStack($dirname);
+		
+		if (PROCESS_PROFILING) $this->_startProfile('_processLine timezone');
 		
 		// Convert the file list's UTC date/time to the report's timezone.
 		$localtime = $this->_makeLocalTime($split[$this->_col_date], $split[$this->_col_time]);
 		$split[$this->_col_date] = date('Y-m-d', $localtime);
 		$split[$this->_col_time] = date('H:i:s', $localtime);
+		
+		if (PROCESS_PROFILING) $this->_endProfile('_processLine timezone');
 		
 		// Add the root directory to the stack, if the stack is empty
 		// (and we're past depth zero in version 1 lists).
@@ -470,17 +559,28 @@ class Process {
 		else {
 			$this->_processFile($split[$this->_col_type], $basename, $split[$this->_col_size], $split[$this->_col_date], $split[$this->_col_time]);
 		}
+		
+		if (PROCESS_PROFILING) $this->_endProfile('_processLine');
 	}
 	
 	function _checkDirStack($dirname = NULL) {
 		
+		if (PROCESS_PROFILING) $this->_startProfile('_checkDirStack');
+		
 		// Pop off directories till we find one whose path matches the current dirname.
 		while (count($this->_dirStack) > (is_null($dirname) ? 0 : 1) && (is_null($dirname) || $this->_dirStack[count($this->_dirStack)-1]['path'] != $dirname)) {
+			
+			if (PROCESS_PROFILING) $this->_startProfile('_checkDirStack pop');
 			
 			$pop = array_pop($this->_dirStack);
 			$dlpop = array_pop($this->_dirLookupStack); //TODO: Rename treepop
 			
-			if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo 'Exit dir: ' . $pop['path'] . (count($this->_dirStack) > 1 ? ' (now ' . $this->_dirStack[count($this->_dirStack)-1]['path'] . ')' : '') . "\n";
+			if (PROCESS_PROFILING) $this->_endProfile('_checkDirStack pop');
+			
+			if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST)
+				$this->_raiseEvent(PROCESS_INFO_EXITDIR, $pop['path'], count($this->_dirStack) > 1 ? $this->_dirStack[count($this->_dirStack)-1]['path'] : null, count($this->_dirStack));
+			
+			if (PROCESS_PROFILING) $this->_startProfile('_checkDirStack tree');
 			
 			if (!$this->_noTree) {
 				// Increment the directory lookup size.
@@ -492,6 +592,10 @@ class Process {
 				}
 			}
 			
+			if (PROCESS_PROFILING) $this->_endProfile('_checkDirStack tree');
+			
+			if (PROCESS_PROFILING) $this->_startProfile('_checkDirStack parents');
+			
 			$pop['parents'] = array();
 			foreach ($this->_dirStack as $parent) {
 				array_push($pop['parents'], array(
@@ -500,30 +604,50 @@ class Process {
 				));
 			}
 			
+			if (PROCESS_PROFILING) $this->_endProfile('_checkDirStack parents');
+			
+			if (PROCESS_PROFILING) $this->_startProfile('_checkDirStack pop');
+			
 			// Remove the path so it is not saved.
 			$path = $pop['path'];
 			unset($pop['path']);
 			
+			if (PROCESS_PROFILING) $this->_endProfile('_checkDirStack pop');
+			
+			if (PROCESS_PROFILING) $this->_startProfile('_checkDirStack save');
+			
 			// Save the directory data.
-			if (file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . md5($path) . $this->_suffix, json_encode($pop)) === FALSE) {
-				if (!is_null(_warningCallback)) call_user_func($this->_warningCallback, PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . md5($path), $path);
+			if (($bytes = file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . md5($path) . $this->_suffix, json_encode($pop))) === FALSE) {
+				$this->_raiseEvent(PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . md5($path), $path);
 				array_push($errors, array('writefail', $path, md5($path)));
 			}
+			
+			$this->_bytesWritten += $bytes;
+			$this->_filesWritten++;
+			
+			if (PROCESS_PROFILING) $this->_endProfile('_checkDirStack save');
 		}
+		
+		if (PROCESS_PROFILING) $this->_endProfile('_checkDirStack');
 	}
 	
 	function _saveDirTree() {
-		if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Saving dir tree...\n";
+		if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER)
+			$this->_raiseEvent(PROCESS_INFO_SAVETREE);
 		
 		// Save the directory list.
-		if (!$this->_noTree && file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'directories' . $this->_suffix, json_encode($this->_dirLookup)) === FALSE) {
-			if (!is_null(_warningCallback)) call_user_func($this->_warningCallback, PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . 'directories');
+		if (!$this->_noTree && ($bytes = file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'directories' . $this->_suffix, json_encode($this->_dirLookup))) === FALSE) {
+			$this->_raiseEvent(PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . 'directories');
 			array_push($this->_errors, array('writefail', 'directories', 'directories'));
 		}
+		
+		$this->_bytesWritten += $bytes;
+		$this->_filesWritten++;
 	}
 	
 	function _saveSettings() {
-		if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER) echo "Saving settings...\n";
+		if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER)
+			$this->_raiseEvent(PROCESS_INFO_SAVESETTINGS);
 		
 		$settings = array(
 			'version' => '1.0',
@@ -543,19 +667,25 @@ class Process {
 		}
 		
 		// Save the settings file.
-		if (file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'settings' . $this->_suffix, json_encode($settings)) === FALSE) {
-			if (!is_null(_warningCallback)) call_user_func($this->_warningCallback, PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . 'settings');
+		if (($bytes = file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'settings' . $this->_suffix, json_encode($settings))) === FALSE) {
+			$this->_raiseEvent(PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . 'settings');
 		}
+		
+		$this->_bytesWritten += $bytes;
+		$this->_filesWritten++;
 	}
 	
 	function _processDirectory($path, $basename) {
+		
+		if (PROCESS_PROFILING) $this->_startProfile('_processDirectory');
 		
 		// Set an empty basename to the one set in the header, if the header has been set.
 		if ($basename == '' && isset($this->_header['basename'])) {
 			$basename = $this->_header['basename'];
 		}
 		
-		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo "Enter dir: $path ($basename)\n";
+		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST)
+			$this->_raiseEvent(PROCESS_INFO_ENTERDIR, $path, $basename, count($this->_dirStack));
 		
 		$hash = md5($path);
 		
@@ -614,19 +744,30 @@ class Process {
 			
 		// Add the directory to the stack.
 		array_push($this->_dirStack, $newDir);
+		
+		if (PROCESS_PROFILING) $this->_endProfile('_processDirectory');
 	}
 	
 	function _processFile($type, $basename, $size, $date, $time) {
 		
+		if (PROCESS_PROFILING) $this->_startProfile('_processFile');
+		
+		if (PROCESS_PROFILING) $this->_startProfile('_processFile a');
+		
 		// 'ls' will output '-' instead of 'f' for files.
 		if ($type == "-") $type = "f";
 		
-		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST) echo "Processing file: $type $basename\n";
+		if ($this->_verboseLevel == PROCESS_VERBOSE_HIGHEST)
+			$this->_raiseEvent(PROCESS_INFO_PROCESSING_FILE, $type, $basename, $size, $date, $time);
 		
 		// Clear the size for special files types.
 		if ($specialFile = $type != 'f' && $type != 'd' && $type != 'l') {
 			$size = 0;
 		}
+		
+		if (PROCESS_PROFILING) $this->_endProfile('_processFile a');
+		
+		if (PROCESS_PROFILING) $this->_startProfile('_processFile b');
 		
 		// Get the current directory in the stack (for code readability).
 		$currDir = &$this->_dirStack[count($this->_dirStack)-1];
@@ -648,13 +789,23 @@ class Process {
 		$currDir['bytes'] = BigAdd($currDir['bytes'], $size);
 		$currDir['num']++;
 		
+		if (PROCESS_PROFILING) $this->_endProfile('_processFile b');
+		
+		if (PROCESS_PROFILING) $this->_startProfile('_processFile c');
+		
 		// Determine the root path for the 'top 100' paths.
 		$rootPath = !isset($this->_header['basename']) || $this->_header['basename'] == '' ? '.'
 			: ($this->_header['basename'] == $this->_ds ? ''
 				: $this->_header['basename']);
 		
+		if (PROCESS_PROFILING) $this->_endProfile('_processFile c');
+		
+		if (PROCESS_PROFILING) $this->_startProfile('_processFile for');
+		
 		// Increment totals for directories in the stack.
 		for ($i = 0; $i < count($this->_dirStack); $i++) {
+			
+			if (PROCESS_PROFILING) $this->_startProfile('_processFile totals');
 			
 			// Byte and file count totals.
 			$this->_dirStack[$i]['totalbytes'] = BigAdd($this->_dirStack[$i]['totalbytes'], $size);
@@ -686,6 +837,10 @@ class Process {
 						: array(BigVal($size), 1);
 			}
 			
+			if (PROCESS_PROFILING) $this->_endProfile('_processFile totals');
+			
+			if (PROCESS_PROFILING) $this->_startProfile('_processFile top100');
+			
 			// Add the file to the top 100 lists, if it is greater than a file already in it.
 			if ($i < $this->_top100Depth) {
 				$index = BinarySearch($this->_dirStack[$i]['top100'], $size, array('Process', '_top100Comparator'));
@@ -705,7 +860,13 @@ class Process {
 					}
 				}
 			}
+			
+			if (PROCESS_PROFILING) $this->_endProfile('_processFile top100');
 		}
+		
+		if (PROCESS_PROFILING) $this->_endProfile('_processFile for');
+		
+		if (PROCESS_PROFILING) $this->_endProfile('_processFile');
 	}
 	
 	function _getFileExtension($name) {
@@ -796,6 +957,15 @@ class Process {
 		return $arr;
 	}
 	
+	function _raiseEvent() {
+		if (PROCESS_PROFILING) $this->_startProfile('_raiseEvent');
+		if (!is_null($this->_eventCallback)) {
+			call_user_func_array($this->_eventCallback, func_get_args());
+			//call_user_func($this->_eventCallback, PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . 'settings');
+		}
+		if (PROCESS_PROFILING) $this->_endProfile('_raiseEvent');
+	}
+	
 	function getName() {
 		return $this->_name;
 	}
@@ -868,11 +1038,11 @@ class Process {
 	function setModifiedGroups($modifiedGroups) {
 		$this->_modifiedGroups = $modifiedGroups;
 	}
-	function getWarningCallback() {
-		return $this->_warningCallback;
+	function getEventCallback() {
+		return $this->_eventCallback;
 	}
-	function setWarningCallback($warningCallback) {
-		$this->_warningCallback = $warningCallback;
+	function setEventCallback($callback) {
+		$this->_eventCallback = $callback;
 	}
 	function getVerboseLevel() {
 		return $this->_verboseLevel;
@@ -894,6 +1064,106 @@ class Process {
 	}
 	function getFailDetails() {
 		return $this->_failDetails;
+	}
+	function getMinStatusSeconds() {
+		return $this->_minStatusSeconds;
+	}
+	function setMinStatusSeconds($seconds) {
+		$this->_minStatusSeconds = $seconds;
+	}
+	
+	var $_profiles = array();
+	var $_profileLastStart = NULL;
+	var $_profileStack = array();
+	
+	function dumpProfiles() {
+		if (PROCESS_PROFILING) {
+			if (count($this->_profileStack)) {
+				echo "Remaining in stack:\n";
+				var_dump($this->_profileStack);
+				exit(1);
+			}
+			
+			$longestKey = strlen("Profile Key");
+			$longestTime = strlen("Time");
+			$longestCount = strlen("Count");
+			$longestAverage = strlen("Average");
+			
+			ksort($this->_profiles);
+			
+			foreach ($this->_profiles as $key => $val) {
+				
+				$this->_profiles[$key][2] = number_format($this->_profiles[$key][0] / $this->_profiles[$key][1], 8);
+				
+				$this->_profiles[$key][0] = number_format($this->_profiles[$key][0], 8);
+				$this->_profiles[$key][1] = number_format($this->_profiles[$key][1]);
+				
+				$longestKey = max(strlen($key), $longestKey);
+				$longestTime = max(strlen($this->_profiles[$key][0]), $longestTime);
+				$longestCount = max(strlen($this->_profiles[$key][1]), $longestCount);
+				$longestAverage = max(strlen($this->_profiles[$key][2]), $longestAverage);
+			}
+			
+			echo "\n";
+			printf("% -".($longestKey)."s  % -" . $longestTime . "s  % -" . $longestCount . "s  % -" . $longestAverage . "s\n", "Profile Key", "Time", "Count", "Average");
+			printf("%'-".($longestKey)."s  %'-" . $longestTime . "s  %'-" . $longestCount . "s  %'-" . $longestAverage . "s\n", "", "", "", "");
+			foreach ($this->_profiles as $key => $val) {
+				printf("% -".($longestKey)."s  % " . $longestTime . "s  % " . $longestCount . "s  % " . $longestAverage . "s\n", $key, $val[0], $val[1], $val[2]);
+			}
+			echo "\n";
+		}
+	}
+	
+	function _startProfile($name) {
+		$end = microtime();
+		
+		if (($index = (count($this->_profileStack) - 1)) >= 0) {
+			$this->_incrementProfile($this->_profileStack[$index], $this->_profileLastStart, $end, false);
+		}
+		
+		array_push($this->_profileStack, $name);
+		$this->_profileLastStart = microtime();
+	}
+	
+	function _endProfile($name) {
+		$end = microtime();
+		if (!is_null($this->_profileLastStart)) {
+			
+			if ($name !== array_pop($this->_profileStack)) {
+				var_dump($this->_profileStack);
+				echo "Bad _endProfile: $name\n"; exit;
+			}
+			
+			$this->_incrementProfile($name, $this->_profileLastStart, $end);
+			
+			$this->_profileLastStart = microtime();
+		}
+	}
+	
+	function _incrementProfile($name, $start, $end, $incrementCounter = TRUE) {
+		// split the time into components
+		list($startUSec, $startSec) = explode(' ', $start);
+		list($endUSec, $endSec) = explode(' ', $end);
+			
+		// typecast them to the required types
+		$startSec = (int) $startSec;
+		$startUSec = (float) $startUSec;
+			
+		$endSec = (int) $endSec;
+		$endUSec = (float) $endUSec;
+			
+		if ($startUSec > $endUSec) {
+			$val = ($endSec - 1 - $startSec) + ($startUSec + $endUSec);
+		}
+		else {
+			$val = ($endSec - $startSec) + ($endUSec - $startUSec);
+		}
+			
+		if (!array_key_exists($name, $this->_profiles))
+			$this->_profiles[$name] = array(0, 0);
+		
+		$this->_profiles[$name][0] += $val;
+		if ($incrementCounter) $this->_profiles[$name][1] += 1;
 	}
 }
 ?>

@@ -14,6 +14,8 @@
 // Customize the following two arrays to change the
 // grouping for the "Last Modified" and "File Sizes" tabs.
 
+define('START_TIME', time());
+
 // Labels for size ranges.
 $sizeGroups = array(
 	array('label' => '1 GB or More', 'size' => 1024 * 1024 * 1024),
@@ -97,7 +99,7 @@ $args = array(
 if (DEBUG) echo "Processing command line arguments...\n";
 
 $cliargs = array_slice($_SERVER['argv'], 1);
-$syntax = "Syntax: php process.php [OPTIONS] <report-directory> [<filelist>]\nUse -h for full help or visit diskusagereports.com/docs.\n";
+$syntax = "Syntax: php process.php [OPTIONS] [-] <report-directory> [[-] <filelist>]\nUse -h for full help or visit diskusagereports.com/docs.\n";
 
 $syntax_long = <<<EOT
 Syntax: php process.php [OPTIONS] <report-directory> [<filelist>]
@@ -114,7 +116,13 @@ The file that was created using one of the 'find' scripts (e.g. find.php).
 If you ommit this, process.php will attempt to read the file list from STDIN.
 
 The OPTIONS are:
-
+      
+      - (hyphen)
+      If the <report-directory> or <filelist> are the same as one of the
+      OPTIONS for this script (e.g. "-d"), you must use a minus sign as an
+      argument before it. You should do this if you ever expect the
+      <directory-to-scan> to start with a minus sign.
+      
       -d <delim>
       The field delimiter that each line of the filelist will be split using.
       The default is the NULL character. Will be ignored if <filelist> has a
@@ -128,50 +136,55 @@ The OPTIONS are:
       The default is the directory separator for the operating system
       processing the report.  Will be ignored if <filelist> has a header
       line (see notes).
-
+      
       -fp
       Display the full path of the directories in the report. This is off by
       default since it could potentially pose a security risk.
-
+      
       -l <num>
       Lines in the report that are longer than <num> will not be processed.
       This is just a failsafe to prevent the script from processing a list
       file that is not formatted properly. The default is 1024.
-
+      
       -mt <bytes>
       The maximum number of bytes that the 'directory tree' file can be.
       The default is 819200. If the 'directory tree' file gets larger than
       this number, then the script will act as if -nt had been specified.
-
+      
       -n <reportname>
       This text will display in the header of the report.
-
+      
       -nt
       Disable the directory tree that appears on the left side of the report.
+      
+      -q
+      Do not output any text to STDOUT. The script will return a non-zero
+      if it fails.
+      
+      -ss <seconds>
+      The minimum number of seconds that must elapse before another status
+      message (e.g. 'Read X bytes, processed X lines...') is outputted.
+      Default is 15 seconds.
       
       -su <suffix>
       Set the suffix of report files. This is '.txt' by default. You must
       also edit the 'suffix' variable in index.html to include any suffix
       besides the default or an empty suffix.
-
-      -q
-      Do not output any text to STDOUT. The script will return a non-zero
-      if it fails.
       
-      -t <num>
+      -t <depth>
       Limit the "File Sizes", "Modified", and "File Types" totals to only
-      <num> directories deep in the report. This is useful if the directory
+      <depth> directories deep in the report. This is useful if the directory
       being reported on has many files, which can cause the report to take a
       long time to generate. For example, if this is set to 3 the directory
       ./a, ./a/b and ./a/b/c will have these totals available, but ./a/b/c/d
       will not. The default is 6.
 
-      -td <num>
-      Similar to -t but instead limits the "Top 100" list to only <num>
+      -td <depth>
+      Similar to -t but instead limits the "Top 100" list to only <depth>
       directories deep in the report. This is useful if the directory being
       reported on has many files, which can cause the report to take a long
       time to generate. The default is 3.
-
+      
       -tz <timezone>
       Set the report timezone. These are the same timezones as
       http://php.net/manual/en/timezones.php. The default is the system's
@@ -185,8 +198,6 @@ The OPTIONS are:
       
 Notes:
 
-      o All OPTIONS must be before <report-directory>.
-      
       o You should set the -tz option as trying to determine the system's
         timezone is unreliable.
         
@@ -206,9 +217,7 @@ See also: diskusagereports.com/docs
 EOT;
 
 // Process command line arguments.
-while (!is_null($cliarg = array_shift($cliargs))) {
-	$shifted = TRUE;
-	
+while (!is_null($cliarg = $cliargOrig = array_shift($cliargs))) {
 	switch ($cliarg) {
 		case '/?':
 		case '-?':
@@ -217,35 +226,35 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 			echo $syntax_long;
 			exit(1);
 		case '-tz':
-			$args['timezone'] = $shifted = array_shift($cliargs);
+			$args['timezone'] = $cliarg = array_shift($cliargs);
 			break;
 		case '-d':
-			$processor->setDelim($shifted = array_shift($cliargs));
+			$processor->setDelim($cliarg = array_shift($cliargs));
 			break;
 		case '-t':
-			$processor->setTotalsDepth(intval($shifted = array_shift($cliargs)));
-			if (!preg_match('/^[0-9]+$/', $shifted)) echo "$cliarg must be followed by a number.\n"; exit(1);
+			if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { echo "$cliargOrig must be followed by a number.\n".$syntax; exit(1); }
+			$processor->setTotalsDepth(intval($cliarg));
 			break;
 		case '-nt':
 			$processor->setNoTree(TRUE);
 			break;
 		case '-mt':
-			$processor->setMaxTreeSize(intval($shifted = array_shift($cliargs)));
-			if (!preg_match('/^[0-9]+$/', $shifted)) echo "$cliarg must be followed by a number.\n"; exit(1);
+			if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { echo "$cliargOrig must be followed by a number.\n".$syntax; exit(1); }
+			$processor->setMaxTreeSize(intval($cliarg));
 			break;
 		case '-ds':
-			$processor->setDS($shifted = array_shift($cliargs));
+			$processor->setDS($cliarg = array_shift($cliargs));
 			break;
 		case '-td':
-			$processor->setTop100Depth(intval($shifted = array_shift($cliargs)));
-			if (!preg_match('/^[0-9]+$/', $shifted)) echo "$cliarg must be followed by a number.\n"; exit(1);
+			if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { echo "$cliargOrig must be followed by a number.\n".$syntax; exit(1); }
+			$processor->setTop100Depth(intval($cliarg));
 			break;
 		case '-n':
-			$processor->setName($shifted = array_shift($cliargs));
+			$processor->setName($cliarg = array_shift($cliargs));
 			break;
 		case '-l':
-			$processor->setMaxLineLength(intval($shifted = array_shift($cliargs)));
-			if (!preg_match('/^[0-9]+$/', $shifted)) echo "$cliarg must be followed by a number.\n"; exit(1);
+			if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { echo "$cliargOrig must be followed by a number.\n".$syntax; exit(1); }
+			$processor->setMaxLineLength(intval($cliarg));
 			break;
 		case '-q':
 			$processor->setVerboseLevel(PROCESS_VERBOSE_QUIET);
@@ -260,23 +269,45 @@ while (!is_null($cliarg = array_shift($cliargs))) {
 			$processor->setIncludeFullPath(true);
 			break;
 		case '-su':
-			$processor->setSuffix($shifted = array_shift($cliargs));
+			$processor->setSuffix($cliarg = array_shift($cliargs));
+			break;
+		case '-ss':
+			if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) {
+				echo "$cliargOrig must be followed by a number.\n".$syntax; exit(1);
+			}
+			$processor->setMinStatusSeconds(intval($cliarg));
+			break;
+		case '-':
+			if (!is_null($processor->getReportDir()) && !is_null($processor->getFileList())) {
+				echo "Unexpected argument: $cliarg\n" . $syntax;
+				exit(1);
+			}
+			elseif (is_null($cliarg = array_shift($cliargs))) {
+				continue;
+			}
 		default:
-			$processor->setReportDir($cliarg);
-			$processor->setFileList(array_shift($cliargs));
-			$cliargs = array();
+			if (is_null($processor->getReportDir())) {
+				$processor->setReportDir($cliarg);
+			}
+			elseif (is_null($processor->getFileList())) {
+				$processor->setFileList($cliarg);
+			}
+			else {
+				echo "Unexpected argument: $cliarg\n" . $syntax;
+				exit(1);
+			}
 	}
 	
 	// If we shifted and found nothing, output an error.
-	if (is_null($shifted)) {
-		echo "Missing value after argument $cliarg\n".$syntax;
+	if (is_null($cliarg)) {
+		echo "Missing value after argument $cliargOrig\n".$syntax;
 		exit(1);
 	}
 }
 
 // Make sure the <reportdir> was set.
 if (is_null($processor->getReportDir())) {
-	if ($processor->getVerboseLevel() != PROCESS_VERBOSE_QUIET) echo "<reportdir> argument is missing\n".$syntax;
+	echo "<reportdir> argument is missing\n".$syntax;
 	exit(1);
 }
 
@@ -287,13 +318,13 @@ if (is_null($processor->getFileList())) {
 
 // Otherwise, make sure the <filelist> exists.
 elseif (!is_file($processor->getFileList())) {
-	if ($processor->getVerboseLevel() != PROCESS_VERBOSE_QUIET) echo "The <filelist> '" . $processor->getFileList() . "' does not exist or is not a file.\n";
+	echo "The <filelist> '" . $processor->getFileList() . "' does not exist or is not a file.\n";
 	exit(1);
 }
 
 // Set the timezone.
 if (!(function_exists("date_default_timezone_set") ? @(date_default_timezone_set($args['timezone'])) : @(putenv("TZ=".$args['timezone'])))) {
-	if ($processor->getVerboseLevel() != PROCESS_VERBOSE_QUIET) echo "'timezone' config was set to an invalid identifier.\n";
+	echo "'timezone' config was set to an invalid identifier.\n";
 	exit(1);
 }
 
@@ -302,52 +333,120 @@ for ($i = 0; $i < count($modifiedGroups); $i++) {
 	$modifiedGroups[$i]['date'] = FormatDate($modifiedGroups[$i]['date'], $dateFormat);
 }
 
-function WarningHandler() {
-	global $args;
+function FormatBytes($bytes) {
+	if ($bytes >= 1024 * 1024 * 1024 * 1024)
+		return number_format($bytes / 1024 / 1024 / 1024 / 1024, 2) . ' TB';
+	elseif ($bytes >= 1024 * 1024 * 1024)
+		return number_format($bytes / 1024 / 1024 / 1024, 2) . ' GB';
+	elseif ($bytes >= 1024 * 1024)
+		return number_format($bytes / 1024 / 1024, 2) . ' MB';
+	elseif ($bytes >= 1024)
+		return number_format($bytes / 1024, 2) . ' KB';
+	else
+		return number_format($bytes) . ' byte' . ($bytes == 1 ? '' : 's');
+}
+
+function EventHandler() {
+	global $processor;
 	
 	$args = func_get_args();
-	$error = array_shift($args);
+	$eventCode = array_shift($args);
 	
-	if ($args[0] == PROCESS_WARN_WRITEFAIL) {
-		if ($processor->getVerboseLevel() != PROCESS_VERBOSE_QUIET) echo 'Failed to write: ' . $args[1] . (isset($args[2]) ? ' for ' . $args[2] : '') . "\n";
+	$infoPrefix = '  ';
+	$warnPrefix = '> ';
+		
+	switch ($eventCode) {
+		case PROCESS_INFO_PROCESSING_FILELIST:
+			echo $infoPrefix . "Processing filelist...\n";
+			break;
+		case PROCESS_INFO_PROCESSING_HEADER:
+			echo $infoPrefix . "Processing header...\n";
+			break;
+		case PROCESS_INFO_PROCESSING_ERROR:
+			echo $infoPrefix . 'Processing error: ' . $args[0] . "\n";
+			break;
+		case PROCESS_INFO_PROCESSING_FILE:
+			echo $infoPrefix . 'Processing file: ' . $args[0] . ' ' . $args[1] . "\n";
+			break;
+		case PROCESS_INFO_SAVETREE:
+			echo $infoPrefix . "Saving dir tree...\n";
+			break;
+		case PROCESS_INFO_SAVESETTINGS:
+			echo $infoPrefix . "Saving settings...\n";
+			break;
+		case PROCESS_INFO_ENTERDIR:
+			if ($args[2] == 0)
+				echo $infoPrefix . "Enter root dir" . (empty($args[0]) ? '' : ": " . $args[0]) . "\n";
+			else
+				echo $infoPrefix . 'Enter dir: ' . $args[0] . "\n";
+			break;
+		case PROCESS_INFO_EXITDIR:
+			if ($args[2] == 0)
+				echo $infoPrefix . 'Exit root dir' . (empty($args[0]) ? '' : ": " . $args[0]) . "\n";
+			else
+				echo $infoPrefix . 'Exit dir: ' . $args[0] . (is_null($args[1]) ? '' : ' (now ' . $args[1] . ')') . "\n";
+			break;
+		case PROCESS_INFO_COMPLETE:
+			$infoPrefix .= 'Complete! ';
+		case PROCESS_INFO_STATUS:
+			$timeDiff = time() - START_TIME;
+			list ($bytes, $maxBytes, $lines, $written, $files) = $args;
+			echo $infoPrefix . 'Processed ' . number_format($args[2]) . ' lines from ' . FormatBytes($args[0]) . (!is_null($args[1]) ? ' (' . number_format($args[0] * 100 / $args[1], 1) . '%)' : '') . ', wrote ' . FormatBytes($args[3]) . " in " . number_format($args[4]) . " file" . ($args[4] == 1 ? '' : 's') . ", took " . number_format($timeDiff) .  " second" . ($timeDiff == 1 ? '' : 's') . ".\n";
+			break;
+		case PROCESS_INFO_MEMORY:
+			echo $infoPrefix . 'Used ' . $args[0] . '% of memory limit (' . $args[1] . ")\n";
+			break;
+		case PROCESS_WARN_TOOLONG:
+			echo $warnPrefix . 'Line ' . $args[0] . " invalid. Exceeds max line length.\n";
+			break;
+		case PROCESS_WARN_BADMATCH:
+			echo $warnPrefix . 'Line ' . $args[0] . " is invalid. Does not match correct pattern.\n";
+			break;
+		case PROCESS_WARN_COLCOUNT:
+			echo $warnPrefix . 'Line ' . $args[0] . " is invalid. Incorrect column count.\n";
+			break;
+		case PROCESS_WARN_EMPTYPATH:
+			echo $warnPrefix . 'Line ' . $args[0] . " is invalid. The path must be at least one character long.\n";
+			break;
+		case PROCESS_WARN_WRITEFAIL:
+			echo $warnPrefix . "Failed to write '" . $args[0] . (isset($args[1]) ? "' for '" . $args[1] : '') . "'.\n";
+			break;
 	}
 }
 
 $processor->setSizeGroups($sizeGroups);
 $processor->setModifiedGroups($modifiedGroups);
-$processor->setWarningCallback('WarningHandler');
+$processor->setEventCallback('EventHandler');
 
 $ret = $processor->run();
-if ($processor->getVerboseLevel() != PROCESS_VERBOSE_QUIET) {
+$processor->dumpProfiles();
+if ($ret != PROCESS_OK) {
 	$details = $processor->getFailDetails();
 	
 	switch ($ret) {
-		case PROCESS_FAILED_OPEN_FILELIST:
-			echo "The <filelist> could not be opened.\n";
+		case PROCESS_FAIL_OPEN_FILELIST:
+			echo "FAIL: The <filelist> could not be opened.\n";
 			break;
-		case PROCESS_INVALID_REPORTDIR:
-			echo "The <reportdir> already exists and is not a directory.\n";
+		case PROCESS_FAIL_INVALID_REPORTDIR:
+			echo "FAIL: The <reportdir> already exists and is not a directory.\n";
 			break;
-		case PROCESS_INVALID_HEADER:
-			echo "The header line in the <filelist> is invalid:\n" . $details['line'] . "\n";
+		case PROCESS_FAIL_INVALID_HEADER:
+			echo "FAIL: The header line in the <filelist> is invalid:\n" . $details['line'] . "\n";
 			break;
-		case PROCESS_INVALID_HEADER_FORMAT_VALUE:
-			echo "The formatting value for '" . $details['name'] . "' in the header line in the <filelist> is invalid:\n" . $details['line'] . "\n";
+		case PROCESS_FAIL_REPORTDIR_PARENT:
+			echo "FAIL: The parent directory of <reportdir> does not exist.\n";
 			break;
-		case PROCESS_FAILED_REPORTDIR_PARENT:
-			echo "The parent directory of <reportdir> does not exist.\n";
+		case PROCESS_FAIL_REPORTDIR_MKDIR:
+			echo "FAIL: The <reportdir> could not be created.\n";
 			break;
-		case PROCESS_FAILED_REPORTDIR_MKDIR:
-			echo "The <reportdir> could not be created.\n";
+		case PROCESS_FAIL_INVALID_CHARACTERS:
+			echo "FAIL: <filelist> contains characters that are not UTF-8, Windows-1252 or ISO-8859-1.\n";
 			break;
-		case PROCESS_INVALID_CHARACTERS:
-			echo "<filelist> contains characters that are not UTF-8, Windows-1252 or ISO-8859-1.\n";
+		case PROCESS_FAIL_UNEXPECTED_HEADER:
+			echo "FAIL: <filelist> contains a header line in an unexpected location. It must always be the first non-error line in the file:\n" . $processor->getFailLine() . "\n";
 			break;
-		case PROCESS_UNEXPECTED_HEADER:
-			echo "<filelist> contains a header line in an unexpected location. It must always be the first non-error line in the file:\n" . $processor->getFailLine() . "\n";
-			break;
-		case PROCESS_UNSUPPORTED_LIST_VERSION:
-			echo "<filelist> uses a version that does script does not support:\n" . $processor->getFailLine() . "\n";
+		case PROCESS_FAIL_UNSUPPORTED_LIST_VERSION:
+			echo "FAIL: <filelist> uses a version that does script does not support:\n" . $processor->getFailLine() . "\n";
 			break;
 	}
 }
