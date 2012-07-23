@@ -715,8 +715,8 @@ class Process {
 		if ($index === FALSE || $index == 0 || $index == strlen($name)-1) {
 			return '';
 		}
-		elseif (TRUE || preg_match('/^[0-9a-z_\-]{1,10}$/', substr($name, $index+1))) {
-			return substr($name, $index+1);
+		elseif (preg_match('/^[0-9a-z_\-~\^]{1,10}$/', $ext = substr($name, $index+1))) {
+			return $ext;
 		}
 		else {
 			return '';
