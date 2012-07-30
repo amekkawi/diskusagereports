@@ -40,6 +40,7 @@ define('PROCESS_INFO_EXITDIR', 7);
 define('PROCESS_INFO_STATUS', 8);
 define('PROCESS_INFO_MEMORY', 9);
 define('PROCESS_INFO_COMPLETE', 10);
+define('PROCESS_INFO_TREEDISABLED', 11);
 
 // Warning Codes.
 define('PROCESS_WARN_TOOLONG', 50);
@@ -203,7 +204,7 @@ class Process {
 			$this->_bytesReadMax = $stat['size'];
 		}
 		
-		$lineNum = 0;
+		$lineNum = 1;
 		while (($line = fgets($fh, $this->_maxLineLength + 2)) !== FALSE) {
 			$this->_bytesRead += strlen($line);
 			$line = rtrim($line, "\n\r");
@@ -589,6 +590,9 @@ class Process {
 				// Disable the tree if it's too large.
 				if ($this->_dirLookupSize > $this->_maxTreeSize) {
 					$this->_noTree = TRUE;
+					
+					if ($this->_verboseLevel >= PROCESS_VERBOSE_NORMAL)
+						$this->_raiseEvent(PROCESS_INFO_TREEDISABLED);
 				}
 			}
 			
@@ -632,17 +636,19 @@ class Process {
 	}
 	
 	function _saveDirTree() {
-		if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER)
-			$this->_raiseEvent(PROCESS_INFO_SAVETREE);
-		
-		// Save the directory list.
-		if (!$this->_noTree && ($bytes = file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'directories' . $this->_suffix, json_encode($this->_dirLookup))) === FALSE) {
-			$this->_raiseEvent(PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . 'directories');
-			array_push($this->_errors, array('writefail', 'directories', 'directories'));
+		if (!$this->_noTree) {
+			if ($this->_verboseLevel >= PROCESS_VERBOSE_HIGHER)
+				$this->_raiseEvent(PROCESS_INFO_SAVETREE);
+			
+			// Save the directory list.
+			if (($bytes = file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'directories' . $this->_suffix, json_encode($this->_dirLookup))) === FALSE) {
+				$this->_raiseEvent(PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . 'directories');
+				array_push($this->_errors, array('writefail', 'directories', 'directories'));
+			}
+			
+			$this->_bytesWritten += $bytes;
+			$this->_filesWritten++;
 		}
-		
-		$this->_bytesWritten += $bytes;
-		$this->_filesWritten++;
 	}
 	
 	function _saveSettings() {

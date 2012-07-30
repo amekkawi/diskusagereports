@@ -396,6 +396,9 @@ function EventHandler() {
 		case PROCESS_INFO_MEMORY:
 			echo $infoPrefix . 'Used ' . $args[0] . '% of memory limit (' . $args[1] . ")\n";
 			break;
+		case PROCESS_INFO_TREEDISABLED:
+			echo $infoPrefix . 'Directory tree exceeded maximum size (' . number_format($processor->getMaxTreeSize()) . " bytes), and has been disabled.\n";
+			break;
 		case PROCESS_WARN_TOOLONG:
 			echo $warnPrefix . 'Line ' . $args[0] . " invalid. Exceeds max line length.\n";
 			break;
