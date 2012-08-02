@@ -356,34 +356,36 @@ class Process {
 				// Process the settings.
 				$invalidSetting = false;
 				foreach ($settings as $split) {
-					$split = explode(":", $split, 2);
-					
-					// Validate the setting.
-					switch ($split[0]) {
-						case "basename":
-							if (empty($split[1]))
+					if (strlen(trim($split))) {
+						$split = explode(":", $split, 2);
+						
+						// Validate the setting.
+						switch ($split[0]) {
+							case "basename":
+								if (empty($split[1]))
+									$invalidSetting = true;
+								break;
+							case "dirname":
+								if (count($split) == 1)
+									$invalidSetting = true;
+								break;
+							case "datetimeformat":
+								if ($split[1] !== 'timestamp')
+									$invalidSetting = true;
+								break;
+							case "escaped":
+								$split[1] = true;
+								break;
+							default:
 								$invalidSetting = true;
+						}
+						
+						// Stop the foreach if an invalid setting was found.
+						if ($invalidSetting)
 							break;
-						case "dirname":
-							if (count($split) == 1)
-								$invalidSetting = true;
-							break;
-						case "datetimeformat":
-							if ($split[1] !== 'timestamp')
-								$invalidSetting = true;
-							break;
-						case "escaped":
-							$split[1] = true;
-							break;
-						default:
-							$invalidSetting = true;
+						
+						$this->_header[$split[0]] = $split[1];
 					}
-					
-					// Stop the foreach if an invalid setting was found.
-					if ($invalidSetting)
-						break;
-					
-					$this->_header[$split[0]] = $split[1];
 				}
 				
 				// Make sure no settings are null.
