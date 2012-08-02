@@ -27,6 +27,7 @@ define('PROCESS_FAIL_INVALID_CHARACTERS', 6);
 define('PROCESS_FAIL_UNEXPECTED_HEADER', 7);
 define('PROCESS_FAIL_REPORTDIR_PARENT', 8);
 define('PROCESS_FAIL_UNSUPPORTED_LIST_VERSION', 9);
+define('PROCESS_FAIL_SETTINGS_WRITEFAIL', 10);
 
 // Informational Codes.
 define('PROCESS_INFO_PROCESSING_FILELIST', 0);
@@ -268,7 +269,10 @@ class Process {
 		
 		$this->_checkDirStack();
 		$this->_saveDirTree();
-		$this->_saveSettings();
+		
+		if (!$this->_saveSettings()) {
+			return PROCESS_FAIL_SETTINGS_WRITEFAIL;
+		}
 		
 		if ($this->_verboseLevel >= PROCESS_VERBOSE_NORMAL) {
 			if ($this->_bytesReadMax < $this->_bytesRead) $this->_bytesReadMax = null;
@@ -489,6 +493,7 @@ class Process {
 		$ret = FALSE;
 		
 		if (strlen($line) > $this->_maxLineLength) {
+			if ($this->_verboseLevel > PROCESS_VERBOSE_QUIET)
 				$this->_raiseEvent(PROCESS_WARN_TOOLONG, $lineNum, $line);
 			
 			array_push($this->_errors, array('invalidline', 'maxlinelength', $line));
@@ -496,6 +501,7 @@ class Process {
 
 		// Validate the line up to the path column.
 		elseif (!preg_match($this->_lineRegEx, $line)) {
+			if ($this->_verboseLevel > PROCESS_VERBOSE_QUIET)
 				$this->_raiseEvent(PROCESS_WARN_BADMATCH, $lineNum, $line);
 			
 			array_push($this->_errors, array('invalidline', 'regex', $line));
@@ -503,6 +509,7 @@ class Process {
 
 		// Split the line and validate its length.
 		elseif (count($split = explode($this->_delim, $line, $this->_colCount)) != $this->_colCount) {
+			if ($this->_verboseLevel > PROCESS_VERBOSE_QUIET)
 				$this->_raiseEvent(PROCESS_WARN_COLCOUNT, $lineNum, $line);
 			
 			array_push($this->_errors, array('invalidline', 'columncount', $split));
@@ -510,6 +517,7 @@ class Process {
 		
 		// Make sure the path is at least one character long.
 		elseif (strlen($split[$this->_col_path]) == 0) {
+			if ($this->_verboseLevel > PROCESS_VERBOSE_QUIET)
 				$this->_raiseEvent(PROCESS_WARN_EMPTYPATH, $lineNum, $line);
 			
 			array_push($this->_errors, array('invalidline', 'column', 'path', $this->_col_path, $split));
@@ -630,7 +638,8 @@ class Process {
 			
 			// Save the directory data.
 			if (($bytes = file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . md5($path) . $this->_suffix, json_encode($pop))) === FALSE) {
-				$this->_raiseEvent(PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . md5($path), $path);
+				if ($this->_verboseLevel > PROCESS_VERBOSE_QUIET)
+					$this->_raiseEvent(PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . md5($path), $path);
 				array_push($errors, array('writefail', $path, md5($path)));
 			}
 			
@@ -650,7 +659,8 @@ class Process {
 			
 			// Save the directory list.
 			if (($bytes = file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'directories' . $this->_suffix, json_encode($this->_dirLookup))) === FALSE) {
-				$this->_raiseEvent(PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . 'directories');
+				if ($this->_verboseLevel > PROCESS_VERBOSE_QUIET)
+					$this->_raiseEvent(PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . 'directories');
 				array_push($this->_errors, array('writefail', 'directories', 'directories'));
 			}
 			
@@ -683,11 +693,13 @@ class Process {
 		
 		// Save the settings file.
 		if (($bytes = file_put_contents($this->_reportDir . DIRECTORY_SEPARATOR . 'settings' . $this->_suffix, json_encode($settings))) === FALSE) {
-			$this->_raiseEvent(PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . 'settings');
+			return false;
 		}
 		
 		$this->_bytesWritten += $bytes;
 		$this->_filesWritten++;
+		
+		return true;
 	}
 	
 	function _processDirectory($path, $basename) {

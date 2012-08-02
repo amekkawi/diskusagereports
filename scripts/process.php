@@ -354,7 +354,7 @@ function EventHandler() {
 	
 	$infoPrefix = '  ';
 	$warnPrefix = '> ';
-		
+	
 	switch ($eventCode) {
 		case PROCESS_INFO_PROCESSING_FILELIST:
 			echo $infoPrefix . "Processing filelist...\n";
@@ -422,8 +422,10 @@ $processor->setModifiedGroups($modifiedGroups);
 $processor->setEventCallback('EventHandler');
 
 $ret = $processor->run();
+
 $processor->dumpProfiles();
-if ($ret != PROCESS_OK) {
+
+if ($ret != PROCESS_OK && $processor->getVerboseLevel() > PROCESS_VERBOSE_QUIET) {
 	$details = $processor->getFailDetails();
 	
 	switch ($ret) {
@@ -450,6 +452,9 @@ if ($ret != PROCESS_OK) {
 			break;
 		case PROCESS_FAIL_UNSUPPORTED_LIST_VERSION:
 			echo "FAIL: <filelist> uses a version that does script does not support:\n" . $processor->getFailLine() . "\n";
+			break;
+		case PROCESS_FAIL_SETTINGS_WRITEFAIL:
+			echo "FAIL: Failed to write settings file.\n";
 			break;
 	}
 }
