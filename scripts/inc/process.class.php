@@ -346,7 +346,8 @@ class Process {
 					'dirname' => '',
 					'basename' => null,
 					'datetime' => substr($splitHeader[3] . " " . $splitHeader[4], 0, 19),
-					'datetimeformat' => 'timestamp'
+					'datetimeformat' => 'timestamp',
+					'escaped' => false
 				);
 				
 				// Settings from file list's header.
@@ -364,10 +365,15 @@ class Process {
 								$invalidSetting = true;
 							break;
 						case "dirname":
+							if (count($split) == 1)
+								$invalidSetting = true;
 							break;
 						case "datetimeformat":
 							if ($split[1] !== 'timestamp')
 								$invalidSetting = true;
+							break;
+						case "escaped":
+							$split[1] = true;
 							break;
 						default:
 							$invalidSetting = true;
@@ -665,7 +671,8 @@ class Process {
 			'sizes' => $this->_sizeGroups,
 			'modified' => $this->_modifiedGroups,
 			'ds' => $this->_ds,
-			'errors' => $this->_errors
+			'errors' => $this->_errors,
+			'escaped' => isset($this->_header['escaped']) ? $this->_header['escaped'] : false
 		);
 		
 		if ($this->_includeFullPath && isset($this->_header['dirname'])) {
