@@ -5,65 +5,68 @@
 # License See LICENSE.txt or http://diskusagereports.com/license.html 
 # Copyright: 2012 André Mekkawi <contact@andremekkawi.com>
 
-SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
-[ "$SCRIPT_DIR" == "/" ] && SCRIPT_DIR=""
-
 # Set the timezone to UTC
 export TZ=UTC
 
 # Set the time locale to POSIX
 export LC_ALL=C
 
+# Get bash's dirname for format checks.
+[ ! -f "$(command -v bash 2> /dev/null)" ] && echo "ERROR: Unable to determine the path of bash." && exit 2
+BASH_DIR="$(cd "$(dirname "$(command -v bash)")"; pwd)"
+[ ! -f "$BASH_DIR/bash" ] && echo "ERROR: Unable to determine the dirname of bash." && exit 2
+
 function determine_format() {
+	# DISABLED since newline characters in file names can mess this up.
 	# Check if the find commands supports -printf and -mindepth
-	line="$(find "$0" -mindepth 0 -printf "%y %TY-%Tm-%Td %TH:%TM:%TS %s %P\n" 2> /dev/null)"
-	[ "$?" == "0" ] && echo "$line" | grep -Eq '^. [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)? [0-9]+ $' \
-		&& mode="find-printf" && format="timestamp" && return 0
+	#line="$(find "$(command -v bash)" -mindepth 0 -printf "%y %TY-%Tm-%Td %TH:%TM:%TS %s %P\n" 2> /dev/null)"
+	#[ "$?" == "0" ] && echo "$line" | grep -Eq '^. [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)? [0-9]+ $' \
+	#	&& mode="find-printf" && format="timestamp" && return 0
 	
 	# Make sure find supports -print0
-	find "$0" -print0 &> /dev/null
-	[ "$?" != "0" ] && return 50
+	find "$(command -v bash)" -print0 &> /dev/null
+	[ "$?" != "0" ] && return 21
 	
 	# Make sure xargs supports -0
 	echo | xargs -0 echo &> /dev/null
-	[ "$?" != "0" ] && return 53
+	[ "$?" != "0" ] && return 22
 	
 	# Make sure find outputs results with the correct prefix.
-	line="$(cd "$SCRIPT_DIR"; find . | head -n 2 | tail -n 1)"
-	[ "${line:0:2}" != "./" ] && return 51
+	line="$(cd "$BASH_DIR" &> /dev/null && find . 2> /dev/null | head -n 2 | tail -n 1)"
+	[ "${line:0:2}" != "./" ] && return 23
 	
 	# Make sure ls keeps the prefix.
-	line="$(cd "$SCRIPT_DIR"; ls -d "./$(basename "$0")")"
-	[ "${line:0:2}" != "./" ] && return 52
+	line="$(cd "$BASH_DIR" &> /dev/null && ls -d ./bash 2> /dev/null)"
+	[ "${line:0:2}" != "./" ] && return 24
 	
 	# Check if FreeBSD -D <format> argument is available.
-	# // TODO: Check if works on FreeBSD
+	# TODO: Check if works on FreeBSD
 	line="$(ls -ld -D '%Y-%m-%d %H:%M:%S' . 2> /dev/null)"
-	[ "$?" == "0" ] && echo "$line" | '{ print $6, substr($7, 0, 8), $8 }' | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} \.$' \
-		&& awkarg='{ printf "%s%c%s%c%s%c%s%c%s\n", substr($1, 0, 1), '$delimdec', $6, '$delimdec', substr($7, 0, 8), '$delimdec', $5, '$delimdec', substr($0, index($0, " " $7 " " $8) + length($7) + 4, 1024) }' \
-		&& mode="ls-awk" && format="timestamp" && lsarg="-D '%Y-%m-%d %H:%M:%S'" && return 0
+	[ "$?" == "0" ] && echo "$line" | '{ print $6, substr($7, 1, 8), $8 }' | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} \.$' \
+		&& awkarg='{ if (substr($6, 5, 1) substr($6, 8, 1) substr($7, 3, 1) substr($7, 6, 1) == "--::" && $5 ~ /^[0-9]+$/) printf "%s%c%s%c%s%c%s%c%s\n", substr($1, 1, 1), '$delimdec', $6, '$delimdec', substr($7, 1, 8), '$delimdec', $5, '$delimdec', substr($0, index($0, " " $7 " " $8) + length($7) + 4, 1024); else print $0 }' \
+		&& mode="ls-awk" && format="timestamp" && lsformatarg="-D '%Y-%m-%d %H:%M:%S'" && return 0
 	
 	# Check if --time-style is available.
 	line="$(ls -ld --time-style='+%Y-%m-%d %H:%M:%S' . 2> /dev/null)"
-	[ "$?" == "0" ] && echo "$line" | awk '{ print $6, substr($7, 0, 8), $8 }' | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} \.$' \
-		&& awkarg='{ printf "%s%c%s%c%s%c%s%c%s\n", substr($1, 0, 1), '$delimdec', $6, '$delimdec', substr($7, 0, 8), '$delimdec', $5, '$delimdec', substr($0, index($0, " " $7 " " $8) + length($7) + 4, 1024) }' \
-		&& mode="ls-awk" && format="timestamp" && lsarg="--time-style='+%Y-%m-%d %H:%M:%S'" && return 0
+	[ "$?" == "0" ] && echo "$line" | awk '{ print $6, substr($7, 1, 8), $8 }' | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} \.$' \
+		&& awkarg='{ if (substr($6, 5, 1) substr($6, 8, 1) substr($7, 3, 1) substr($7, 6, 1) == "--::" && $5 ~ /^[0-9]+$/) printf "%s%c%s%c%s%c%s%c%s\n", substr($1, 1, 1), '$delimdec', $6, '$delimdec', substr($7, 1, 8), '$delimdec', $5, '$delimdec', substr($0, index($0, " " $7 " " $8) + length($7) + 4, 1024); else print $0 }' \
+		&& mode="ls-awk" && format="timestamp" && lsformatarg="--time-style='+%Y-%m-%d %H:%M:%S'" && return 0
 	
 	# Check if --full-time is available.
 	line="$(ls -ld --full-time . 2> /dev/null)"
-	[ "$?" == "0" ] && echo "$line" | awk '{ print $6, substr($7, 0, 8), $8, $9 }' | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} \+0000 \.$' \
-		&& awkarg='{ printf "%s%c%s%c%s%c%s%c%s\n", substr($1, 0, 1), '$delimdec', $6, '$delimdec', substr($7, 0, 8), '$delimdec', $5, '$delimdec', substr($0, index($0, " " $8 " " $9) + length($8) + 4, 1024) }' \
-		&& mode="ls-awk" && format="timestamp" && lsarg="--full-time" && return 0
+	[ "$?" == "0" ] && echo "$line" | awk '{ print $6, substr($7, 1, 8), $8, $9 }' | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} \+0000 \.$' \
+		&& awkarg='{ if (substr($6, 5, 1) substr($6, 8, 1) substr($7, 3, 1) substr($7, 6, 1) == "--::" && $5 ~ /^[0-9]+$/) printf "%s%c%s%c%s%c%s%c%s\n", substr($1, 1, 1), '$delimdec', $6, '$delimdec', substr($7, 1, 8), '$delimdec', $5, '$delimdec', substr($0, index($0, " " $8 " " $9) + length($8) + 4, 1024); else print $0 }' \
+		&& mode="ls-awk" && format="timestamp" && lsformatarg="--full-time" && return 0
 	
 	# Check if -T for displaying full date/time is available.
 	line="$(ls -ldT . 2> /dev/null)"
-	[ "$?" == "0" ] && echo "$line" | awk '{ print $6, $7, substr($8, 0, 8), $9, $10 }' | grep -Eq '^[A-Z][a-z]{2} [0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2} [0-9]{4} \.$' \
-		&& awkarg='BEGIN { split("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec", month, " "); for (i=1; i<=12; i++) mdigit[month[i]] = sprintf("%02d", i) }; { printf "%s%c%s%c%s%c%s%c%s\n", substr($1, 0, 1), '$delimdec', $9 "-" mdigit[$6] "-" sprintf("%02d", $7), '$delimdec', substr($8, 0, 8), '$delimdec', $5, '$delimdec', substr($0, index($0, " " $8 " " $9 " ") + 17, 1024) }' \
-		&& mode="ls-awk" && format="timestamp" && lsarg="-T" && return 0
+	[ "$?" == "0" ] && echo "$line" | awk '{ print $6, $7, substr($8, 1, 8), $9, $10 }' | grep -Eq '^[A-Z][a-z]{2} [0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2} [0-9]{4} \.$' \
+		&& awkarg='BEGIN { split("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec", month, " "); for (i=1; i<=12; i++) mdigit[month[i]] = sprintf("%02d", i) }; { if (substr($8, 3, 1) substr($8, 6, 1) == "::" && $5 ~ /^[0-9]+$/) printf "%s%c%s%c%s%c%s%c%s\n", substr($1, 1, 1), '$delimdec', $9 "-" mdigit[$6] "-" sprintf("%02d", $7), '$delimdec', substr($8, 1, 8), '$delimdec', $5, '$delimdec', substr($0, index($0, " " $8 " " $9 " ") + 17, 1024); else print $0 }' \
+		&& mode="ls-awk" && format="timestamp" && lsformatarg="-T" && return 0
 	
-	# // TODO: Possibly allow the default format since we include current date/time as reference? Will not be able to determine exact time for most files however.
+	# TODO: Possibly allow the default format since we include current date/time as reference? Will not be able to determine exact time for most files however.
 	
-	return 200
+	return 20
 }
 
 function determine_nosort() {
@@ -78,7 +81,86 @@ function determine_nosort() {
 	line="$(ls -ldf .. . 2> /dev/null)"
 	[ "$?" == "0" -a "$(echo "$line" | awk '{ print $9 }' | tr '\n' ' ' | awk '{ print $1, $2 }')" == ".. ." ] && lsnosortarg='-f' && return 0
 	
-	return 201
+	return 40
+}
+
+function determine_escaping() {
+	escapedflag=''
+	
+	# Check for --escape argument.
+	line="$(ls -d --escape . 2> /dev/null)"
+	[ "$?" == "0" -a "$line" == "." ] && lsescapearg='--escape' && escapedflag='escaped' && return 0
+	
+	# Allow the -b argument to be forced.
+	[ "$forceb" == "Y" ] && lsescapearg='-b' && escapedflag='escaped' && return 0
+	
+	# Determine the temp directory path.
+	[ "$TMPDIR" == "" ] && tmpdir="/tmp" || tmpdir="$TMPDIR"
+	tmpdir="${tmpdir%/}"
+	
+	# Create a temp directory.
+	escapetestdir=$(mktemp -d "$tmpdir/diskusagereports-findsh-escapetest.XXXXXXXXXX" 2> /dev/null)
+	
+	# Check that directory was created,
+	# and create a test file.
+	if [ "$?" == "0" -a -n "$escapetestdir" -a -d "$escapetestdir" ] && echo "$escapetestdir" | grep -q "diskusagereports-findsh-escapetest" && touch "$escapetestdir/test	test.txt" 2> /dev/null; then
+		
+		# Test the -b argument.
+		line="$(cd "$escapetestdir"; ls -db "test	test.txt" 2> /dev/null)"
+		if [ "$?" == "0" -a "$line" == "test\\ttest.txt" ]; then
+			lsescapearg='-b'
+			escapedflag='escaped'
+			ret=0
+		
+		# ls does not support escaping.
+		else
+			ret=60
+		fi
+	
+	# Failed to create temp dir.
+	else
+		ret=61
+	fi
+	
+	if [ -n "$escapetestdir" -a -e "$escapetestdir" ] && echo "$escapetestdir" | grep -q "diskusagereports-findsh-escapetest"; then
+		rm -rf "$escapetestdir"
+	fi
+	
+	# Allow to continue without escaping.
+	if [ "$ret" != "0" -a "$forcenoescape" == "Y" ]; then
+		lsescapearg=''
+		ret=0
+	fi
+	
+	return $ret
+}
+
+function handle_error() {
+	case "$1" in
+		21)
+			echo "ERROR $1: The 'find' command on this system does not support -print0. Please use scripts/find.php instead." 1>&2
+			;;
+		22)
+			echo "ERROR $1: The 'xargs' command on this system does not support -0. Please use scripts/find.php instead." 1>&2
+			;;
+		23)
+			echo "ERROR $1: The 'find' command on this system failed the path prefix check. Please use scripts/find.php instead." 1>&2
+			;;
+		24)
+			echo "ERROR $1: The 'ls' command on this system failed the path prefix check. Please use scripts/find.php instead." 1>&2
+			;;
+		20|40)
+			echo "ERROR $1: The 'ls' command on this system does not support the features necessary to use this script. Please use scripts/find.php instead." 1>&2
+			;;
+		60)
+			echo "ERROR $1: The 'ls' command on this system does not support escaping unusual characters (e.g. a newline) in file names. See the -ne argument in --help, or use scripts/find.php instead." 1>&2
+			;;
+		61)
+			echo "ERROR $1: Could not create a temporary directory to check if the 'ls' command supports the -b argument. See the -b argument in --help, or use scripts/find.php instead." 1>&2
+			;;
+	esac
+	
+	exit $1
 }
 
 function syntax() {
@@ -90,15 +172,26 @@ function syntax() {
 
 function syntax_long() {
 	echo "
-Syntax: find.sh [-d <char|'null'>] [-] <directory-to-scan>
+Syntax: find.sh [-b|-ne] [-d <char|'null'>] [-] <directory-to-scan>
                 [<find-test>, ...]
 
 Arguments:
+
+-b
+Force the usage of the 'ls' command's -b argument to escape unusual characters
+(e.g. a newline) in file names. Use this flag if you know that 'ls' supports
+this argument on your system and you want to skip the use of 'mktemp' to check
+for support.
 
 -d <char|'null'>
 Optionally specify the field delimiter for each line in the output.
 Must be a single ASCII character or the word 'null' for the null character.
 The default is the space character.
+
+-ne
+Force the script to execute even if the 'ls' command does not support the
+--escape or -b arguments. This will cause problems if file names encountered
+during the scan contain newlines.
 
 - (minus sign)
 If the <directory-to-scan> is the same as one of the options for this script
@@ -136,11 +229,25 @@ See also: diskusagereports.com/docs
 	exit 1
 }
 
+# Argument defaults
+real=
+forceb=
+forcenoescape=
+delim=" "
+delimoct=40
+delimdec=32
+
 # Parse arguments.
 while [ "$#" -gt 0 -a -z "$real" ]; do
 	if [ "$1" == '-h' -o "$1" == '-?' -o "$1" == '--help' ]; then
 		syntax_long
 	
+	elif [ "$1" == '-b' ]; then
+		forceb=Y
+		
+	elif [ "$1" == '-ne' ]; then
+		forcenoescape=Y
+		
 	elif [ "$1" == '-d' ]; then
 		shift
 		[ "$delim" != "" ] && syntax "Field delimiter already set."
@@ -179,16 +286,9 @@ done
 # Make sure the <directory-to-scan> is a directory.
 [ ! -d "$real" ] && syntax "The <directory-to-scan> is not a directory." 1>&2
 
-# Check that the <find-test> arguments are supported.
-find "$0" "$@" &> /dev/null
-[ "$?" != "0" ] && echo "ERROR: One or more of the <find-test> arguments are not supported by find." 1>&2 && exit 2
-
 # Split the <directory-to-scan>
 dir=$(dirname "$real")
 base=$(basename "$real")
-
-# Default the delim to a space
-[ "$delim" == "" ] && delim=" " && delimoct=40 && delimdec=32
 
 # Set the dir to an empty string if we are scanning '/'.
 if [ "$dir$base" == '//' ]; then
@@ -196,24 +296,26 @@ if [ "$dir$base" == '//' ]; then
 	base='/'
 fi
 
-# Determine the output format/method
-determine_format
-ret="$?"
-[ "$ret" != "0" ] && echo "ERROR: The commands on this system do not support the features necessary to use this script (error $ret). Please use scripts/find.php instead." 1>&2 && exit $ret
+# Determine what arguments to use.
+determine_format || handle_error $?
+determine_nosort || handle_error $?
+determine_escaping || handle_error $?
 
-determine_nosort
-ret="$?"
-[ "$ret" != "0" ] && echo "ERROR: The commands on this system do not support the features necessary to use this script (error $ret). Please use scripts/find.php instead." 1>&2 && exit $ret
+# Check that the <find-test> arguments are supported.
+if [ "$#" -gt 0 ]; then
+	find "$(command -v bash)" "$@" &> /dev/null
+	[ "$?" != "0" ] && echo "ERROR: One or more of the <find-test> arguments are not supported by find." 1>&2 && exit 1
+fi
 
 timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
-echo "## v2 $delimdec 47 ${timestamp:0:19} datetimeformat:$format dirname:$(echo "$dir" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g') basename:$(echo "$base" | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g')"
+echo "## v2 $delimdec 47 ${timestamp:0:19} $escapedflag datetimeformat:$format dirname:$(echo "$dir" | tr -d '\n' | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g') basename:$(echo "$base" | tr -d '\n' | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g')"
 
 if [ "$mode" == "find-printf" ]; then
 	
 	# Verify that the delim will output correctly.
-	[ "$delim" == "null" ] && [ "$(find "$0" -printf "\\$delimoct" | wc -c)" != "1" -o "$(find "$0" -printf "\\$delimoct" | tr -d '\0' | wc -c)" != "0" ] \
+	[ "$delim" == "null" ] && [ "$(find "$(command -v bash)" -printf "\\$delimoct" | wc -c)" != "1" -o "$(find "$(command -v bash)" -printf "\\$delimoct" | tr -d '\0' | wc -c)" != "0" ] \
 		&& echo "ERROR: find is not outputting the expected null field delimiter." 1>&2 && exit 2
-	[ "$delim" != "null" -a "$(find "$0" -printf "\\$delimoct")" != "$delim" ] \
+	[ "$delim" != "null" -a "$(find "$(command -v bash)" -printf "\\$delimoct")" != "$delim" ] \
 		&& echo "ERROR: find is not outputting the expected field delimiter." 1>&2 && exit 2
 	
 	find "$real" -mindepth 1 "$@" -printf "%y\\$delimoct%TY-%Tm-%Td\\$delimoct%TH:%TM:%TS\\$delimoct%s\\$delimoct%P\n"
@@ -226,7 +328,7 @@ else
 		&& echo "ERROR: awk is not outputting the expected field delimiter." 1>&2 && exit 2
 	
 	cd "$real"
-	find . "$@" -print0 | eval xargs -0 ls -ld $lsarg $lsnosortarg | tail -n +2 | awk "$awkarg"
+	find . "$@" -print0 | eval xargs -0 ls -ld $lsformatarg $lsnosortarg $lsescapearg | tail -n +2 | awk "$awkarg"
 fi
 
 exit 0
