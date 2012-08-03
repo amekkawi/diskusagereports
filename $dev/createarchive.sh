@@ -1,12 +1,13 @@
 #!/bin/bash
 
+RMEXE=
 TREEISH=
 OUT=
 OUTFORMAT=".zip"
 
 function syntax() {
 	[ "$*" != "" ] && echo "$*" 1>&2
-	echo "Syntax: $0 [--tar] <tree-ish> [<outfile>]" 1>&2
+	echo "Syntax: $0 [--tar] [--no-exe] <tree-ish|'.'> [<outfile>]" 1>&2
 	exit 1
 }
 
@@ -17,6 +18,9 @@ while [ "$#" -gt 0 ]; do
 	
 	elif [ "$1" == '--tar' ]; then
 		OUTFORMAT=".tar.gz"
+		
+	elif [ "$1" == '--no-exe' ]; then
+		RMEXE=Y
 		
 	else
 		if [ -z "$TREEISH" ]; then
@@ -43,6 +47,13 @@ REPODIR="$(dirname "$SCRIPTDIR")"
 
 cd "$REPODIR"
 
+if [ "$TREEISH" == "." ]; then
+	STATUS="$(git status -b -s)"
+	[ "$?" != "0" ] && echo "Failed to determine current branch." 1>&2 && exit 1
+	
+	TREEISH="$(echo $STATUS | awk '{ print $2 }')"
+fi
+
 echo "Determining SHA1..."
 
 # Get SHA1
@@ -62,18 +73,20 @@ SHORTSHA1="$(git rev-parse --short "$SHA1" 2> /dev/null)"
 # Add short SHA1 if the tree-ish is a valid symbolic name.
 if git name-rev --name-only "$SHA1" 2> /dev/null | grep -q "$TREEISH"; then
 	VERSIONTEXT="$TREEISH ($SHORTSHA1)"
+	OUTTEXT="${TREEISH}_$SHORTSHA1"
 
 # Just use the short SHA1, if the tree-ish is not a symbolic name.
 else
 	VERSIONTEXT="$SHORTSHA1"
 	TREEISH="$SHORTSHA1"
+	OUTTEXT="$SHORTSHA1"
 fi
 
 echo "Normalized version text: $VERSIONTEXT"
 
 if [ -z "$OUT" ]; then
-	OUT="diskusagereports_$TREEISH$OUTFORMAT"
-	echo "Defaulting output to: diskusagereports_$TREEISH$OUTFORMAT"
+	OUT="diskusagereports_$OUTTEXT$OUTFORMAT"
+	echo "Defaulting output to: $OUT"
 	
 	# Make sure the <out-file> does not exist, if specified.
 	[ -e "$ORIGDIR/$OUT" ] && echo "$OUT already exists." 1>&2 && exit 1
@@ -105,6 +118,12 @@ cat "$TMPDIR/raw.tar" | tar x -C "$EXTRACTDIR"
 
 bash "$SCRIPTDIR/preparerelease.sh" "$EXTRACTDIR" "$VERSIONTEXT"
 [ "$?" != "0" ] && exitClean 1
+
+if [ "$RMEXE" == "Y" ]; then
+	echo "Removing EXE files..."
+	find "$EXTRACTDIR" -iname '*.exe' -print0 | xargs -0 rm
+	[ "$?" != 0 ] && echo "Failed" 1>&2 && exitClean 1
+fi
 
 echo "Compressing..."
 cd "$TMPDIR"
