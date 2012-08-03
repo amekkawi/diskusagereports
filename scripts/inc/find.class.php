@@ -82,9 +82,10 @@ class Find {
 			ord($this->_delim),
 			ord($this->_ds),
 			substr(date('Y-m-d H:i:s'), 0, 19),
+			"escaped",
 			"datetimeformat:timestamp",
-			"dirname:" . str_replace(" ", "\\ ", str_replace("\\", "\\\\", str_replace(DIRECTORY_SEPARATOR, $this->_ds, $dirname))),
-			"basename:" . str_replace(" ", "\\ ", str_replace("\\", "\\\\", str_replace(DIRECTORY_SEPARATOR, $this->_ds, $basename)))
+			"dirname:" . $this->escapePath(str_replace(DIRECTORY_SEPARATOR, $this->_ds, $dirname), true),
+			"basename:" . $this->escapePath(str_replace(DIRECTORY_SEPARATOR, $this->_ds, $basename), true)
 		)) . "\n");
 		
 		$this->_processDirectory($out, $err, $realpath, '', 1);
@@ -101,7 +102,7 @@ class Find {
 		
 		if (($dirh = opendir($fullpath)) === FALSE) {
 			fwrite($err, "Failed to open directory for listing files: $fullpath\n");
-			$this->_outputError($out, 'OPENDIR_FAIL', array(str_replace(DIRECTORY_SEPARATOR, $this->_ds, $pathext)));
+			$this->_outputError($out, 'OPENDIR_FAIL', array($this->escapePath(str_replace(DIRECTORY_SEPARATOR, $this->_ds, $pathext))));
 		}
 		else {
 			while (($entry = readdir($dirh)) !== FALSE) {
@@ -149,7 +150,7 @@ class Find {
 		}
 		else {
 			fwrite($err, 'Failed to stat: ' . $fullpath . "\n");
-			$this->_outputError($out, 'STAT_FAIL', array(str_replace(DIRECTORY_SEPARATOR, $this->_ds, $entryPath)));
+			$this->_outputError($out, 'STAT_FAIL', array($this->escapePath(str_replace(DIRECTORY_SEPARATOR, $this->_ds, $entryPath))));
 		}
 	}
 	
@@ -165,7 +166,7 @@ class Find {
 			date('H:i:s', intval($stat['mtime'])), 
 			$stat['size'],
 			//$depth,
-			($pathext == '' ? '' : $pathext . $this->_ds) . $entry
+			$this->escapePath(($pathext == '' ? '' : $pathext . $this->_ds) . $entry)
 		)) . "\n");
 	}
 	
@@ -174,6 +175,11 @@ class Find {
 			'!',
 			$id
 		), $arguments)) . "\n");
+	}
+	
+	function escapePath($path, $escapeSpace = FALSE) {
+		$path = str_replace("\n", "\\n", str_replace("\\", "\\\\", $path));
+		return $escapeSpace ? str_replace(" ", "\\ ", $path) : $path;
 	}
 	
 	function getDS() {
