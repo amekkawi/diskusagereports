@@ -307,7 +307,9 @@ if [ "$#" -gt 0 ]; then
 fi
 
 timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
-echo "## v2 $delimdec 47 ${timestamp:0:19} $escapedflag datetimeformat:$format dirname:$(echo "$dir" | tr -d '\n' | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g') basename:$(echo "$base" | tr -d '\n' | sed -e 's/\\/\\\\/g' -e 's/ /\\ /g')"
+dir="$(echo "$dir" | awk '{ gsub(/\\/, "\\\\"); gsub(/ /, "\\ "); if ( NR > 1 ) printf "%s", "\\n"; printf "%s", $0 }')"
+base="$(echo "$base" | awk '{ gsub(/\\/, "\\\\"); gsub(/ /, "\\ "); if ( NR > 1 ) printf "%s", "\\n"; printf "%s", $0 }')"
+echo "## v2 $delimdec 47 ${timestamp:0:19} $escapedflag datetimeformat:$format dirname:$dir basename:$base"
 
 if [ "$mode" == "find-printf" ]; then
 	
