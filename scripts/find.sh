@@ -250,7 +250,6 @@ while [ "$#" -gt 0 -a -z "$real" ]; do
 		
 	elif [ "$1" == '-d' ]; then
 		shift
-		[ "$delim" != "" ] && syntax "Field delimiter already set."
 		[ "$#" == "0" ] && syntax "Missing argument for -d."
 		
 		if [ "$1" == "null" ]; then
