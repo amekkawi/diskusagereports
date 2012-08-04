@@ -94,9 +94,9 @@ function determine_escaping() {
 	# Allow the -b argument to be forced.
 	[ "$forceb" == "Y" ] && lsescapearg='-b' && escapedflag='escaped' && return 0
 	
-	# Determine the temp directory path.
-	[ "$TMPDIR" == "" ] && tmpdir="/tmp" || tmpdir="$TMPDIR"
-	tmpdir="${tmpdir%/}"
+	# Default and normalize the temp directory path.
+	TMPDIR="${TMPDIR:-/tmp}"
+	TMPDIR="${TMPDIR%/}"
 	
 	# Create a temp directory.
 	escapetestdir=$(mktemp -d "$tmpdir/diskusagereports-findsh-escapetest.XXXXXXXXXX" 2> /dev/null)
@@ -165,8 +165,9 @@ function handle_error() {
 
 function syntax() {
 	[ "$*" != "" ] && echo "$*" 1>&2
-	echo "Syntax: find.sh [-d <char|'null'>] [-] <directory-to-scan> [<find-test>, ...]" 1>&2
-	echo "Use -h for full help or visit diskusagereports.com/docs." 1>&2
+	echo "Syntax: find.sh [-b|-ne] [-d <char|'null'>] [-] <directory-to-scan>" 1>&2
+	echo "                [<find-test>, ...]" 1>&2
+	echo "        Use -h for full help or visit diskusagereports.com/docs." 1>&2
 	exit 1
 }
 
@@ -237,6 +238,9 @@ delim=" "
 delimoct=40
 delimdec=32
 
+# Output syntax if there are no arguments.
+[ "$#" -eq 0 ] && syntax
+
 # Parse arguments.
 while [ "$#" -gt 0 -a -z "$real" ]; do
 	if [ "$1" == '-h' -o "$1" == '-?' -o "$1" == '--help' ]; then
@@ -271,7 +275,7 @@ while [ "$#" -gt 0 -a -z "$real" ]; do
 		[ "$1" == "-" ] && shift
 		
 		if [ "$#" -gt 0 ]; then
-			[ ! -d "$1" ] && syntax "<directory-to-scan> does not exist or is not a directory: $1" 1>&2
+			[ ! -d "$1" ] && syntax "<directory-to-scan> does not exist or is not a directory: $1"
 			real=$(cd "$1" && pwd)
 		fi
 	fi
@@ -280,10 +284,10 @@ while [ "$#" -gt 0 -a -z "$real" ]; do
 done
 
 # Make sure the <directory-to-scan> has been set.
-[ "$real" == "" ] && syntax "The <directory-to-scan> argument is missing." 1>&2
+[ -z "$real" ] && syntax "The <directory-to-scan> argument is missing."
 
 # Make sure the <directory-to-scan> is a directory.
-[ ! -d "$real" ] && syntax "The <directory-to-scan> is not a directory." 1>&2
+[ ! -d "$real" ] && syntax "The <directory-to-scan> is not a directory."
 
 # Split the <directory-to-scan>
 dir=$(dirname "$real")
