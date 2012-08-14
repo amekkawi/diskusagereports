@@ -5,7 +5,7 @@ basepath: ../
 activepage: changelog
 ---
 
-<h2><a name="v1_0_0" id="v1_0rc4"></a>About Version Numbers:</h2>
+<h2><a name="VersionNumbers" id="VersionNumbers"></a>About Version Numbers:</h2>
 <div class="indent">
 	<p>As of 1.0.0 the version numbers will now follow the Semantic Versioning guidelines at <a href="http://semver.org/">semver.org</a> as closely as possible. </p>
 	<p>Releases will be numbered with the following format: <code>&lt;major&gt;.&lt;minor&gt;.&lt;patch&gt;</code></p>
@@ -16,6 +16,47 @@ activepage: changelog
 		<li>Bug fixes and minor changes will increase the <code>&lt;patch&gt;</code>.</li>
 	</ul>
 </div>
+
+<h2><a name="v2_0_0" id="v2_0_0"></a>2.0.0 - August X, 2012</h2>
+<div class="indent">
+	<p>Major Additions/Improvements:</p>
+	<ul>
+		<li><code>scripts/find.sh</code> now supports more platforms (Mac OS X and other BSD variants).</li>
+		<li>One or more tests can now be included after <code>&lt;directory-to-scan&gt;</code> in <code>scripts/find.sh</code> that will be passed directly to the *NIX <code>find</code> command. See <code>scripts/find.sh -h</code> for examples.</li>
+		<li><code>scripts/find.sh</code> and <code>scripts/find.php</code> have a new output format (version 2).
+			<ul>
+				<li>Default field delimiter changed from NULL to a space, making the output much more human readable. Use <code>-d null</code> to use a NULL delimiter.</li>
+				<li>The header includes a version number (e.g. <code>v2</code>), and <code>scripts/process.php</code> will halt if it does not support it.</li>
+				<li>A space is always used as the field delimiter in the header.</li>
+				<li>The field and directory delimiters are stored as the ASCII decimal value.</li>
+				<li>The header now includes settings as name/value pairs. If the value contains a space or backslash, it is escaped using a backslash.</li>
+				<li>The directory depth column has been removed.</li>
+				<li>Special characters in file names (i.e. slashes and newlines) are now escaped.</li>
+			</ul>
+		</li>
+	</ul>
+	<p>Minor Additions/Improvements:</p>
+	<ul>
+		<li><code>scripts/find.php</code> now warns you if you are using a 32-bit version of PHP, as this may lead to inaccurate totals if the directory you are scanning contains files over 2GB.</li>
+		<li><code>scripts/process.php</code> now supports timestamps with milliseconds.</li>
+		<li>A hyphen (<code>-</code>) can now be used as the argument before <code>&lt;directory-to-scan&gt;</code> if the directory name conflicts with other arguments (e.g. a directory named <code>-d</code>) in <code>scripts/find.sh</code> and <code>scripts/find.php</code>.</li>
+	</ul>
+	<p>Bug Fixes:</p>
+	<ul>
+		<li>[Major] Removed debug code that was causing file extensions to be improperly processed. This resulted in report files being abnormally large in some cases.</li> 
+		<li>[Minor] The <code>-d</code> argument in <code>scripts/find.sh</code> and <code>scripts/find.php</code> now fails if the next argument is not one character long.</li>
+		<li>[Minor] Null values in errors stored in settings.txt no longer cause the web UI to fail.</li>
+		<li>[Minor] Fixed confusing error message in the language file.</li>
+		<li>[Minor] Adding missing <code>&lt;tr&gt;</code> tags to index.html.</li>
+		<li>[Minor] Specifying either the <code>-d</code> or <code>-td</code> argument in <code>find.sh</code> no longer causes the script to exit immediately.</li> 
+	</ul>
+	<p><b>Backwards Incompatibility Warning:</b></p>
+	<div class="indent">
+		<p>The new output format used by <code>scripts/find.sh</code> and <code>scripts/find.php</code> will require updates to custom scripts that used its output.</p>
+		<p>However, <code>scripts/process.php</code> still accepts the old format so you will still be able to use old list files.</p>
+	</div>
+</div>
+
 <h2><a name="v1_0_3" id="v1_0_3"></a>1.0.3 - April 25, 2012</h2>
 <div class="indent">
 	<p>Minor Additions/Improvements:</p>
@@ -30,6 +71,7 @@ activepage: changelog
 		<li>[Minor] The JavaScript files were not being packed correctly, making the total size larger than it needed to be.</li>
 	</ul>
 </div>
+
 <h2><a name="v1_0_2" id="v1_0_2"></a>1.0.2 - March 19, 2012</h2>
 <div class="indent">
 	<p>Bug Fixes:</p>
@@ -38,6 +80,7 @@ activepage: changelog
 		<li>[Minor] scripts/process.php was not properly respecting verbosity settings.</li>
 	</ul>
 </div>
+
 <h2><a name="v1_0_0" id="v1_0_0"></a>1.0.0 - March 15, 2012</h2>
 <div class="indent">
 	<p>Major Additions/Improvements:</p>
@@ -49,6 +92,7 @@ activepage: changelog
 		<li>When the selected directory changes (e.g. by clicking a directory, or clicking back/forward in your browser) the directory tree will scroll into view more consistently and without cropping the directory icon.</li>
 	</ul>
 </div>
+
 <h2><a name="v1_0rc3" id="v1_0rc3"></a>1.0 RC3 - February 7, 2012</h2>
 <div class="indent">
 	<p>Major Additions/Improvements:</p>
@@ -81,6 +125,7 @@ activepage: changelog
 		<li>[Bug] Added better error reporting if the language file fails to load.</li>
 	</ul>
 </div>
+
 <h2><a name="v1_0rc2" id="v1_0rc2"></a>1.0 RC2 - June 21, 2011</h2>
 <div class="indent">
 	<ul>
@@ -96,6 +141,7 @@ activepage: changelog
 		<li>[Bug] Fixed example in index.html for using PHP with controller.setLanguage(). It incorrectly used $_GET instead of $_SERVER.</li>
 	</ul>
 </div>
+
 <h2><a name="v1_0rc1" id="v1_0rc1"></a>1.0 RC1 - May 24, 2011</h2>
 <div class="indent">
 	<ul>
@@ -111,6 +157,7 @@ activepage: changelog
 		<li>Fixed sorting bug for the &quot;Contents&quot; tab.</li>
 	</ul>
 </div>
+
 <h2><a name="beta1_2" id="beta1_2"></a>Beta 1.2 - Feb 20, 2011</h2>
 <div class="indent">
 	<ul>
@@ -130,6 +177,7 @@ activepage: changelog
 		<li>Various overrides were added to index.html in a well-commented section.</li>
 	</ul>
 </div>
+
 <h2><a name="beta1_1" id="beta1_1"></a>Beta 1.1 - Feb 2, 2011</h2>
 <div class="indent">
 	<ul>
@@ -143,6 +191,7 @@ activepage: changelog
 		</li>
 	</ul>
 </div>
+
 <h2><a name="beta1_0" id="beta1_0"></a>Beta 1.0 - Feb 2, 2011</h2>
 <div class="indent">
 	<ul>

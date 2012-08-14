@@ -7,54 +7,82 @@ activepage: roadmap
 
 <p>Below is a tentative roadmap of future changes to Disk Usage Reports. There are no specific dates attached to the releases. To get a better understanding of how version numbers are incremented, see the <a href="./#VersionNumbers">About Version Numbers</a> section of the documentation.</p>
 
-<h3>Version 1.1.0</h3>
+{% comment %} Set up the major and minor. {% endcomment %}
+{% assign major = '*' %}
+{% capture temp %}{{ major }}*{% endcapture %}{% assign major = temp %}{% assign major_int = major.size %}
+{% assign minor = '' %}
+
+{% capture temp %}{{ minor }}*{% endcapture %}{% assign minor = temp %}{% assign minor_int = minor.size %}
+<h3>Version {{ major_int }}.{{ minor_int }}.0</h3>
+<div class="indent">
+	<ul>
+		<li>Better handling of invalid UTF-8 characters in file names.</li>
+	</ul>
+</div>
+
+{% capture temp %}{{ minor }}*{% endcapture %}{% assign minor = temp %}{% assign minor_int = minor.size %}
+<h3>Version {{ major_int }}.{{ minor_int }}.0</h3>
 <div class="indent">
 	<ul>
 		<li>Include sub directory count in totals.</li>
 	</ul>
 </div>
 
-<h3>Version 1.2.0</h3>
+<!-- Note: When removing comment block, also remove space from '{ %'
+
+{ % comment %} Increment the major and reset the minor. { % endcomment %}
+{ % capture temp %}{{ major }}*{ % endcapture %}{ % assign major = temp %}{ % assign major_int = major.size %}
+{ % assign minor = '' %}-->
+
+{% capture temp %}{{ minor }}*{% endcapture %}{% assign minor = temp %}{% assign minor_int = minor.size %}
+<h3>Version {{ major_int }}.{{ minor_int }}.0</h3>
 <div class="indent">
 	<ul>
 		<li>Improve CSS for better printing and small-screen (e.g. iOS, Android) support.</li>
 	</ul>
 </div>
 
-<h3>Version 1.3.0</h3>
+{% capture temp %}{{ minor }}*{% endcapture %}{% assign minor = temp %}{% assign minor_int = minor.size %}
+<h3>Version {{ major_int }}.{{ minor_int }}.0</h3>
 <div class="indent">
+	<p>This version will focus on reducing the size of saved reports.</p>
 	<ul>
 		<li>Use PHP's <code>base_convert()</code> to shorten hash length.</li>
 		<li>Use single character key names in the <code>directories.txt</code> file.</li>
+		<li>Allow for reports to be generated without the list of files and/or specific totals.</li>
+		<li>Do not save files for empty directories.</li>
 		<li>Version in <code>settings.txt</code> will be increased to <code>1.1</code>.</li>
 	</ul>
 </div>
 
-<h3>Version 1.4.0</h3>
+{% capture temp %}{{ minor }}*{% endcapture %}{% assign minor = temp %}{% assign minor_int = minor.size %}
+<h3>Version {{ major_int }}.{{ minor_int }}.0</h3>
 <div class="indent">
 	<ul>
 		<li>Use <a href="http://code.google.com/p/flot/" onclick="return ROL(this);">http://code.google.com/p/flot/</a> to display charts for tables.</li>
 	</ul>
 </div>
 
-<h3>Version 1.5.0</h3>
+{% capture temp %}{{ minor }}*{% endcapture %}{% assign minor = temp %}{% assign minor_int = minor.size %}
+<h3>Version {{ major_int }}.{{ minor_int }}.0</h3>
 <div class="indent">
 	<ul>
 		<li>Allow reports to be compared against each other to show differences. For example, it will show if a directory or file increased/decreased in size.</li>
 	</ul>
 </div>
 
-<h3>Version 1.6.0</h3>
+{% capture temp %}{{ minor }}*{% endcapture %}{% assign minor = temp %}{% assign minor_int = minor.size %}
+<h3>Version {{ major_int }}.{{ minor_int }}.0</h3>
 <div class="indent">
 	<ul>
-		<li>Optionally show bandwidth used by files by processing a custom web server log. The log would need to include the file system path of the file servered and the bytes sent.</li>
+		<li>Optionally show bandwidth used by files by processing a custom web server log. The log would need to include the file system path of the file served and the bytes sent.</li>
 		<li>Top 100 files by bandwidth used.</li>
 	</ul>
 </div>
 
 <h3>Maybe...</h3>
 <div class="indent">
-	<p><em>Note: These are features I'm stil mulling over.</em></p>
+	<p><em>These are features I'm stil mulling over.</em></p>
 	<ul>
 		<li>Use <a href="http://stuartk.com/jszip/" target="_blank">JSZip</a> and PHP's <code>gzcompress</code> to compress the directory file. Compressed size is about 30% of original.</li>
 	</ul>

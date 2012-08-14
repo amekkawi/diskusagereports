@@ -3,7 +3,7 @@ layout: default
 title: Documentation
 basepath: ../
 activepage: docs
-js: [ docs.js, http://spoon.js ]
+js: [ docs.js ]
 css: [ ../demo/report/css/jquery.ui.tree.css ]
 ---
 <div id="Docs" class="row">
@@ -84,7 +84,7 @@ css: [ ../demo/report/css/jquery.ui.tree.css ]
 </div>
 <h2 id="Step1">Step 1: Creating the List of Directories and Files <a class="topjump" href="#TOC">&uarr;Top</a></h2>
 <div class="indent">
-	<p>For Linux systems, the fastest way is to use the bash script <code>scripts/find.sh</code>, which uses the GNU find command. It has the following syntax:</p>
+	<p>For <strong>Linux, Mac OS X, and BSD</strong> systems, the fastest way is to use the bash script <code>scripts/find.sh</code>, which uses the GNU find command. It has the following syntax:</p>
 	<div class="indent">
 		<pre class="console">Syntax: bash find.sh [OPTIONS] &lt;directory-to-list&gt;
 
@@ -97,7 +97,7 @@ The OPTIONS are:
       The field delimiter for each line in the output.
       The default is the NULL character.</pre>
 	</div>
-	<p>For Windows systems, the fastest way is to use the <code>scripts/find.exe</code> command. It has the following syntax:</p>
+	<p>For <strong>Windows</strong> systems, the fastest way is to use the <code>scripts/find.exe</code> command. It has the following syntax:</p>
 	<div class="indent">
 		<pre class="console">Syntax: find.exe [OPTIONS] &lt;directory-to-scan&gt;
 
@@ -114,7 +114,7 @@ The OPTIONS are:
       The directory separator used between directory names.
       The default is the directory separator for the operating system.</pre>
 	</div>
-	<p>For other systems, you may use scripts/find.php. 
+	<p>For <strong>other</strong> systems, you may use scripts/find.php. 
 		It has the following syntax:</p>
 	<div class="indent">
 	<pre class="console">Syntax: php find.php [OPTIONS] &lt;directory-to-scan&gt;
