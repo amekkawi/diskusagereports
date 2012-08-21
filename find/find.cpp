@@ -17,7 +17,7 @@ const char* SYNTAX = "Syntax: find.exe [OPTIONS] <directory-to-scan>\nUse -h for
 const char* VERSION = "$Source Version$";
 
 int _tmain(int argc, _TCHAR* argv[]) {
-	
+
 	_TCHAR* directory = NULL;
 	CFinder finder;
 	

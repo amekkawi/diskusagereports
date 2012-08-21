@@ -3,3 +3,4 @@
 /*.opensdf
 /*.sdf
 !/.gitignore
+/*.suo

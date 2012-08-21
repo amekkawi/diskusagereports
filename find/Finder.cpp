@@ -9,8 +9,6 @@
 
 #include "StdAfx.h"
 #include "Finder.h"
-#include <sys/stat.h>
-#include <algorithm>
 
 using namespace std;
 
@@ -18,8 +16,8 @@ CFinder::CFinder(void) {
 	ds = '\\';
 	_tds = _T('\\');
 	
-	delim = '\0';
-	_tdelim = _T('\0');
+	delim = ' '; // '\0'
+	_tdelim = _T(' '); // _T('\0')
 }
 
 void CFinder::setDelim(_TCHAR _tdelim) {
@@ -46,47 +44,39 @@ void CFinder::setDS(_TCHAR _tds) {
 
 int CFinder::run(_TCHAR* directory) {
 
-	_TCHAR shit[MAX_PATH];
-	combinePath(shit, 2, _T("a"), _T("b"));
+	//directory = _T("\\\\?\\C:\\test\\long\\d23456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890");
+	//directory = _T("\\\\?\\C:\\test\\long\\d23456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890\\abc123asd123easd");
+	//directory = _T("C:\\test\\long\\..\\long\\d23456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890\\a\\abcdef1234567890b.txt");
+	//directory = _T("C:\\test");
 
-	// Determine the real (aka: absolute) path.
-	_TCHAR realPath[MAX_PATH];
-	_tfullpath(realPath, directory, MAX_PATH);
+	path.setSeparator(_tds);
+	path.setEscapeChar(_tds == _T('\\') ? _T('%') : _T('\\'));
 
-	// Fail if the real path could not be determined.
-	if (realPath == NULL) {
-		return CFinder::ERROR_DIRECTORY_CANTRESOLVE;
-	}
-
-	// Note: This also changes directory to a buffer of MAX_PATH length.
-	directory = realPath;
-
-	// Split the directory into parts
-	CFinder::SPLIT_PATH_DATA dirSplit;
-	CFinder::SplitPath(directory, &dirSplit);
-
-	// Convert directory path to string.
-	_tstring sdir (directory);
-
-	// Do not trim slashes if the drive is specified and the
-	// path after the drive is only a directory separator.
-	if (_tcslen(dirSplit.drive) == 0 || _tcslen(dirSplit.basename) != 0 || dirSplit.dir != _T("\\")) {
-
-		// Trim trailing slashes.
-		_tstring::size_type lastNotSlash = sdir.find_last_not_of(_T("\\"));
-		if (lastNotSlash != -1 && lastNotSlash + 1 < sdir.size()) {
-			sdir.erase(lastNotSlash + 1);
+	// Determine the full (aka: absolute) path (only if the path is not extended length format).
+	if (CPathHelper::DetectPrefixType(directory) == CPathHelper::PREFIX_NONE) {
+		_TCHAR fullPath[_TMAX_PATH];
+		if (_tfullpath(fullPath, directory, _TMAX_PATH) == NULL) {
+			return CFinder::ERROR_DIRECTORY_CANTRESOLVE;
 		}
+
+		path = fullPath;
 	}
-	
-	// Copy modified directory back.
-	_tcscpy_s(directory, MAX_PATH, sdir.c_str());
+	else {
+		path = directory;
+	}
 
 	// Attempt to get directory attributes.
-	DWORD dattr = GetFileAttributes(directory);
+	DWORD dattr_err;
+	DWORD dattr = path.getAttributes(dattr_err);
+
+	// Try again if it failed and the path is not exact.
+	if (!path.isExact() && dattr == INVALID_FILE_ATTRIBUTES) {
+		path.setExact(true);
+		dattr = path.getAttributes(dattr_err);
+	}
+
 	if (dattr == INVALID_FILE_ATTRIBUTES) {
-		DWORD dattrError = GetLastError();
-		switch (dattrError) {
+		switch (dattr_err) {
 			case ERROR_BAD_NETPATH:
 			case ERROR_PATH_NOT_FOUND:
 			case ERROR_FILE_NOT_FOUND:
@@ -102,26 +92,23 @@ int CFinder::run(_TCHAR* directory) {
 		return CFinder::ERROR_DIRECTORY_NOTFOUND;
 	}
 
-	outputHeader(&dirSplit);
+	outputHeader();
 
-	processDirectory(directory, _T(""), 1);
+	processDirectory(NULL, 1);
 
 	return 0;
 }
 
-void CFinder::outputHeader(CFinder::SPLIT_PATH_DATA* dirSplit) {
+void CFinder::outputHeader() {
 	SYSTEMTIME now;
 	GetSystemTime(&now);
 
 	// Output the header.
 	cout << "#";
 	fwrite(&delim, 1, 1, stdout);
-	
-	// Replace directory separators if a different one was specified.
-	replacePathDS(dirSplit->dirname);
 
-	char* dirnameUTF8 = CFinder::UnicodeToUTF8(dirSplit->dirname);
-	char* basenameUTF8 = CFinder::UnicodeToUTF8(dirSplit->basename);
+	char* dirnameUTF8 = CFinder::UnicodeToUTF8(path.getDirnameOut());
+	char* basenameUTF8 = CFinder::UnicodeToUTF8(path.getBasenameOut());
 
 	// Flip the dirname and basename if the basename is empty.
 	// This can happen if the path is "c:\\"
@@ -154,45 +141,26 @@ void CFinder::outputHeader(CFinder::SPLIT_PATH_DATA* dirSplit) {
 	cout << endl;
 }
 
-void CFinder::processDirectory(_TCHAR* rootPath, _TCHAR* pathExt, int depth) {
-	processDirectory(rootPath, pathExt, depth, false);
-}
-
-void CFinder::processDirectory(_TCHAR* rootPath, _TCHAR* pathExt, int depth, bool exact) {
-	_TCHAR fullPath[MAX_PATH];
-
-	// Use the \\?\ path prefix if exact.
-	if (exact) {
-		_tstring rootPathS(rootPath);
-		
-		// UNC path
-		if (_tcslen(rootPath) >= 2 && rootPath[0] == _T('\\') && rootPath[1] == _T('\\')) {
-			rootPathS.insert(2, _T("?\\UNC\\"));
-		}
-		else {
-			rootPathS.insert(0, _T("\\\\?\\"));
-		}
-
-		// Create a temp rootPath
-		_TCHAR rootPathTmp[MAX_PATH];
-		_tcscpy_s(rootPathTmp, MAX_PATH, rootPathS.c_str());
-
-		combinePath(fullPath, 3, rootPathTmp, pathExt, _T("*"));
-	}
-	else {
-		combinePath(fullPath, 3, rootPath, pathExt, _T("*"));
+void CFinder::processDirectory(_TCHAR* name, int depth) {
+	if (name != NULL) {
+		path.push(name);
 	}
 
 	WIN32_FIND_DATA findData;
 	HANDLE hFind = INVALID_HANDLE_VALUE;
 	
-	hFind = FindFirstFile(fullPath, &findData);
+	path.push(_T("*"));
+	hFind = FindFirstFile(path.getPath(), &findData);
+	path.pop();
+
 	if (hFind == INVALID_HANDLE_VALUE) {
 
 		DWORD lastError = GetLastError();
-		if (!exact && lastError == ERROR_PATH_NOT_FOUND) {
+		if (!path.isExact() && lastError == ERROR_PATH_NOT_FOUND) {
 			// Try again with exact path, if path was not found and not already exact.
-			processDirectory(rootPath, pathExt, depth, true);
+			path.setExact(true);
+			processDirectory(NULL, depth);
+			path.setExact(false);
 		}
 		else if (lastError != ERROR_NO_MORE_FILES) {
 			cerr << "Failed to open directory for listing files (";
@@ -218,25 +186,30 @@ void CFinder::processDirectory(_TCHAR* rootPath, _TCHAR* pathExt, int depth, boo
 					cerr << "see diskusagereports.com/docs/errorcodes.html";
 			}
 
-			char* fullPathUTF8 = CFinder::UnicodeToUTF8(fullPath);
+			char* fullPathUTF8 = CFinder::UnicodeToUTF8(path.getPath());
 			cerr << "): " << fullPathUTF8 << endl;
 			delete[] fullPathUTF8;
 
-			outputError("OPENDIR_FAIL", pathExt);
+			outputError("OPENDIR_FAIL");
 		}
 	}
 	else {
+		// Loop through the files.
 		do {
 			if (_tcscmp(findData.cFileName, _T(".")) != 0
 				&& _tcscmp(findData.cFileName, _T("..")) != 0) {
 			
-				processEntry(rootPath, pathExt, depth, findData, exact);
+				processEntry(depth, findData);
 			}
 		} while (FindNextFile(hFind, &findData));
 	}
+
+	if (name != NULL) {
+		path.pop();
+	}
 }
 
-void CFinder::processEntry(_TCHAR* rootPath, _TCHAR* pathExt, int depth, WIN32_FIND_DATA findData, bool exact) {
+void CFinder::processEntry(int depth, WIN32_FIND_DATA findData) {
 	char type;
 
 	if (findData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
@@ -249,24 +222,20 @@ void CFinder::processEntry(_TCHAR* rootPath, _TCHAR* pathExt, int depth, WIN32_F
 		type = 'f';
 	}
 
-	outputEntry(type, pathExt, depth, findData);
+	outputEntry(type, depth, findData);
 	
 	// List contents if entry is a directory.
 	if (type == 'd') {
-		_TCHAR subPathExt[MAX_PATH];
-		combinePath(subPathExt, 3, _T(""), pathExt, findData.cFileName);
-		processDirectory(rootPath, subPathExt, depth + 1, exact);
+		processDirectory(findData.cFileName, depth + 1);
 	}
 }
 
-void CFinder::outputEntry(char type, _TCHAR* pathExt, int depth, WIN32_FIND_DATA findData) {
-	_TCHAR path[MAX_PATH];
-	combinePath(path, 3, _T(""), pathExt, findData.cFileName);
-
-	// Replace directory separators if a different one was specified.
-	replacePathDS(path);
+void CFinder::outputEntry(char type, int depth, WIN32_FIND_DATA findData) {
 	
-	char* utf8Name = CFinder::UnicodeToUTF8(path);
+	// Add the file name to the out path.
+	path.push(findData.cFileName);
+	
+	char* utf8Name = CFinder::UnicodeToUTF8(path.getOutPath());
 	
 	// Use a large int to combine the two size parts.
 	LARGE_INTEGER fileSize;
@@ -291,22 +260,16 @@ void CFinder::outputEntry(char type, _TCHAR* pathExt, int depth, WIN32_FIND_DATA
 	printf("%I64d", fileSize.QuadPart);
 	fwrite(&delim, 1, 1, stdout);
 
-	// Output depth and file name.
-	cout << depth;
-	fwrite(&delim, 1, 1, stdout);
+	// Output file name.
 	cout << utf8Name << endl;
 	
 	delete[] utf8Name;
+
+	path.pop();
 }
 
-void CFinder::outputError(char* code, _TCHAR* pathExt) {
-	// Create a copy of the path.
-	_TCHAR pathExtTmp[MAX_PATH];
-	_tcscpy_s(pathExtTmp, MAX_PATH, pathExt);
-
-	replacePathDS(pathExtTmp);
-
-	char* pathExtUTF8 = CFinder::UnicodeToUTF8(pathExtTmp);
+void CFinder::outputError(char* code) {
+	char* pathExtUTF8 = CFinder::UnicodeToUTF8(path.getOutPath());
 
 	cout << "!";
 	fwrite(&delim, 1, 1, stdout);
@@ -319,63 +282,47 @@ void CFinder::outputError(char* code, _TCHAR* pathExt) {
 	delete[] pathExtUTF8;
 }
 
-void CFinder::combinePath(_TCHAR* combined, int parts, ...) {
-	_tstring combinedS;
-
-	_TCHAR* part;
-	va_list marker;
-
-	va_start( marker, parts );
-	for (int i = 0; i < parts; i++) {
-		part = va_arg( marker, _TCHAR*);
-
-		if (_tcslen(part) != 0) {
-			combinedS += (combinedS.size() == 0 ? _T("") : _T("\\")) + _tstring(part);
-		}
-	}
-	va_end(marker);
-
-	_tcscpy_s(combined, MAX_PATH, combinedS.c_str());
-}
-
-char* CFinder::UnicodeToUTF8(_TCHAR cunicode) {
+char* CFinder::UnicodeToUTF8(const _TCHAR cunicode) {
 	_TCHAR unicode[2] = { cunicode, _T('\0') };
 	return CFinder::UnicodeToUTF8(unicode);
 }
 
-char* CFinder::UnicodeToUTF8(_TCHAR* unicode) {
+char* CFinder::UnicodeToUTF8(const _TCHAR* unicode) {
 	int bufferSize = WideCharToMultiByte(CP_UTF8, 0, unicode, -1, NULL, 0, NULL, NULL);
 	char* utf8 = new char[bufferSize]; 
 	WideCharToMultiByte(CP_UTF8, 0, unicode, -1, utf8, bufferSize, NULL, NULL);
 	return utf8;
 }
 
-void CFinder::SplitPath(_TCHAR* path, SPLIT_PATH_DATA* data) {
-	_tsplitpath_s(path, data->drive, _MAX_DRIVE, data->dir, _MAX_DIR, data->fname, _MAX_FNAME, data->ext, _MAX_EXT);
+bool CFinder::SplitPath(_TCHAR* path, SPLIT_PATH_DATA& data) {
+	if (!_tsplitpath_s(path, data.drive, _TMAX_DRIVE, data.dir, _TMAX_DIR, data.fname, _TMAX_FNAME, data.ext, _TMAX_EXT))
+		return false;
 
 	// Combine drive and dir to make dirname.
-	_tstring dirnameS(data->drive);
-	dirnameS += _tstring(data->dir);
+	_TSTRING dirnameS(data.drive);
+	dirnameS += _TSTRING(data.dir);
 	
 	// Trim trailing slash (/)
 	if (dirnameS.size() != 0) {
-		_tstring::size_type lastNotSlash = dirnameS.find_last_not_of(_T("\\"));
+		_TSTRING::size_type lastNotSlash = dirnameS.find_last_not_of(_T("\\"));
 		if (lastNotSlash != -1 && lastNotSlash + 1 < dirnameS.size()) {
 			dirnameS.erase(lastNotSlash + 1);
 		}
 	}
 
 	// Copy dirname to the struct
-	data->dirname = new _TCHAR[dirnameS.size() + 1];
-	_tcscpy_s(data->dirname, dirnameS.size() + 1, dirnameS.c_str());
+	data.dirname = new _TCHAR[dirnameS.size() + 1];
+	_tcscpy_s(data.dirname, dirnameS.size() + 1, dirnameS.c_str());
 
 	// Combine fname and ext to make the basename.
-	_tstring basenameS(data->fname);
-	basenameS += _tstring(data->ext);
+	_TSTRING basenameS(data.fname);
+	basenameS += _TSTRING(data.ext);
 	
 	// Copy basename to the struct
-	data->basename = new _TCHAR[basenameS.size() + 1];
-	_tcscpy_s(data->basename, basenameS.size() + 1, basenameS.c_str());
+	data.basename = new _TCHAR[basenameS.size() + 1];
+	_tcscpy_s(data.basename, basenameS.size() + 1, basenameS.c_str());
+
+	return true;
 }
 
 CFinder::SPLIT_PATH_DATA::~SPLIT_PATH_DATA() {
@@ -392,4 +339,18 @@ void CFinder::replacePathDS(_TCHAR* path) {
 			}
 		}
 	}
+}
+
+void CFinder::MakePathExtendedLength(_TCHAR* path, _TCHAR* extended, int maxLength) {
+	_TSTRING pathS(path);
+		
+	// UNC path
+	if (pathS.compare(0, 2, _T("\\\\")) == 0) {
+		pathS.insert(2, _T("?\\UNC\\"));
+	}
+	else {
+		pathS.insert(0, _T("\\\\?\\"));
+	}
+
+	_tcscpy_s(extended, maxLength, pathS.c_str());
 }

@@ -9,14 +9,19 @@
 
 #pragma once
 
+#include "StdAfx.h"
+#include "PathHelper.h"
+#include <sys/stat.h>
+#include <algorithm>
+
 class CFinder {
 
 public:
 	struct SPLIT_PATH_DATA {
-		_TCHAR drive[_MAX_DRIVE];
-		_TCHAR dir[_MAX_DIR];
-		_TCHAR fname[_MAX_FNAME];
-		_TCHAR ext[_MAX_EXT];
+		_TCHAR drive[_TMAX_DRIVE];
+		_TCHAR dir[_TMAX_DIR];
+		_TCHAR fname[_TMAX_FNAME];
+		_TCHAR ext[_TMAX_EXT];
 
 		_TCHAR* dirname;
 		_TCHAR* basename;
@@ -34,9 +39,10 @@ public:
 	void setDS(_TCHAR delim);
 	int run(_TCHAR* directory);
 
-	static char* UnicodeToUTF8(_TCHAR unicode);
-	static char* UnicodeToUTF8(_TCHAR* unicode);
-	static void SplitPath(_TCHAR* path, SPLIT_PATH_DATA* data);
+	static char* UnicodeToUTF8(const _TCHAR unicode);
+	static char* UnicodeToUTF8(const _TCHAR* unicode);
+	static bool SplitPath(_TCHAR* path, SPLIT_PATH_DATA& data);
+	static void MakePathExtendedLength(_TCHAR* path, _TCHAR* extended, int maxLength);
 	static char* Version();
 	
 private:
@@ -46,15 +52,15 @@ private:
 	char ds;
 	_TCHAR _tds;
 
-	void processDirectory(_TCHAR* rootPath, _TCHAR* pathExt, int depth);
-	void processDirectory(_TCHAR* rootPath, _TCHAR* pathExt, int depth, bool exact);
-	void processEntry(_TCHAR* rootPath, _TCHAR* pathExt, int depth, WIN32_FIND_DATA findData, bool exact);
+	CPathHelper path;
+
+	void processDirectory(_TCHAR* name, int depth);
+	void processEntry(int depth, WIN32_FIND_DATA findData);
 	
-	void outputEntry(char type, _TCHAR* pathExt, int depth, WIN32_FIND_DATA findData);
-	void outputHeader(SPLIT_PATH_DATA* dirSplit);
-	void outputError(char* code, _TCHAR* pathExt);
+	void outputEntry(char type, int depth, WIN32_FIND_DATA findData);
+	void outputHeader();
+	void outputError(char* code);
 
 	void replacePathDS(_TCHAR* path);
-	void combinePath(_TCHAR* combined, int parts, ...);
 };
 
