@@ -987,7 +987,8 @@ class Process {
 	function _raiseEvent() {
 		if (PROCESS_PROFILING) $this->_startProfile('_raiseEvent');
 		if (!is_null($this->_eventCallback)) {
-			call_user_func_array($this->_eventCallback, func_get_args());
+			$args = func_get_args();
+			call_user_func_array($this->_eventCallback, $args);
 			//call_user_func($this->_eventCallback, PROCESS_WARN_WRITEFAIL, $this->_reportDir . DIRECTORY_SEPARATOR . 'settings');
 		}
 		if (PROCESS_PROFILING) $this->_endProfile('_raiseEvent');
