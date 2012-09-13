@@ -13,33 +13,33 @@
 using namespace std;
 
 CFinder::CFinder(void) {
-	ds = '\\';
-	_tds = _T('\\');
+	dirSeparator = '\\';
+	_tdirSeparator = _T('\\');
 	
-	delim = ' '; // '\0'
-	_tdelim = _T(' '); // _T('\0')
+	delim = ' ';
+	_tdelim = _T(' ');
 }
 
-void CFinder::setDelim(_TCHAR _tdelim) {
-	char* delim = CFinder::UnicodeToUTF8(_tdelim);
+void CFinder::setDelim(_TCHAR delim) {
+	char* delimUTF8 = CFinder::UnicodeToUTF8(delim);
 	
-	if (strlen(delim) == 1) {
-		this->_tdelim = _tdelim;
-		this->delim = delim[0];
+	if (strlen(delimUTF8) == 1) {
+		this->_tdelim = delim;
+		this->delim = delimUTF8[0];
 	}
 
-	delete[] delim;
+	delete[] delimUTF8;
 }
 
-void CFinder::setDS(_TCHAR _tds) {
-	char* ds = CFinder::UnicodeToUTF8(_tds);
+void CFinder::setDirSeparator(_TCHAR separator) {
+	char* separatorUTF8 = CFinder::UnicodeToUTF8(separator);
 	
-	if (strlen(ds) == 1) {
-		this->_tds = _tds;
-		this->ds = ds[0];
+	if (strlen(separatorUTF8) == 1) {
+		this->_tdirSeparator = separator;
+		this->dirSeparator = separatorUTF8[0];
 	}
 
-	delete[] ds;
+	delete[] separatorUTF8;
 }
 
 int CFinder::run(_TCHAR* directory) {
@@ -49,8 +49,8 @@ int CFinder::run(_TCHAR* directory) {
 	//directory = _T("C:\\test\\long\\..\\long\\d23456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890\\a\\abcdef1234567890b.txt");
 	//directory = _T("C:\\test");
 
-	path.setSeparator(_tds);
-	path.setEscapeChar(_tds == _T('\\') ? _T('%') : _T('\\'));
+	path.setSeparator(_tdirSeparator);
+	path.setEscapeChar(_tdirSeparator == _T('\\') ? _T(':') : _T('\\'));
 
 	// Determine the full (aka: absolute) path (only if the path is not extended length format).
 	if (CPathHelper::DetectPrefixType(directory) == CPathHelper::PREFIX_NONE) {
@@ -58,11 +58,16 @@ int CFinder::run(_TCHAR* directory) {
 		if (_tfullpath(fullPath, directory, _TMAX_PATH) == NULL) {
 			return CFinder::ERROR_DIRECTORY_CANTRESOLVE;
 		}
-
+		
 		path = fullPath;
 	}
 	else {
 		path = directory;
+	}
+
+	// Fail if basename (and therefor dirname) is NULL.
+	if (path.getBasename() == NULL) {
+		return CFinder::ERROR_DIRECTORY_CANTSPLIT;
 	}
 
 	// Attempt to get directory attributes.
@@ -104,8 +109,21 @@ void CFinder::outputHeader() {
 	GetSystemTime(&now);
 
 	// Output the header.
-	cout << "#";
-	fwrite(&delim, 1, 1, stdout);
+	cout << "## v2 " << (int)delim << " " << (int)dirSeparator << " ";
+	
+	// Output date/time
+	printf(
+		"%04d-%02d-%02d %02d:%02d:%02d",
+		now.wYear, now.wMonth, now.wDay,
+		now.wHour, now.wMinute, now.wSecond
+	);
+
+	char* escapeChar = CFinder::UnicodeToUTF8(path.getEscapeChar());
+
+	cout << " escaped:" << (int)(escapeChar[0])
+	     << " datetimeformat:timestamp";
+
+	delete[] escapeChar;
 
 	char* dirnameUTF8 = CFinder::UnicodeToUTF8(path.getDirnameOut());
 	char* basenameUTF8 = CFinder::UnicodeToUTF8(path.getBasenameOut());
@@ -119,24 +137,11 @@ void CFinder::outputHeader() {
 		tmp = NULL;
 	}
 	
-	fwrite(&ds, 1, 1, stdout);
-	fwrite(&delim, 1, 1, stdout);
-
-	cout << dirnameUTF8;
-	fwrite(&delim, 1, 1, stdout);
-
-	cout << basenameUTF8;
-	fwrite(&delim, 1, 1, stdout);
+	cout << " dirname:" << dirnameUTF8;
+	cout << " basename:" << basenameUTF8;
 	
 	delete[] dirnameUTF8;
 	delete[] basenameUTF8;
-	
-	// Output date/time
-	printf(
-		"%04d-%02d-%02d %02d:%02d:%02d",
-		now.wYear, now.wMonth, now.wDay,
-		now.wHour, now.wMinute, now.wSecond
-	);
 	
 	cout << endl;
 }
@@ -288,9 +293,20 @@ char* CFinder::UnicodeToUTF8(const _TCHAR cunicode) {
 }
 
 char* CFinder::UnicodeToUTF8(const _TCHAR* unicode) {
-	int bufferSize = WideCharToMultiByte(CP_UTF8, 0, unicode, -1, NULL, 0, NULL, NULL);
-	char* utf8 = new char[bufferSize]; 
-	WideCharToMultiByte(CP_UTF8, 0, unicode, -1, utf8, bufferSize, NULL, NULL);
+	int bufferSize = 0;
+	
+	if (_ISUNICODE)
+		bufferSize = WideCharToMultiByte(CP_UTF8, 0, unicode, -1, NULL, 0, NULL, NULL);
+	else
+		bufferSize = _tcslen(unicode);
+
+	char* utf8 = new char[bufferSize];
+	
+	if (_ISUNICODE)
+		WideCharToMultiByte(CP_UTF8, 0, unicode, -1, utf8, bufferSize, NULL, NULL);
+	else
+		strcpy_s(utf8, bufferSize + 1, (const char*)unicode);
+
 	return utf8;
 }
 
@@ -332,10 +348,10 @@ CFinder::SPLIT_PATH_DATA::~SPLIT_PATH_DATA() {
 
 void CFinder::replacePathDS(_TCHAR* path) {
 	// Replace directory separators if a different one was specified.
-	if (_tds != _T('\\')) {
+	if (_tdirSeparator != _T('\\')) {
 		for (size_t i = 0; i < _tcslen(path); i++) {
 			if (path[i] == _T('\\')) {
-				path[i] = _tds;
+				path[i] = _tdirSeparator;
 			}
 		}
 	}

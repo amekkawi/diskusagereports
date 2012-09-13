@@ -18,6 +18,39 @@ const char* VERSION = "$Source Version$";
 
 int _tmain(int argc, _TCHAR* argv[]) {
 
+	/*_TCHAR fullPath[_TMAX_PATH];
+	if (_tfullpath(fullPath, _T(":\\"), _TMAX_PATH) == NULL) {
+		return 0;
+	}
+	
+	_TCHAR drive[_TMAX_DRIVE];
+	_TCHAR dir[_TMAX_DIR];
+	_TCHAR fname[_TMAX_FNAME];
+	_TCHAR ext[_TMAX_EXT];
+
+	stack<_TCHAR*> paths;
+	paths.push(_T(""));
+
+	paths.push(_T("c:"));
+	paths.push(_T("c:\\"));
+	paths.push(_T("\\\\?\\c:"));
+	paths.push(_T("\\\\?\\c:\\"));
+	paths.push(_T("\\\\?\\c:\\wang"));
+
+	paths.push(_T("\\\\chaos"));
+	paths.push(_T("\\\\chaos\\wang"));
+	paths.push(_T("\\\\?\\UNC\\chaos"));
+	paths.push(_T("\\\\?\\UNC\\chaos\\wang"));
+
+	while (paths.size() != 0) {
+		if (_tsplitpath_s(paths.top(), drive, _TMAX_DRIVE, dir, _TMAX_DIR, fname, _TMAX_FNAME, ext, _TMAX_EXT) != 0) {
+			int shit = 0;
+		}
+		paths.pop();
+	}
+
+	return 0;*/
+
 	_TCHAR* directory = NULL;
 	CFinder finder;
 	
@@ -100,7 +133,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
 				return 1;
 			}
 
-			finder.setDS(argv[i][0]);
+			finder.setDirSeparator(argv[i][0]);
 		}
 		else {
 			if (_tcslen(argv[i]) > MAX_PATH) {
@@ -131,6 +164,8 @@ int _tmain(int argc, _TCHAR* argv[]) {
 		case CFinder::ERROR_DIRECTORY_STAT:
 		case CFinder::ERROR_DIRECTORY_ACESSDENIED:
 			cerr << "Failed to retrieve info (via GetFileAttributes) on <directory-to-scan>. You may not have access to the directory or its parent directories." << endl;
+		case CFinder::ERROR_DIRECTORY_CANTSPLIT:
+			cerr << "Failed to split <directory-to-scan> into basename and dirname parts." << endl;
 			break;
 	}
 

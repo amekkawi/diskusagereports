@@ -32,11 +32,12 @@ public:
 	const static int ERROR_DIRECTORY_ACESSDENIED = 2;
 	const static int ERROR_DIRECTORY_STAT = 3;
 	const static int ERROR_DIRECTORY_CANTRESOLVE = 4;
+	const static int ERROR_DIRECTORY_CANTSPLIT = 5;
 
 	CFinder(void);
 
 	void setDelim(_TCHAR delim);
-	void setDS(_TCHAR delim);
+	void setDirSeparator(_TCHAR separator);
 	int run(_TCHAR* directory);
 
 	static char* UnicodeToUTF8(const _TCHAR unicode);
@@ -49,8 +50,8 @@ private:
 	char delim;
 	_TCHAR _tdelim;
 	
-	char ds;
-	_TCHAR _tds;
+	char dirSeparator;
+	_TCHAR _tdirSeparator;
 
 	CPathHelper path;
 
