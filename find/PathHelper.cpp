@@ -89,7 +89,10 @@ void CPathHelper::setPath(const _TCHAR* path) {
 	pathLengths.empty();
 	outPathLengths.empty();
 
+	// Remove trailing slashes.
 	trimSlashes();
+	
+	// Split up the path into dirname/basename.
 	splitPath();
 
 	prefix = DetectPrefixType(this->path);
@@ -289,7 +292,7 @@ void CPathHelper::splitPath() {
 		_TSTRING dirnameS(drive);
 		dirnameS += dir;
 		
-		// Trim trailing slash (/)
+		// Trim trailing slash (\)
 		if (dirnameS.size() > 1) {
 			_TSTRING::size_type lastNotSlash = dirnameS.find_last_not_of(_T("\\"));
 			if (lastNotSlash != -1 && lastNotSlash + 1 < dirnameS.size()) {
@@ -326,6 +329,11 @@ void CPathHelper::splitPath() {
 	}
 }
 
+void CPathHelper::ensureTrailingSlash() {
+	if (path.size() > 1 && path[path.size() - 1] != _T('\\')) {
+		path += _T('\\');
+	}
+}
 
 void CPathHelper::trimSlashes() {
 	// Remove trailing slashes (unless the slash is preceeded by a colon).

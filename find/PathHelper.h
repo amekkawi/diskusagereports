@@ -111,4 +111,5 @@ private:
 	size_t getPrefixLength();
 	void splitPath();
 	void trimSlashes();
+	void ensureTrailingSlash();
 };
