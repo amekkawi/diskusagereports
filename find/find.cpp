@@ -13,7 +13,7 @@
 
 using namespace std;
 
-const char* SYNTAX = "Syntax: find.exe [OPTIONS] <directory-to-scan>\nUse -h for full help or visit diskusagereports.com/docs.";
+const char* SYNTAX = "Syntax: find.exe [-d <char|'null'>] [-ds <char>] [-] <directory-to-scan>\nUse -h for full help or visit diskusagereports.com/docs.";
 const char* VERSION = "$Source Version$";
 
 int _tmain(int argc, _TCHAR* argv[]) {
@@ -67,22 +67,30 @@ int _tmain(int argc, _TCHAR* argv[]) {
 			|| _tcscmp(argv[i], _T("/?")) == 0
 			|| _tcscmp(argv[i], _T("/h")) == 0) {
 			
-			cerr << "Syntax: find.exe [OPTIONS] <directory-to-scan>" << endl
+			cerr << endl
+				<< "Syntax: find.exe [-d <char|'null'>] [-ds <char>] [-] <directory-to-scan>" << endl
+				<< endl
+				<< "Arguments:" << endl
+				<< endl
+				<< "-d <char|'null'>" << endl
+				<< "Optionally specify the field delimiter for each line in the output." << endl
+				<< "Must be a single ASCII character or the word 'null' for the null character." << endl
+				<< "The default is the space character." << endl
+				<< endl
+				<< "-ds <directoryseparator>" << endl
+				<< "Optionally specify the directory separator used between directory names." << endl
+				<< "The default is the backslash (\\) character." << endl
+				<< endl
+				<< "- (hyphen)" << endl
+				<< "If the <directory-to-scan> is the same as one of the arguments for this script" << endl
+				<< "(e.g. '-d'), you must use a minus sign as an argument before it. You should" << endl
+				<< "do this if you ever expect the <directory-to-scan> to start with a minus sign." << endl
 				<< endl
 				<< "<directory-to-scan>" << endl
 				<< "The directory that the list of sub-directories and files will be created for." << endl
 				<< endl
-				<< "The OPTIONS are:" << endl
-				<< endl
-				<< "      -d <delim>" << endl
-				<< "      The field delimiter for each line in the output." << endl
-				<< "      The default is the NULL character." << endl
-				<< endl
-				<< "      -ds <directoryseparator>" << endl
-				<< "      The directory separator used between directory names." << endl
-				<< "      The default is the directory separator for the operating system." << endl
-				<< endl
 				<< "See also: diskusagereports.com/docs" << endl;
+
 			return 0;
 		}
 		else if (_tcscmp(argv[i], _T("-d")) == 0) {
@@ -91,24 +99,30 @@ int _tmain(int argc, _TCHAR* argv[]) {
 				cerr << SYNTAX << endl;
 				return 1;
 			}
-
-			if (_tcslen(argv[i]) != 1) {
+			
+			if (_tcscmp(argv[i], _T("null")) == 0
+				|| _tcscmp(argv[i], _T("NULL")) == 0
+				|| _tcscmp(argv[i], _T("Null")) == 0) {
+					finder.setDelim(_T('\0'));
+			}
+			else if (_tcslen(argv[i]) != 1) {
 				cerr << "The argument after -d must be one character long." << endl;
 				cerr << SYNTAX << endl;
 				return 1;
 			}
+			else {
+				char* delimUTF8 = CFinder::UnicodeToUTF8(argv[i]);
+				int delimSize = strlen(delimUTF8);
+				delete[] delimUTF8;
 
-			char* delimUTF8 = CFinder::UnicodeToUTF8(argv[i]);
-			int delimSize = strlen(delimUTF8);
-			delete[] delimUTF8;
+				if (delimSize != 1) {
+					cerr << "The argument after -d cannot be a multi-byte character." << endl;
+					cerr << SYNTAX << endl;
+					return 1;
+				}
 
-			if (delimSize != 1) {
-				cerr << "The argument after -d cannot be a multi-byte character." << endl;
-				cerr << SYNTAX << endl;
-				return 1;
+				finder.setDelim(argv[i][0]);
 			}
-
-			finder.setDelim(argv[i][0]);
 		}
 		else if (_tcscmp(argv[i], _T("-ds")) == 0) {
 			if (++i == argc) {
@@ -136,6 +150,13 @@ int _tmain(int argc, _TCHAR* argv[]) {
 			finder.setDirSeparator(argv[i][0]);
 		}
 		else {
+			
+			if (_tcscmp(argv[i], _T("-")) == 0 && ++i == argc) {
+				cerr << "The - (hyphen) argument must be followed by <directory-to-scan>." << endl;
+				cerr << SYNTAX << endl;
+				return 1;
+			}
+
 			if (_tcslen(argv[i]) > MAX_PATH) {
 				cerr << "The <directory-to-scan> argument cannot be longer than " << MAX_PATH << " characters." << endl;
 				cerr << SYNTAX << endl;
