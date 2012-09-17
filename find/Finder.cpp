@@ -21,14 +21,20 @@ CFinder::CFinder(void) {
 }
 
 void CFinder::setDelim(_TCHAR delim) {
-	char* delimUTF8 = CFinder::UnicodeToUTF8(delim);
-	
-	if (strlen(delimUTF8) == 1) {
+	if (delim == _T('\0')) {
 		this->_tdelim = delim;
-		this->delim = delimUTF8[0];
+		this->delim = '\0';
 	}
+	else {
+		char* delimUTF8 = CFinder::UnicodeToUTF8(delim);
+	
+		if (strlen(delimUTF8) == 1) {
+			this->_tdelim = delim;
+			this->delim = delimUTF8[0];
+		}
 
-	delete[] delimUTF8;
+		delete[] delimUTF8;
+	}
 }
 
 void CFinder::setDirSeparator(_TCHAR separator) {
