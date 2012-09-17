@@ -4,3 +4,4 @@
 /*.sdf
 !/.gitignore
 /*.suo
+.DS_Store
