@@ -56,7 +56,7 @@ This may lead to incorrect totals if find.php encounters files over 2 GB.
 
 - (hyphen)
 If the <directory-to-scan> is the same as one of the arguments for this script
-(e.g. "-d"), you must use a minus sign as an argument before it. You should
+(e.g. '-d'), you must use a minus sign as an argument before it. You should
 do this if you ever expect the <directory-to-scan> to start with a minus sign.
 
 <directory-to-scan>

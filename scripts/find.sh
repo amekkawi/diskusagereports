@@ -196,7 +196,7 @@ during the scan contain newlines.
 
 - (minus sign)
 If the <directory-to-scan> is the same as one of the options for this script
-(e.g. "-d"), you must use a minus sign as an argument before it. You should
+(e.g. '-d'), you must use a minus sign as an argument before it. You should
 do this if you ever expect the <directory-to-scan> to start with a minus sign.
 
 <directory-to-scan>
