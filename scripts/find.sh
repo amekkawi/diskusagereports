@@ -89,10 +89,10 @@ function determine_escaping() {
 	
 	# Check for --escape argument.
 	line="$(ls -d --escape . 2> /dev/null)"
-	[ "$?" == "0" -a "$line" == "." ] && lsescapearg='--escape' && escapedflag='escaped' && return 0
+	[ "$?" == "0" -a "$line" == "." ] && lsescapearg='--escape' && escapedflag='escaped:92' && return 0
 	
 	# Allow the -b argument to be forced.
-	[ "$forceb" == "Y" ] && lsescapearg='-b' && escapedflag='escaped' && return 0
+	[ "$forceb" == "Y" ] && lsescapearg='-b' && escapedflag='escaped:92' && return 0
 	
 	# Default and normalize the temp directory path.
 	TMPDIR="${TMPDIR:-/tmp}"
@@ -109,7 +109,7 @@ function determine_escaping() {
 		line="$(cd "$escapetestdir"; ls -db "test	test.txt" 2> /dev/null)"
 		if [ "$?" == "0" -a "$line" == "test\\ttest.txt" ]; then
 			lsescapearg='-b'
-			escapedflag='escaped'
+			escapedflag='escaped:92'
 			ret=0
 		
 		# ls does not support escaping.
