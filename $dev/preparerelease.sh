@@ -49,7 +49,7 @@ find -E "$PREPAREDIR" -iregex '.+\.(php|js|css|html)$' -print0 | xargs -0 sed -E
 
 echo "Replacing \$Source Version\$ with tag name in EXE..."
 PADDEDTAG="$(printf '%-16s' "$VER")"
-find -E "$PREPAREDIR" -iregex '.+\.(exe)$' -print0 | xargs -0 sed -Ei '' -e 's#\$Source Version\$#'"$PADDEDTAG"'#'
+find -E "$PREPAREDIR" -iregex '.+\.(exe)$' -print0 | LANG=C xargs -0 sed -Ei '' -e 's#\$Source Version\$#'"$PADDEDTAG"'#'
 [ "$?" != "0" ] && echo "FAILED" && exit 1
 
 echo "Removing .gitignore files..."
