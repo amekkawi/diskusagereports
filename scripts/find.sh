@@ -323,7 +323,8 @@ if [ "$mode" == "find-printf" ]; then
 	[ "$delim" != "null" -a "$(find "$(command -v bash)" -printf "\\$delimoct")" != "$delim" ] \
 		&& echo "ERROR: find is not outputting the expected field delimiter." 1>&2 && exit 2
 	
-	find "$real" -mindepth 1 "$@" -printf "%y\\$delimoct%TY-%Tm-%Td\\$delimoct%TH:%TM:%TS\\$delimoct%s\\$delimoct%P\n"
+	cd "$real"
+	find . -mindepth 1 "$@" -printf "%y\\$delimoct%TY-%Tm-%Td\\$delimoct%TH:%TM:%TS\\$delimoct%s\\$delimoct%P\n"
 else
 	
 	# Verify that the delim will output correctly.
