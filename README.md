@@ -21,9 +21,9 @@ Quick Start
 
 2.  Unzip the files into your Web server's public directory:
     
-    * Linux: `/usr/local/apache/htdocs` or `/var/www/html` (check your httpd.conf)
+    Linux: `/usr/local/apache/htdocs` or `/var/www/html` (check your httpd.conf)
     
-    * Windows: `C:\Inetpub\wwwroot`
+    Windows: `C:\Inetpub\wwwroot`
 
 3.  If your web server executes PHP scripts, you must either secure the `scripts` directory so
     it is not publicly accessible, or move the it to a location on your server that is not
@@ -36,18 +36,17 @@ Quick Start
 
 6.  Execute one of the following, changing `path/to/directory` to something else:
     
-    * Linux: `bash scripts/find.sh path/to/directory | php scripts/process.php data/myreport`
+    Linux: `bash scripts/find.sh path/to/directory | php scripts/process.php data/myreport`
     
-    * Windows: `scripts\find.exe path\to\directory | php scripts\process.php data\myreport`
+    Windows: `scripts\find.exe path\to\directory | php scripts\process.php data\myreport`
     
-    * Others: `php scripts/find.php path/to/directory | php scripts/process.php data/myreport`
-    
+    Others: `php scripts/find.php path/to/directory | php scripts/process.php data/myreport`
+
 7.  Open your browser and visit the following (changing anything before the `?` as necessary):
-    
+
     `http://localhost/diskusagereports/?myreport`
 
 8.  You should be viewing a usage report! If not, get help at http://diskusagereports.com/help/
-
 
 Getting Help
 ---------------
