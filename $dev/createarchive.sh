@@ -7,7 +7,7 @@ OUTFORMAT=".zip"
 
 function syntax() {
 	[ "$*" != "" ] && echo "$*" 1>&2
-	echo "Syntax: $0 [--tar] [--no-exe] <tree-ish|'.'> [<outfile>]" 1>&2
+	echo "Syntax: $0 [--tar] [--no-exe] <tree-ish> [<outfile>]" 1>&2
 	exit 1
 }
 
@@ -47,13 +47,6 @@ REPODIR="$(dirname "$SCRIPTDIR")"
 
 cd "$REPODIR"
 
-if [ "$TREEISH" == "." ]; then
-	STATUS="$(git status -b -s)"
-	[ "$?" != "0" ] && echo "Failed to determine current branch." 1>&2 && exit 1
-	
-	TREEISH="$(echo $STATUS | awk '{ print $2 }')"
-fi
-
 echo "Determining SHA1..."
 
 # Get SHA1
@@ -70,16 +63,14 @@ fi
 SHORTSHA1="$(git rev-parse --short "$SHA1" 2> /dev/null)"
 [ "$SHORTSHA1" == "" ] && echo "Failed to determine short SHA1" 1>&2 && exit 1
 
-# Add short SHA1 if the tree-ish is a valid symbolic name.
-if git name-rev --name-only "$SHA1" 2> /dev/null | grep -q "$TREEISH"; then
-	VERSIONTEXT="$TREEISH ($SHORTSHA1)"
-	OUTTEXT="${TREEISH}_$SHORTSHA1"
+# Default to using the short SHA1
+VERSIONTEXT="$SHORTSHA1"
+OUTTEXT="$SHORTSHA1"
 
-# Just use the short SHA1, if the tree-ish is not a symbolic name.
-else
-	VERSIONTEXT="$SHORTSHA1"
-	TREEISH="$SHORTSHA1"
-	OUTTEXT="$SHORTSHA1"
+# Include TREEISH if it is a tag name.
+if git tag -l --points-at "$SHA1" "$TREEISH" 2> /dev/null | grep -q "$TREEISH"; then
+	VERSIONTEXT="$TREEISH ($VERSIONTEXT)"
+	OUTTEXT="${TREEISH}_$OUTTEXT"
 fi
 
 echo "Normalized version text: $VERSIONTEXT"
@@ -96,7 +87,7 @@ fi
 [ -z "$TMPDIR" ] && TMPDIR="/tmp"
 TMPDIR="$(cd "$TMPDIR"; pwd)"
 
-TMPDIR="$(mktemp -d "$TMPDIR/diskusagereports_createarchive_$TREEISH.XXXXXXXX")"
+TMPDIR="$(mktemp -d "$TMPDIR/diskusagereports_createarchive_$SHORTSHA1.XXXXXXXX")"
 [ ! -d "$TMPDIR" ] && echo "Failed to create temp directory at: $TMPDIR" 1>&2 && exit 1
 
 function exitClean() {
@@ -105,7 +96,7 @@ function exitClean() {
 	exit $1
 }
 
-EXTRACTDIR="$TMPDIR/diskusagereports_$TREEISH"
+EXTRACTDIR="$TMPDIR/diskusagereports_$SHORTSHA1"
 mkdir "$EXTRACTDIR"
 [ "$?" != "0" ] && echo "Failed to create $EXTRACTDIR" 1>&2 && exitClean 1
 
@@ -115,6 +106,7 @@ git archive --format=tar "$SHA1" > "$TMPDIR/raw.tar"
 [ "$?" != "0" ] && exitClean 1
 
 cat "$TMPDIR/raw.tar" | tar x -C "$EXTRACTDIR"
+[ "$?" != "0" ] && exitClean 1
 
 bash "$SCRIPTDIR/preparerelease.sh" "$EXTRACTDIR" "$VERSIONTEXT"
 [ "$?" != "0" ] && exitClean 1
@@ -129,10 +121,10 @@ echo "Compressing..."
 cd "$TMPDIR"
 
 if [ "$OUTFORMAT" == ".tar.gz" ]; then
-	tar czf "$TMPDIR/final.archive" "diskusagereports_$TREEISH"
+	tar czf "$TMPDIR/final.archive" "diskusagereports_$SHORTSHA1"
 	[ "$?" != "0" ] && echo "FAILED" 1>&2 && exitClean 1
 else
-	zip -qr - "diskusagereports_$TREEISH" > "$TMPDIR/final.archive"
+	zip -qr - "diskusagereports_$SHORTSHA1" > "$TMPDIR/final.archive"
 	[ "$?" != "0" ] && echo "FAILED" 1>&2 && exitClean 1
 fi
 
