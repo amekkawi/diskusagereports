@@ -99,7 +99,7 @@ function determine_escaping() {
 	TMPDIR="${TMPDIR%/}"
 	
 	# Create a temp directory.
-	escapetestdir=$(mktemp -d "$tmpdir/diskusagereports-findsh-escapetest.XXXXXXXXXX" 2> /dev/null)
+	escapetestdir=$(mktemp -d "$TMPDIR/diskusagereports-findsh-escapetest.XXXXXXXXXX" 2> /dev/null)
 	
 	# Check that directory was created,
 	# and create a test file.
