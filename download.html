@@ -7,37 +7,40 @@ activepage: downloads
 	
 	<div class="span7">
 		<p><a href="{{ site.LatestURL }}" class="btn btn-primary btn-large" onclick="return ROD(this, 'latest');">Download Latest <small>{{ site.LatestVersion }} ({{ site.LatestVersionDate }})</small></a></p>
-		<h3>What's New in 1.0.3</h3>
+		<h3>What's New in 2.0.0</h3>
 		<div class="indent">
+			<p><b>Backwards Incompatibility Warning:</b></p>
+			<div class="indent">
+				<p>The new output format used by <code>scripts/find.sh</code> and <code>scripts/find.php</code> will require updates to custom scripts that used its output. However, <code>scripts/process.php</code> still accepts the old format so you will still be able to use old list files.</p>
+			</div>
+			<p>Major Additions/Improvements:</p>
+			<ul>
+				<li><code>scripts/find.sh</code> now supports more platforms (Mac OS X and other BSD variants).</li>
+				<li>One or more tests can now be included after <code>&lt;directory-to-scan&gt;</code> in <code>scripts/find.sh</code> that will be passed directly to the *NIX <code>find</code> command. See <code>scripts/find.sh -h</code> for examples.</li>
+				<li><code>scripts/find.sh</code> and <code>scripts/find.php</code> have a new output format (version 2). See <a href="changelogs/#v2_0_0">full changelog</a> for details.</li>
+			</ul>
 			<p>Minor Additions/Improvements:</p>
 			<ul>
-				<li>Updates to documentation and script help output.</li>
+				<li><code>scripts/find.php</code> now warns you if you are using a 32-bit version of PHP, as this may lead to inaccurate totals if the directory you are scanning contains files over 2GB.</li>
+				<li><code>scripts/process.php</code> now supports timestamps with milliseconds.</li>
+				<li>A hyphen (<code>-</code>) can now be used as the argument before <code>&lt;directory-to-scan&gt;</code> if the directory name conflicts with other arguments (e.g. a directory named <code>-d</code>) in <code>scripts/find.sh</code> and <code>scripts/find.php</code>.</li>
 			</ul>
 			<p>Bug Fixes:</p>
 			<ul>
-				<li>[Critical] A typo in error handling in process.php caused it to halt unexpectedly.</li>
-				<li>[Major] The shorthand version of HH:MM:SS in <code>find</code>'s <code>-printf</code> argument would sometimes include milliseconds, causing the format check to fail.</li>
-				<li>[Minor] scripts/process.php was not properly respecting verbosity settings.</li>
-				<li>[Minor] The JavaScript files were not being packed correctly, making the total size larger than it needed to be.</li>
+				<li>[Major] Removed debug code that was causing file extensions to be improperly processed. This resulted in report files being abnormally large in some cases.</li>
+				<li>[Minor] The <code>-d</code> argument in <code>scripts/find.sh</code> and <code>scripts/find.php</code> now fails if the next argument is not one character long.</li>
+				<li>[Minor] Null values in errors stored in settings.txt no longer cause the web UI to fail.</li>
+				<li>[Minor] Fixed confusing error message in the language file.</li>
+				<li>[Minor] Adding missing <code>&lt;tr&gt;</code> tags to index.html.</li>
+				<li>[Minor] Specifying either the <code>-d</code> or <code>-td</code> argument in <code>find.sh</code> no longer causes the script to exit immediately.</li>
 			</ul>
-		</div>
-		<h3>What's New in 1.0.X</h3>
-		<div class="indent">
-			<p><em>Note: Since this is the first release, see the <a href="features.html">Features</a> page for more detail.</em></p>
-			<!--<p>Major Additions/Improvements:</p>
-			<ul>
-				<li>Report files can now have a suffix added to the name of files. The default is &quot;.txt&quot;. This fixes an issue where Microsoft IIS will deny access to files with no extension.</li>
-			</ul>
-			<p>Minor Additions/Improvements:</p>
-			<ul>
-				<li>When the selected directory changes (e.g. by clicking a directory, or clicking back/forward in your browser) the directory tree will scroll into view more consistently and without cropping the directory icon.</li>
-			</ul>-->
 		</div>
 	</div>
 	
 	<div class="span5">
 		<h3>Previous Versions</h3>
 		<ul>
+			<li><a href="downloads/diskusagereports_v1.0.3.zip" onclick="return ROD(this, 'v1.0.3');"><strong>1.0.3</strong></a> - April 25, 2012 - <a href="changelogs/#v1_0_3">changelog</a></li>
 			<li><a href="downloads/diskusagereports_v1.0.2.zip" onclick="return ROD(this, 'v1.0.2');"><strong>1.0.2</strong></a> - March 19, 2012 - <a href="changelogs/#v1_0_2">changelog</a></li>
 			<li><a href="http://sourceforge.net/projects/diskusagereport/files/Release/diskusagereports_v1.0.0.zip/download" onclick="return ROD(this, 'v1.0.0');"><strong>1.0.0</strong></a> - March 15, 2012 - <a href="changelogs/#v1_0_0">changelog</a></li>
 			<li><a href="http://sourceforge.net/projects/diskusagereport/files/Development/diskusagereports_1.0rc3.zip/download" onclick="return ROD(this, 'v1.0.0-rc3');"><strong>1.0 RC3</strong></a> - February 7, 2012 - <a href="changelogs/#v1_0rc3">changelog</a></li>
