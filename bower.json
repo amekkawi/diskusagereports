@@ -1,0 +1,14 @@
+{
+  "name": "Disk Usage Reports",
+  "version": "3.0.0",
+  "dependencies": {
+    "requirejs": "~2.1.5",
+    "backbone": "~1.0.0",
+    "jquery": "~1.9.1",
+    "lodash": "~1.1.1",
+    "html5-boilerplate": "~4.2.0",
+    "requirejs-i18n": "~2.0.2",
+    "requirejs-text": "~2.0.5",
+    "layoutmanager": "~0.8.7"
+  }
+}

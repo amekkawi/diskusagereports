@@ -1,3 +1,4 @@
 /.*
+!/.bowerrc
 !/.gitignore
 /*.dat

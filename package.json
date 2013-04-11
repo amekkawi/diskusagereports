@@ -1,0 +1,8 @@
+{
+  "name": "Disk Usage Reports",
+  "version": "3.0.0",
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "bower": "~0.8.6"
+  }
+}
