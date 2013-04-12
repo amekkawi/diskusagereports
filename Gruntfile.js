@@ -1,0 +1,120 @@
+module.exports = function(grunt) {
+	var dirs = {
+		build: 'build'
+	};
+
+	var package = grunt.file.readJSON('package.json');
+
+	grunt.initConfig({
+		pkg: package,
+
+		clean: {
+			dist: {
+				files: [{
+					dot: true,
+					src: [
+						dirs.build + '/*',
+						'!' + dirs.build + '/.git*'
+					]
+				}]
+			}
+		},
+
+		copy: {
+			dist: {
+				files: [{
+					expand: true,
+					dot: true,
+					dest: dirs.build,
+					src: [
+						'scripts/**/*',
+						'index.html',
+						'*.txt',
+						'*.md',
+
+						// Include all app files except js and css
+						'app/**/*',
+						'!app/**/*.css',
+						'!app/**/*.js',
+
+						// Exclude all files starting with
+						// a period except .htaccess
+						'!**/.*',
+						'**/.htaccess',
+
+						// Exclude anything from vendor
+						'!app/vendor',
+						'!app/vendor/**/*'
+					]
+				}]
+			}
+		},
+
+		useminPrepare: {
+			html: 'index.html',
+			options: {
+				dest: dirs.build
+			}
+		},
+
+		usemin: {
+			html: [ dirs.build + '/*.html' ],
+			options: {
+				dirs: [ dirs.build ]
+			}
+		},
+
+		cssmin: {
+			// Set by useminPrepare
+		},
+
+		uglify: {
+			// Set by useminPrepare
+		},
+
+		concat: {
+			// Set by useminPrepare
+		},
+
+		requirejs: {
+			dist: {
+				options: {
+					baseUrl: 'app',
+					optimize: 'none',
+					preserveLicenseComments: false,
+					useStrict: true,
+					wrap: true,
+					name: 'config',
+					out: 'build/app/config.js',
+					mainConfigFile: 'app/config.js'
+				}
+			}
+		}
+	});
+
+	/*if (package && package.devDependencies) {
+		grunt.log.writeln("Loading NPM tasks..." + (typeof package.devDependencies));
+		for (var dep in package.devDependencies) {
+			grunt.log.writeln("Loading " + dep);
+		}
+	}*/
+
+	grunt.loadNpmTasks('grunt-usemin');
+	grunt.loadNpmTasks('grunt-contrib-clean');
+	grunt.loadNpmTasks('grunt-contrib-concat');
+	grunt.loadNpmTasks('grunt-contrib-uglify');
+	grunt.loadNpmTasks('grunt-contrib-cssmin');
+	grunt.loadNpmTasks('grunt-contrib-requirejs');
+	grunt.loadNpmTasks('grunt-contrib-copy');
+
+	grunt.registerTask('build', [
+		'clean',
+		'useminPrepare',
+		'concat',
+		'requirejs',
+		'cssmin',
+		'uglify',
+		'copy',
+		'usemin'
+    ]);
+};

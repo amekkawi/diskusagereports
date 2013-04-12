@@ -2,3 +2,5 @@
 !/.bowerrc
 !/.gitignore
 /*.dat
+/node_modules/
+/build/
