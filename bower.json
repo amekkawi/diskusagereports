@@ -9,6 +9,7 @@
     "html5-boilerplate": "~4.2.0",
     "requirejs-i18n": "~2.0.2",
     "requirejs-text": "~2.0.5",
-    "layoutmanager": "~0.8.7"
+    "layoutmanager": "~0.8.7",
+    "modernizr": "~2.6.2"
   }
 }

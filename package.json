@@ -3,6 +3,13 @@
   "version": "3.0.0",
   "devDependencies": {
     "grunt": "~0.4.1",
-    "bower": "~0.8.6"
+    "bower": "~0.8.6",
+    "grunt-usemin": "~0.1.10",
+    "grunt-contrib-clean": "~0.4.0",
+    "grunt-contrib-concat": "~0.2.0",
+    "grunt-contrib-cssmin": "~0.6.0",
+    "grunt-contrib-uglify": "~0.2.0",
+    "grunt-contrib-requirejs": "~0.4.0",
+    "grunt-contrib-copy": "~0.4.1"
   }
 }
