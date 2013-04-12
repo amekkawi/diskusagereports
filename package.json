@@ -1,5 +1,5 @@
 {
-  "name": "Disk Usage Reports",
+  "name": "diskusagereports",
   "version": "3.0.0",
   "devDependencies": {
     "grunt": "~0.4.1",
