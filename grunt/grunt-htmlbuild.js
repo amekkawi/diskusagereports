@@ -7,7 +7,29 @@ module.exports = function(grunt) {
 	var HtmlBuildBlockParser = function(origHtml, options) {
 		this.origHtml = origHtml;
 		this.options = options;
-		this._blockRE = new RegExp('(^[ \t]+)?<!--[ ]*' + options.tagName + ':([^ \\-]+)(?:[ ]+(.+?))?[ ]*-->(([^\\0]|\\0)+?)<!--[ ]*end' + options.tagName + '[ ]*-->', 'gm');
+		this._blockRE = new RegExp(
+
+			// Indent whitespace
+			'(^[ \t]+)?'
+
+			// Begin tag
+			+ '<!--[ ]*' + options.tagName
+
+				// Type
+				+ ':([^ \\-]+)'
+				
+				// Args
+				+ '(?:[ ]+(.+?))?'
+
+				+ '[ ]*-->'
+
+			// Contents
+			+ '(([^\\0]|\\0)+?)'
+
+			// End Tag
+			+ '<!--[ ]*end' + options.tagName + '[ ]*-->'
+
+		, 'gm');
 	};
 
 	_.extend(HtmlBuildBlockParser.prototype, {
