@@ -1,6 +1,6 @@
 module.exports = function(grunt) {
 	var dirs = {
-		build: 'build'
+		dest: 'build'
 	};
 
 	var package = grunt.file.readJSON('package.json');
@@ -13,8 +13,8 @@ module.exports = function(grunt) {
 				files: [{
 					dot: true,
 					src: [
-						dirs.build + '/*',
-						'!' + dirs.build + '/.git*'
+						dirs.dest + '/*',
+						'!' + dirs.dest + '/.git*'
 					]
 				}]
 			}
@@ -25,7 +25,7 @@ module.exports = function(grunt) {
 				files: [{
 					expand: true,
 					dot: true,
-					dest: dirs.build,
+					dest: dirs.dest,
 					src: [
 						'scripts/**/*',
 						'index.html',
@@ -53,14 +53,14 @@ module.exports = function(grunt) {
 		useminPrepare: {
 			html: 'index.html',
 			options: {
-				dest: dirs.build
+				dest: dirs.dest
 			}
 		},
 
 		usemin: {
-			html: [ dirs.build + '/*.html' ],
+			html: [ dirs.dest + '/*.html' ],
 			options: {
-				dirs: [ dirs.build ]
+				dirs: [ dirs.dest ]
 			}
 		},
 
