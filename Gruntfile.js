@@ -30,10 +30,10 @@ module.exports = function(grunt) {
 						'*.txt',
 						'*.md',
 
-						// Include all app files except js and css
+						// Include all app files except js, css, and templates.
 						'app/**/*',
-						'!app/css',
-						'!app/css/**/*',
+						'!app/{css,templates}',
+						'!app/{css,templates}/**/*',
 						'!app/**/*.js',
 
 						// Exclude all files starting with
