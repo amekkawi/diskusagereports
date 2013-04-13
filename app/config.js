@@ -8,6 +8,8 @@
  */
 require.config({
 
+	baseUrl: 'app',
+
 	config: {
 		version: '@@SourceVersion'
 	},
@@ -43,12 +45,12 @@ require.config({
 			main: "lodash.js"
 		},
 		{
-			name: "requirejs-i18n",
+			name: "i18n",
 			location: "vendor/bower/requirejs-i18n",
 			main: "i18n.js"
 		},
 		{
-			name: "requirejs-text",
+			name: "text",
 			location: "vendor/bower/requirejs-text",
 			main: "text.js"
 		},
