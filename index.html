@@ -2,12 +2,9 @@
 <!--
 Disk Usage Reports
 http://diskusagereports.com/
+Version: @@SourceVersion
 
-Copyright (c) 2011 André Mekkawi <diskusage@andremekkawi.com>
-Version: $Source Version$
-
-LICENSE
-
+Copyright (c) 2013 André Mekkawi <diskusage@andremekkawi.com>
 This source file is subject to the MIT license in the file LICENSE.txt.
 The license is also available at http://diskusagereports.com/license.html
 -->
@@ -69,19 +66,17 @@ The license is also available at http://diskusagereports.com/license.html
 	</head>
 
 	<body>
+		<div id="NoJS">You must enable JavaScript in your browser in order to view this report.</div>
 
-<div id="NoJS">You must enable JavaScript in your browser in order to view this report.</div>
+		<script>/*
+		TODO: Appear over the report until closed.
+		<!--[if lt IE 7]>
+		<p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+		<![endif]-->
+		*/</script>
 
-<script>/*
-TODO: Appear over the report until closed.
-<!--[if lt IE 7]>
-<p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
-<![endif]-->
-*/</script>
+		<div id="Contents"></div>
 
-<div id="Contents"></div>
-
-<script src="app/config.js"></script>
-
-</body>
+		<script src="app/config.js"></script>
+	</body>
 </html>
