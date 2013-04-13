@@ -11,7 +11,9 @@ require.config({
 	baseUrl: 'app',
 
 	config: {
-		version: '@@SourceVersion'
+		app: {
+			version: '@@SourceVersion'
+		}
 	},
 
 	deps: [
