@@ -3,10 +3,8 @@ module.exports = function(grunt) {
 		dest: 'build'
 	};
 
-	var package = grunt.file.readJSON('package.json');
-
 	grunt.initConfig({
-		pkg: package,
+		pkg: grunt.file.readJSON('package.json'),
 
 		clean: {
 			dist: {
