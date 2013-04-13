@@ -4,8 +4,9 @@ module.exports = function(grunt) {
 		util = require('util'),
 		path = require('path');
 
-	var HtmlBuildBlockParser = function(origHtml, options) {
+	var BlockParser = function(origHtml, task, options) {
 		this.origHtml = origHtml;
+		this.task = task;
 		this.options = options;
 		this._blockRE = new RegExp(
 
@@ -17,7 +18,7 @@ module.exports = function(grunt) {
 
 				// Type
 				+ ':([^ \\-]+)'
-				
+
 				// Args
 				+ '(?:[ ]+(.+?))?'
 
@@ -32,58 +33,44 @@ module.exports = function(grunt) {
 		, 'gm');
 	};
 
-	_.extend(HtmlBuildBlockParser.prototype, {
+	_.extend(BlockParser.prototype, {
 
 		parsedHtml: '',
 
-		forEachBlock: function(fn, context) {
-			if (!_.isFunction(fn))
-				return;
-
+		run: function() {
 			var match,
-				lastIndex = 0
+				lastIndex = 0;
 
 			while(!_.isNull(match = this._blockRE.exec(this.origHtml))) {
 				var indent = match[1] || '',
 					type = match[2],
-					dest = match[3],
-					args = {},
+					args = match[3],
 					contents = match[4];
 
-				if (_.isString(dest)) {
-					if (dest.substr(0, 1) == '{') {
-						args = dest;
-						dest = null;
-					}
-					else {
-						var argMatch = dest.match(/^([^ ]+)(?:[ ]+(.+))?$/);
-						if (argMatch) {
-							dest = argMatch[1];
-
-							if (_.isString(argMatch[2]))
-								args = argMatch[2];
-						}
-						else {
-							dest = null;
-						}
-					}
-				}
-
-				if (_.isString(dest))
-					dest = path.join(this.options.baseUrl, dest);
-
-				if (_.isString(args))
-					args = eval('(' + args + ')');
-
+				// Append the HTML before the matched block to the output HTML.
 				this.parsedHtml += this.origHtml.substring(lastIndex, match.index) + indent;
 				lastIndex = this._blockRE.lastIndex;
 
-				fn.call(context, type, dest, args, contents, match[0]);
+				grunt.event.emit(this.task.name + '.blockfound', { type: type, args: args, contents: contents, contentsFull: match[0] });
 
-				if (_.isFunction(this.typeParser[type])) {
-					var replace = this.typeParser[type].call(this, type, dest, args, contents, indent);
+				var parser = null;
+
+				// User-defined type parser.
+				if (_.isFunction(this.options.typeParser[type]))
+					parser = this.options.typeParser[type];
+
+				// Built-in type parsers.
+				else if (_.isFunction(this.typeParser[type]))
+					parser = this.typeParser[type];
+
+				if (parser) {
+					var replace = parser.apply(this, [ { type: type, args: args, contents: contents, indent: indent } ]);
+
 					if (_.isString(replace))
 						this.parsedHtml += replace;
+
+					else if (_.isArray(replace))
+						this.parsedHtml += replace.join('\n' + indent);
 				}
 			}
 
@@ -113,25 +100,68 @@ module.exports = function(grunt) {
 			return config[target].src;
 		},
 
+		splitArgs: function(args, limit) {
+			if (!_.isString(args))
+				return args;
+
+			if (limit == 1)
+				return [ args ];
+
+			var re = /^([^ \t]+)(?:[ \t]+(.+)])?$/,
+				ret = [],
+				match;
+
+			if (!_.isFinite(limit))
+				limit = -1;
+
+			while (_.isString(args) && !_.isNull(match = args.match(re))) {
+				ret.push(match[1]);
+				args = match[2];
+
+				if (limit > 0)
+					limit--;
+
+				if (limit == 0) {
+					ret.push(args);
+					return ret;
+				}
+			}
+
+			return ret;
+		},
+
 		typeParser: {
-			js: function(type, dest, args, contents, indent) {
-				var tagRE = /<script( .+)><\/script>/g,
+			js: function(opts) {
+				var args = opts.args,
+					contents = opts.contents,
+					dest = null,
+					tagRE = /<script( .+)><\/script>/g,
 					srcRE = / src="([^"]+)"/,
 					requirejsRE = / data-main="([^"]+)"/,
 					requirejsDestRE = / data-dest="([^"]+)"/,
-					concat = grunt.config(args && args.concat || 'concat'),
-					uglify = grunt.config(args && args.uglify || 'uglify'),
-					target = args && args.target || this.options.target,
+					concat = grunt.config(this.options.concat || 'concat'),
+					uglify = grunt.config(this.options.uglify || 'uglify'),
+					target = this.options.target,
 					concatSources = null,
 					outTags = [];
 
+				if (_.isString(args)) {
+					var splitArgs = args.split(/[ \t]+/);
+					if (splitArgs.length > 0) {
+						dest = path.join(this.options.baseUrl, splitArgs[0]);
+						grunt.verbose.writeln("Set destination to " + dest);
+					}
+				}
+
 				var match;
 				while(!_.isNull(match = tagRE.exec(contents))) {
+					grunt.verbose.writeln("Parsing tag: " + match[0]);
+
 					var srcMatch = match[1].match(srcRE),
 						requirejs = match[1].match(requirejsRE),
 						requirejsDest = match[1].match(requirejsDestRE);
 
-					// Concat to dest and uglify it.
+					// Concat scripts to dest.
 					if (dest) {
 						if (_.isNull(srcMatch)) {
 							grunt.fail.warn("Tag missing src attribute: " + match[0]);
@@ -142,7 +172,10 @@ module.exports = function(grunt) {
 						else {
 							if (_.isNull(concatSources)) {
 								concatSources = this._initFilesTarget(concat, target, dest);
+
+								// The <script> tag for dest.
 								outTags.push('<script src="' + dest + '"></script>');
+								grunt.verbose.writeln("Added tag: " + outTags[outTags.length - 1]);
 							}
 
 							grunt.log.writeln("Adding concat: " + grunt.log.wordlist([srcMatch[1], dest], { separator: ' -> ' }));
@@ -150,33 +183,28 @@ module.exports = function(grunt) {
 						}
 					}
 
+					// Include an extra <script> tag for requirejs scripts specified in 'data-main'.
 					if (requirejs) {
 						var requireDest = path.join(this.options.baseUrl, (requirejsDest ? requirejsDest[1] : requirejs[1]));
 						grunt.log.writeln("Adding requirejs: " + grunt.log.wordlist([requirejs[1], requireDest], { separator: ' -> ' }));
 						outTags.push('<script src="' + requireDest + '"></script>');
+						grunt.verbose.writeln("Added tag: " + outTags[outTags.length - 1]);
 					}
 				}
 
+				// Uglify dest if it will be created.
 				if (concatSources) {
 					grunt.log.writeln("Adding uglify: " + grunt.log.wordlist([dest]));
 					this._initSrcTarget(uglify, target).push(dest);
 				}
 
-				grunt.log.subhead("Config is now:")
-				grunt.log.writeln('concat\n' + util.inspect(concat, false, 4, true));
-				grunt.log.writeln('uglify\n' + util.inspect(uglify, false, 4, true));
+				grunt.event.emit(this.task.name + '.configchanged', { name: 'concat', config: concat });
+				grunt.event.emit(this.task.name + '.configchanged', { name: 'uglify', config: uglify });
 
-				grunt.config(args && args.concat || 'concat', concat);
-				grunt.config(args && args.uglify || 'uglify', uglify);
+				grunt.config(this.options.concat || 'concat', concat);
+				grunt.config(this.options.uglify || 'uglify', uglify);
 
-				var ret = '';
-				_.each(outTags, function(val){
-					if (ret.length > 0)
-						ret += '\n' + indent;
-
-					ret += val;
-				});
-				return ret;
+				return outTags;
 			}
 		}
 	});
@@ -185,7 +213,8 @@ module.exports = function(grunt) {
 		var options = this.options({
 			tagName: 'htmlbuild',
 			baseDir: '',
-			target: 'htmlbuild'
+			target: 'htmlbuild',
+			typeParser: {}
 		});
 
 		this.files.forEach(function(file) {
@@ -198,15 +227,32 @@ module.exports = function(grunt) {
 				grunt.log.subhead('Processing: ' + filepath);
 
 				try {
-					var parser = new HtmlBuildBlockParser(grunt.file.read(filepath), options);
+					var parser = new BlockParser(grunt.file.read(filepath), this, options),
+						configChanged = null;
 
-					parser.forEachBlock(function(type, dest, args) {
+					grunt.event.on(this.name + '.blockfound', function(ev) {
 						grunt.log.subhead("Block found: " + grunt.log.wordlist([
-							"type:" + type,
-							"dest:" + dest,
-							"args:" + util.inspect(args, false, 4, true).replace(/[\n\r]+/, ' ')
+							ev.type + ' ' + ev.args
 						]));
 					});
+
+					grunt.event.on(this.name + '.configchanged', function(ev) {
+						grunt.verbose.writeln("Config changed: " + ev.name);
+						if (_.isNull(configChanged))
+							configChanged = {};
+
+						configChanged[ev.name] = ev.config;
+					});
+
+					parser.run();
+					grunt.verbose.writeln("Run complete");
+
+					if (configChanged) {
+						grunt.log.subhead("Config is now:")
+						_.each(configChanged, function(val, key) {
+							grunt.log.writeln(key + ':\n' + util.inspect(val, false, 4, true));
+						});
+					}
 
 					try {
 						grunt.file.write(file.dest, parser.parsedHtml);
@@ -221,6 +267,6 @@ module.exports = function(grunt) {
 					grunt.fail.warn('Failed to read file: ' + filepath);
 				}
 			}
-		});
+		}, this);
 	});
 };
