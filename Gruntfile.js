@@ -69,6 +69,7 @@ module.exports = function(grunt) {
 
 		uglify: {
 			// Set by useminPrepare
+			'build/app/config.js': 'build/app/config.js'
 		},
 
 		concat: {
