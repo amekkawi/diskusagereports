@@ -89,6 +89,24 @@ module.exports = function(grunt) {
 					mainConfigFile: 'app/config.js'
 				}
 			}
+		},
+
+		replace: {
+			version: {
+				options: {
+					variables: {
+						SourceVersion: '<%= pkg.version %>',
+						UrlVersion: '<%= encodeURI(pkg.version) %>'
+					}
+				},
+				files: [{
+					expand: true,
+					src: [
+						dirs.dest + '/index.html',
+						dirs.dest + '/app/**/*.js'
+					]
+				}]
+			}
 		}
 	});
 
@@ -106,6 +124,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-cssmin');
 	grunt.loadNpmTasks('grunt-contrib-requirejs');
 	grunt.loadNpmTasks('grunt-contrib-copy');
+	grunt.loadNpmTasks('grunt-replace');
 
 	grunt.registerTask('build', [
 		'clean',
@@ -115,6 +134,7 @@ module.exports = function(grunt) {
 		'cssmin',
 		'uglify',
 		'copy',
-		'usemin'
+		'usemin',
+		'replace:version'
     ]);
 };
