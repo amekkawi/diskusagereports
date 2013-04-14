@@ -50,15 +50,21 @@ module.exports = function(grunt) {
 		},
 
 		cssmin: {
+			dummy: {
 
+			}
 		},
 
 		uglify: {
+			dummy: {
 
+			}
 		},
 
 		concat: {
+			dummy: {
 
+			}
 		},
 
 		requirejs: {
