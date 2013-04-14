@@ -153,4 +153,6 @@ module.exports = function(grunt) {
 		'copy',
 		'replace:version'
     ]);
+
+	grunt.registerTask('default', [ 'build' ]);
 };
