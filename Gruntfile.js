@@ -94,14 +94,17 @@ module.exports = function(grunt) {
 				options: {
 					variables: {
 						SourceVersion: '<%= pkg.version %>',
-						UrlVersion: '<%= encodeURI(pkg.version) %>'
+						UrlVersion: '<%= encodeURI(pkg.version) %>',
+						CopyYear: grunt.template.today('yyyy')
 					}
 				},
 				files: [{
 					expand: true,
 					src: [
 						dirs.dest + '/index.html',
-						dirs.dest + '/app/**/*.js'
+						dirs.dest + '/app/**/*.js',
+						dirs.dest + '/scripts/**/*.php',
+						dirs.dest + '/scripts/**/*.sh'
 					]
 				}]
 			}

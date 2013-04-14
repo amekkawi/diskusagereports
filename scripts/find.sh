@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Author: André Mekkawi
-# Version: $Revision$
+# Version: @@SourceVersion
 # License See LICENSE.txt or http://diskusagereports.com/license.html 
-# Copyright: 2012 André Mekkawi <contact@andremekkawi.com>
+# Copyright: @@CopyYear André Mekkawi <contact@andremekkawi.com>
 
 # Set the timezone to UTC
 export TZ=UTC

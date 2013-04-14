@@ -1,8 +1,8 @@
 <?php
 
 /* 
- * Copyright (c) 2011 André Mekkawi <diskusage@andremekkawi.com>
- * Version: $Source Version$
+ * Copyright (c) @@CopyYear André Mekkawi <diskusage@andremekkawi.com>
+ * Version: @@SourceVersion
  * 
  * LICENSE
  * 
