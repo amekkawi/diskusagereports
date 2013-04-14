@@ -49,7 +49,10 @@ module.exports = function(grunt) {
 			}
 		},
 
-		cssmin: {
+		less: {
+			options: {
+				yuicompress: true
+			},
 			dummy: {
 
 			}
@@ -112,6 +115,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-cssmin');
 	grunt.loadNpmTasks('grunt-contrib-requirejs');
 	grunt.loadNpmTasks('grunt-contrib-copy');
+	grunt.loadNpmTasks('grunt-contrib-less');
 	grunt.loadNpmTasks('grunt-replace');
 
 	grunt.loadTasks('grunt');
@@ -131,7 +135,7 @@ module.exports = function(grunt) {
 		'htmlbuild',
 		'concat',
 		'requirejs',
-		//'cssmin',
+		'less',
 		'uglify',
 		'copy',
 		'replace:version'
