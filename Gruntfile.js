@@ -26,7 +26,7 @@ module.exports = function(grunt) {
 					dest: dirs.dest,
 					src: [
 						'scripts/**/*',
-						'index.html',
+						//'index.html',
 						'*.txt',
 						'*.md',
 
@@ -49,45 +49,24 @@ module.exports = function(grunt) {
 			}
 		},
 
-		useminPrepare: {
-			html: 'index.html',
-			options: {
-				dest: dirs.dest
-			}
-		},
-
-		usemin: {
-			html: [ dirs.dest + '/*.html' ],
-			options: {
-				dirs: [ dirs.dest ]
-			}
-		},
-
 		cssmin: {
-			// Set by useminPrepare
+
 		},
 
 		uglify: {
-			// Set by useminPrepare
-			'build/app/config.js': 'build/app/config.js'
+
 		},
 
 		concat: {
-			// Set by useminPrepare
+
 		},
 
 		requirejs: {
-			dist: {
-				options: {
-					baseUrl: 'app',
-					optimize: 'none',
-					preserveLicenseComments: false,
-					useStrict: true,
-					wrap: true,
-					name: 'config',
-					out: 'build/app/config.js',
-					mainConfigFile: 'app/config.js'
-				}
+			options: {
+				optimize: 'none',
+				preserveLicenseComments: false,
+				useStrict: true,
+				wrap: true
 			}
 		},
 
@@ -107,17 +86,20 @@ module.exports = function(grunt) {
 					]
 				}]
 			}
+		},
+
+		htmlbuild: {
+			dist: {
+				options: {
+					tagName: 'build',
+					baseUrl: 'build'
+				},
+				src: [ 'index.html' ],
+				dest: dirs.dest + '/index.html'
+			}
 		}
 	});
 
-	/*if (package && package.devDependencies) {
-		grunt.log.writeln("Loading NPM tasks..." + (typeof package.devDependencies));
-		for (var dep in package.devDependencies) {
-			grunt.log.writeln("Loading " + dep);
-		}
-	}*/
-
-	grunt.loadNpmTasks('grunt-usemin');
 	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
@@ -126,15 +108,26 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-replace');
 
+	grunt.loadTasks('grunt');
+
+	grunt.registerMultiTask('fn', 'Run a custom function', function(target) {
+		var options = this.options({
+			fn: null
+		});
+		if (typeof options.fn != "function")
+			grunt.fail.warn('Target ' + this.target + ' does not have a fn option that is a function.');
+
+		options.fn.apply(this, arguments);
+	});
+
 	grunt.registerTask('build', [
 		'clean',
-		'useminPrepare',
+		'htmlbuild',
 		'concat',
 		'requirejs',
-		'cssmin',
+		//'cssmin',
 		'uglify',
 		'copy',
-		'usemin',
 		'replace:version'
     ]);
 };
