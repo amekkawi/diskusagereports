@@ -77,29 +77,6 @@ module.exports = function(grunt) {
 			this.parsedHtml += this.origHtml.substr(lastIndex);
 		},
 
-		_initFilesTarget: function(config, target, dest) {
-			if (!config.hasOwnProperty(target))
-				config[target] = {};
-
-			if (!config[target].hasOwnProperty('files'))
-				config[target].files = {};
-
-			if (!config[target].files.hasOwnProperty(dest))
-				config[target].files[dest] = [];
-
-			return config[target].files[dest];
-		},
-
-		_initSrcTarget: function(config, target) {
-			if (!config.hasOwnProperty(target))
-				config[target] = {};
-
-			if (!config[target].hasOwnProperty('src'))
-				config[target].src = [];
-
-			return config[target].src;
-		},
-
 		splitArgs: function(args, limit) {
 			if (!_.isString(args))
 				return args;
@@ -130,79 +107,170 @@ module.exports = function(grunt) {
 			return ret;
 		},
 
+		getTags: function(elementName, html) {
+			var tagRE = new RegExp('<' + elementName + '( .+?)>', 'ig'),
+				attrRE = / ([a-z0-9_\-]+)="([^"]+)"/ig,
+				tags = [],
+				tagMatch, attrMatch;
+
+			while (!_.isNull(tagMatch = tagRE.exec(html))) {
+				var tag = {
+					_html: tagMatch[0]
+				};
+
+				while (!_.isNull(attrMatch = attrRE.exec(tagMatch[1]))) {
+					tag[attrMatch[1]] = attrMatch[2];
+				}
+
+				tags.push(tag);
+			}
+
+			return tags;
+		},
+
 		typeParser: {
+			requirejs: function(opts) {
+				var args = opts.args;
+
+				if (!_.isString(args))
+					grunt.fail.warn('Missing arguments: <data-main> [<dest> [<target>]]');
+
+				var contents = opts.contents,
+					dest = null,
+					main = null,
+					target = this.options.target,
+					hasTag = false,
+					outTags = [];
+
+				if (_.isString(args)) {
+					var splitArgs = args.split(/[ \t]+/);
+
+					if (splitArgs.length < 1)
+						grunt.fail.warn('Missing arguments: <data-main> [<dest> [<target>]]');
+
+					main = splitArgs.shift();
+					grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Set main to " + main });
+
+					if (splitArgs.length) {
+						dest = { short: splitArgs[0], full: path.join(this.options.baseUrl, splitArgs[0]) };
+						grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Set destination to " + dest.full });
+						splitArgs.shift();
+					}
+					else {
+						dest = { short: main + '.js', full: path.join(this.options.baseUrl, main + '.js') };
+					}
+
+					if (splitArgs.length) {
+						target = splitArgs.shift();
+						grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Set target to " + target });
+					}
+				}
+
+				_.each(this.getTags('script', contents), function(tag){
+					grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Parsing tag: " + tag._html });
+
+					if (dest) {
+						if (!_.isString(tag.src))
+							grunt.fail.warn("Tag missing src attribute: " + tag._html);
+
+						else if (tag.src.match(/^(\/|(\w+:\/\/))/i)) {
+							grunt.event.emit(this.task.name + '.notice', { message: "Skipping root or absolute URL: " + tag._html });
+						}
+						else {
+							hasTag = true;
+							grunt.event.emit(this.task.name + '.concat', { target: target, src: tag.src, dest: dest.full });
+						}
+					}
+
+				}, this);
+
+				if (hasTag) {
+					outTags.push('<script src="' + dest.short + '"></script>');
+					grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Added tag: " + outTags[outTags.length - 1] });
+
+					grunt.event.emit(this.task.name + '.requirejs', {
+						target: target,
+						src: main + '.js',
+						dest: dest.full,
+						options: {
+							baseUrl: path.dirname(main),
+							name: path.basename(main),
+							out: dest.full,
+							mainConfigFile: main + '.js'
+						}
+					});
+
+					grunt.event.emit(this.task.name + '.uglify', { target: target, src: dest.full, dest: dest.full });
+				}
+
+				return outTags;
+			},
+
 			js: function(opts) {
 				var args = opts.args,
 					contents = opts.contents,
 					dest = null,
-					tagRE = /<script( .+)><\/script>/g,
-					srcRE = / src="([^"]+)"/,
-					requirejsRE = / data-main="([^"]+)"/,
-					requirejsDestRE = / data-dest="([^"]+)"/,
-					concat = grunt.config(this.options.concat || 'concat'),
-					uglify = grunt.config(this.options.uglify || 'uglify'),
+					hasTag = false,
 					target = this.options.target,
-					concatSources = null,
 					outTags = [];
 
 				if (_.isString(args)) {
 					var splitArgs = args.split(/[ \t]+/);
 					if (splitArgs.length > 0) {
-						dest = path.join(this.options.baseUrl, splitArgs[0]);
-						grunt.verbose.writeln("Set destination to " + dest);
+						dest = { short: splitArgs[0], full: path.join(this.options.baseUrl, splitArgs[0]) };
+						grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Set destination to " + dest.full });
 					}
 				}
 
-				var match;
-				while(!_.isNull(match = tagRE.exec(contents))) {
-					grunt.verbose.writeln("Parsing tag: " + match[0]);
+				_.each(this.getTags('script', contents), function(tag){
+					grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Parsing tag: " + tag._html });
 
-					var srcMatch = match[1].match(srcRE),
-						requirejs = match[1].match(requirejsRE),
-						requirejsDest = match[1].match(requirejsDestRE);
-
-					// Concat scripts to dest.
 					if (dest) {
-						if (_.isNull(srcMatch)) {
-							grunt.fail.warn("Tag missing src attribute: " + match[0]);
-						}
-						else if (srcMatch[1].match(/^(\/|(\w+:\/\/))/i)) {
-							grunt.log.writeln("Skipping root or absolute URL: " + match[1]);
+						if (!_.isString(tag.src))
+							grunt.fail.warn("Tag missing src attribute: " + tag._html);
+
+						else if (tag.src.match(/^(\/|(\w+:\/\/))/i)) {
+							grunt.event.emit(this.task.name + '.notice', { message: "Skipping root or absolute URL: " + tag._html });
 						}
 						else {
-							if (_.isNull(concatSources)) {
-								concatSources = this._initFilesTarget(concat, target, dest);
+							if (!hasTag) {
+								hasTag = true;
 
-								// The <script> tag for dest.
-								outTags.push('<script src="' + dest + '"></script>');
-								grunt.verbose.writeln("Added tag: " + outTags[outTags.length - 1]);
+								outTags.push('<script src="' + dest.short + '"></script>');
+								grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Added tag: " + outTags[outTags.length - 1] });
+
+								grunt.event.emit(this.task.name + '.uglify', { target: target, src: dest.full, dest: dest.full });
 							}
 
-							grunt.log.writeln("Adding concat: " + grunt.log.wordlist([srcMatch[1], dest], { separator: ' -> ' }));
-							concatSources.push(srcMatch[1]);
+							grunt.event.emit(this.task.name + '.concat', { target: target, src: tag.src, dest: dest.full });
 						}
 					}
 
-					// Include an extra <script> tag for requirejs scripts specified in 'data-main'.
-					if (requirejs) {
-						var requireDest = path.join(this.options.baseUrl, (requirejsDest ? requirejsDest[1] : requirejs[1]));
-						grunt.log.writeln("Adding requirejs: " + grunt.log.wordlist([requirejs[1], requireDest], { separator: ' -> ' }));
-						outTags.push('<script src="' + requireDest + '"></script>');
-						grunt.verbose.writeln("Added tag: " + outTags[outTags.length - 1]);
+					if (_.isString(tag['data-main'])) {
+						var requireDest = { short: _.isString(tag['data-dest']) ? tag['data-dest'] : tag['data-main'] };
+						requireDest.full = path.join(this.options.baseUrl, requireDest.short);
+
+						var requireTarget = tag['data-target'] ? tag['data-target'] : target;
+
+						outTags.push('<script src="' + requireDest.short + '"></script>');
+						grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Added tag: " + outTags[outTags.length - 1] });
+
+						grunt.event.emit(this.task.name + '.requirejs', {
+							target: requireTarget,
+							src: tag['data-main'] + '.js',
+							dest: requireDest.full,
+							options: {
+								baseUrl: path.dirname(tag['data-main']),
+								name: path.basename(tag['data-main']),
+								out: requireDest.full,
+								mainConfigFile: tag['data-main'] + '.js'
+							}
+						});
+
+						grunt.event.emit(this.task.name + '.uglify', { target: target, src: requireDest.full, dest: requireDest.full });
 					}
-				}
 
-				// Uglify dest if it will be created.
-				if (concatSources) {
-					grunt.log.writeln("Adding uglify: " + grunt.log.wordlist([dest]));
-					this._initSrcTarget(uglify, target).push(dest);
-				}
-
-				grunt.event.emit(this.task.name + '.configchanged', { name: 'concat', config: concat });
-				grunt.event.emit(this.task.name + '.configchanged', { name: 'uglify', config: uglify });
-
-				grunt.config(this.options.concat || 'concat', concat);
-				grunt.config(this.options.uglify || 'uglify', uglify);
+				}, this);
 
 				return outTags;
 			}
@@ -217,6 +285,19 @@ module.exports = function(grunt) {
 			typeParser: {}
 		});
 
+		var initFilesDest = function(config, target, dest) {
+			if (!config.hasOwnProperty(target))
+				config[target] = {};
+
+			if (!config[target].hasOwnProperty('files'))
+				config[target].files = [];
+
+			var entry = { dest: dest, src: [] };
+			config[target].files.push(entry);
+
+			return entry.src;
+		};
+
 		this.files.forEach(function(file) {
 			if (file.src.length != 1)
 				grunt.fail.warn('Must specify only one source per dest.');
@@ -228,20 +309,64 @@ module.exports = function(grunt) {
 
 				try {
 					var parser = new BlockParser(grunt.file.read(filepath), this, options),
-						configChanged = null;
+						configChanged = {},
+						concat = grunt.config(options.concat || 'concat'),
+						uglify = grunt.config(options.uglify || 'uglify'),
+						requirejs = grunt.config(options.requirejs || 'requirejs'),
+						concatDests,
+						uglifyDests;
 
 					grunt.event.on(this.name + '.blockfound', function(ev) {
 						grunt.log.subhead("Block found: " + grunt.log.wordlist([
 							ev.type + ' ' + ev.args
 						]));
+
+						concatDests = {};
+						uglifyDests = {};
 					});
 
-					grunt.event.on(this.name + '.configchanged', function(ev) {
-						grunt.verbose.writeln("Config changed: " + ev.name);
-						if (_.isNull(configChanged))
-							configChanged = {};
+					grunt.event.on(this.name + '.notice', function(ev) {
+						grunt[ev.verbose ? 'verbose' : 'log'].writeln(ev.message);
+					});
 
-						configChanged[ev.name] = ev.config;
+					grunt.event.on(this.name + '.concat', function(ev) {
+						grunt.log.writeln("Added concat:" + ev.target + " " + grunt.log.wordlist([ ev.src, ev.dest ], { separator: ' -> ' }));
+						configChanged['concat'] = concat;
+
+						if (!concatDests[ev.target])
+							concatDests[ev.target] = {};
+
+						if (!concatDests[ev.target][ev.dest])
+							concatDests[ev.target][ev.dest] = initFilesDest(concat, ev.target, ev.dest);
+
+						concatDests[ev.target][ev.dest].push(ev.src);
+					});
+
+					grunt.event.on(this.name + '.uglify', function(ev) {
+						grunt.log.writeln("Added uglify:" + ev.target + " " + grunt.log.wordlist([ ev.src, ev.dest ], { separator: ' -> ' }));
+						configChanged['uglify'] = uglify;
+
+						if (!uglifyDests[ev.target])
+							uglifyDests[ev.target] = {};
+
+						if (!uglifyDests[ev.target][ev.dest])
+							uglifyDests[ev.target][ev.dest] = initFilesDest(uglify, ev.target, ev.dest);
+
+						uglifyDests[ev.target][ev.dest].push(ev.src);
+					});
+
+					grunt.event.on(this.name + '.requirejs', function(ev) {
+						grunt.log.writeln("Added requirejs:" + ev.target + " " + grunt.log.wordlist([ ev.src, ev.dest ], { separator: ' -> ' }));
+						configChanged['requirejs'] = requirejs;
+
+						if (requirejs.hasOwnProperty(ev.target))
+							grunt.fail.warn("A requirejs config already exists for the target: " + ev.target + '.');
+
+						requirejs[ev.target] = _.extend(
+							{ options: ev.options },
+							requirejs[ev.target]
+						);
+
 					});
 
 					parser.run();
@@ -250,7 +375,8 @@ module.exports = function(grunt) {
 					if (configChanged) {
 						grunt.log.subhead("Config is now:")
 						_.each(configChanged, function(val, key) {
-							grunt.log.writeln(key + ':\n' + util.inspect(val, false, 4, true));
+							grunt.config(key, val);
+							grunt.log.writeln('\n' + key + ':\n' + util.inspect(val, false, 4, true));
 						});
 					}
 
