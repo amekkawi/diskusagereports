@@ -59,6 +59,16 @@ module.exports = function(grunt) {
 		},
 
 		uglify: {
+			options: {
+				banner: [
+					'/*',
+					' Disk Usage Reports',
+					' http://diskusagereports.com/',
+					' Version <%= pkg.version %>',
+					'',
+					' See http://diskusagereports.com/ for source code and licenses.',
+					'/\n' ].join('\n *')
+			},
 			dummy: {
 
 			}
