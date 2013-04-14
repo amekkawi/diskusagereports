@@ -183,44 +183,42 @@ module.exports = function(grunt) {
 			},
 
 			js: function(opts) {
-				var args = opts.args,
-					contents = opts.contents,
-					dest = null,
-					hasTag = false,
-					target = this.options.target,
-					outTags = [];
+				var syntax = 'Syntax: <dest>',
+					args = opts.args;
 
-				if (_.isString(args)) {
-					var splitArgs = args.split(/[ \t]+/);
-					if (splitArgs.length > 0) {
-						dest = { short: splitArgs[0], full: path.join(this.options.baseUrl, splitArgs[0]) };
-						grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Set destination to " + dest.full });
-					}
-				}
+				if (!_.isString(args))
+					grunt.fail.warn('Missing arguments. ' + syntax);
+
+				var contents = opts.contents,
+					target = this.options.target,
+					outTags = [],
+					splitArgs = args.split(/[ \t]+/);
+
+				if (splitArgs.length < 1)
+					grunt.fail.warn('Missing arguments. ' + syntax);
+
+				var dest = { short: splitArgs[0], full: path.join(this.options.baseUrl, splitArgs[0]) };
+				grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Set destination to " + dest.full });
 
 				_.each(this.getTags('script', contents), function(tag){
 					grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Parsing tag: " + tag._html });
 
-					if (dest) {
-						if (!_.isString(tag.src))
-							grunt.fail.warn("Tag missing src attribute: " + tag._html);
-
-						else if (tag.src.match(/^(\/|(\w+:\/\/))/i)) {
-							grunt.event.emit(this.task.name + '.notice', { message: "Skipping root or absolute URL: " + tag._html });
-						}
-						else {
-							if (!hasTag) {
-								hasTag = true;
-
-								outTags.push('<script src="' + dest.short + '"></script>');
-								grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Added tag: " + outTags[outTags.length - 1] });
-
-								grunt.event.emit(this.task.name + '.uglify', { target: target, src: dest.full, dest: dest.full });
-							}
-
-							grunt.event.emit(this.task.name + '.concat', { target: target, src: tag.src, dest: dest.full });
-						}
+					if (!_.isString(tag.src)) {
+						grunt.fail.warn("Tag missing src attribute: " + tag._html);
+						return false;
 					}
+
+					if (!grunt.file.isFile(tag.src)) {
+						grunt.fail.warn("Cannot find file for src: " + tag._html);
+						return false;
+					}
+
+					if (!outTags.length) {
+						outTags.push('<script src="' + dest.short + '"></script>');
+						grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Added tag: " + outTags[outTags.length - 1] });
+					}
+
+					grunt.event.emit(this.task.name + '.uglify', { target: target, src: tag.src, dest: dest.full });
 
 					if (_.isString(tag['data-main'])) {
 						var requireDest = { short: _.isString(tag['data-dest']) ? tag['data-dest'] : tag['data-main'] };
