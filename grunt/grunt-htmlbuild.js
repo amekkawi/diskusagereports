@@ -130,78 +130,54 @@ module.exports = function(grunt) {
 
 		typeParser: {
 			requirejs: function(opts) {
-				var args = opts.args;
+				var syntax = 'Syntax: <data-main> [<dest> [<target>]]',
+					args = opts.args;
 
 				if (!_.isString(args))
-					grunt.fail.warn('Missing arguments: <data-main> [<dest> [<target>]]');
+					grunt.fail.warn('Missing arguments. ' + syntax);
 
-				var contents = opts.contents,
-					dest = null,
-					main = null,
-					target = this.options.target,
-					hasTag = false,
-					outTags = [];
+				var target = this.options.target,
+					outTags = [],
+					splitArgs = args.split(/[ \t]+/);
 
-				if (_.isString(args)) {
-					var splitArgs = args.split(/[ \t]+/);
+				// Parse Arguments
 
-					if (splitArgs.length < 1)
-						grunt.fail.warn('Missing arguments: <data-main> [<dest> [<target>]]');
+				if (splitArgs.length < 1)
+					grunt.fail.warn('Missing arguments. ' + syntax);
 
-					main = splitArgs.shift();
-					grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Set main to " + main });
+				var main = splitArgs.shift();
+				grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Set main to " + main });
 
-					if (splitArgs.length) {
-						dest = { short: splitArgs[0], full: path.join(this.options.baseUrl, splitArgs[0]) };
-						grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Set destination to " + dest.full });
-						splitArgs.shift();
-					}
-					else {
-						dest = { short: main + '.js', full: path.join(this.options.baseUrl, main + '.js') };
-					}
-
-					if (splitArgs.length) {
-						target = splitArgs.shift();
-						grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Set target to " + target });
-					}
+				var dest = { short: main + '.js', full: path.join(this.options.baseUrl, main + '.js') };
+				if (splitArgs.length) {
+					dest = { short: splitArgs[0], full: path.join(this.options.baseUrl, splitArgs[0]) };
+					grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Set destination to " + dest.full });
+					splitArgs.shift();
 				}
 
-				_.each(this.getTags('script', contents), function(tag){
-					grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Parsing tag: " + tag._html });
-
-					if (dest) {
-						if (!_.isString(tag.src))
-							grunt.fail.warn("Tag missing src attribute: " + tag._html);
-
-						else if (tag.src.match(/^(\/|(\w+:\/\/))/i)) {
-							grunt.event.emit(this.task.name + '.notice', { message: "Skipping root or absolute URL: " + tag._html });
-						}
-						else {
-							hasTag = true;
-							grunt.event.emit(this.task.name + '.concat', { target: target, src: tag.src, dest: dest.full });
-						}
-					}
-
-				}, this);
-
-				if (hasTag) {
-					outTags.push('<script src="' + dest.short + '"></script>');
-					grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Added tag: " + outTags[outTags.length - 1] });
-
-					grunt.event.emit(this.task.name + '.requirejs', {
-						target: target,
-						src: main + '.js',
-						dest: dest.full,
-						options: {
-							baseUrl: path.dirname(main),
-							name: path.basename(main),
-							out: dest.full,
-							mainConfigFile: main + '.js'
-						}
-					});
-
-					grunt.event.emit(this.task.name + '.uglify', { target: target, src: dest.full, dest: dest.full });
+				if (splitArgs.length) {
+					target = splitArgs.shift();
+					grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Set target to " + target });
 				}
+
+				// Process tags.
+
+				outTags.push('<script src="' + dest.short + '"></script>');
+				grunt.event.emit(this.task.name + '.notice', { verbose: true, message: "Added tag: " + outTags[outTags.length - 1] });
+
+				grunt.event.emit(this.task.name + '.requirejs', {
+					target: target,
+					src: main + '.js',
+					dest: dest.full,
+					options: {
+						baseUrl: path.dirname(main),
+						name: path.basename(main),
+						out: dest.full,
+						mainConfigFile: main + '.js'
+					}
+				});
+
+				grunt.event.emit(this.task.name + '.uglify', { target: target, src: dest.full, dest: dest.full });
 
 				return outTags;
 			},
