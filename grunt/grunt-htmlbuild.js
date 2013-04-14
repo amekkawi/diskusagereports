@@ -108,7 +108,7 @@ module.exports = function(grunt) {
 		},
 
 		getTags: function(elementName, html) {
-			var tagRE = new RegExp('<' + elementName + '( .+?)>', 'ig'),
+			var tagRE = new RegExp('<' + elementName + '( .+?)/?>', 'ig'),
 				attrRE = / ([a-z0-9_\-]+)="([^"]+)"/ig,
 				tags = [],
 				tagMatch, attrMatch;
