@@ -8,73 +8,121 @@ module.exports = function(grunt) {
 		this.origHtml = origHtml;
 		this.task = task;
 		this.options = options;
-		this._blockRE = new RegExp(
+		this._blockRE =
+			'(?:'
 
-			// Indent whitespace
-			'(^[ \t]+)?'
+				// Indent whitespace
+				+ '(^[ \t]+)?'
 
-			// Begin tag
-			+ '<!--[ ]*' + options.tagName
+				// Begin tag
+				+ '<!--[ \t]*' + options.tagName
 
-				// Type
-				+ ':([^ \\-]+)'
+					// Type
+					+ ':([^ \\-]+)'
 
-				// Args
-				+ '(?:[ ]+(.+?))?'
+					// Args
+					+ '(?:[ ]+(.+?))?'
 
-				+ '[ ]*-->'
+					// Optional self-closing.
+					+ '[ ]*(/)?-->'
 
-			// Contents
-			+ '(([^\\0]|\\0)+?)'
+			+ ')|('
 
-			// End Tag
-			+ '<!--[ ]*end' + options.tagName + '[ ]*-->'
+				// End Tag
+				+ '<!--[ \t]*end' + options.tagName + '[ \t]*-->'
 
-		, 'gm');
+			+ ')';
+		this._blockREFlags = 'mg';
 	};
 
 	_.extend(BlockParser.prototype, {
 
-		parsedHtml: '',
+		parse: function() {
+			var re = new RegExp(this._blockRE, this._blockREFlags),
+				contents = '',
+				lastIndex = 0,
+				match;
 
-		run: function() {
-			var match,
-				lastIndex = 0;
+			while (!_.isNull(match = re.exec(this.origHtml))) {
+				var indent = match[1] || '';
+				contents += this.origHtml.substring(lastIndex, match.index)
+					+ indent
+					+ this._beginBlock(re, match);
 
-			while(!_.isNull(match = this._blockRE.exec(this.origHtml))) {
-				var indent = match[1] || '',
-					type = match[2],
-					args = match[3],
-					contents = match[4];
-
-				// Append the HTML before the matched block to the output HTML.
-				this.parsedHtml += this.origHtml.substring(lastIndex, match.index) + indent;
-				lastIndex = this._blockRE.lastIndex;
-
-				grunt.event.emit(this.task.name + '.blockfound', { type: type, args: args, contents: contents, contentsFull: match[0] });
-
-				var parser = null;
-
-				// User-defined type parser.
-				if (_.isFunction(this.options.typeParser[type]))
-					parser = this.options.typeParser[type];
-
-				// Built-in type parsers.
-				else if (_.isFunction(this.typeParser[type]))
-					parser = this.typeParser[type];
-
-				if (parser) {
-					var replace = parser.apply(this, [ { type: type, args: args, contents: contents, indent: indent } ]);
-
-					if (_.isString(replace))
-						this.parsedHtml += replace;
-
-					else if (_.isArray(replace))
-						this.parsedHtml += replace.join('\n' + indent);
-				}
+				lastIndex = re.lastIndex;
 			}
 
-			this.parsedHtml += this.origHtml.substr(lastIndex);
+			return contents + this.origHtml.substring(lastIndex);
+		},
+
+		_beginBlock: function(re, match) {
+			var contents = '',
+				indent = match[1] || '',
+				type = match[2],
+				args = match[3],
+				lastIndex = re.lastIndex;
+
+			if (_.isString(match[4])) {
+				grunt.event.emit(this.task.name + '.blocksingle', { type: type, args: args, beginTag: match[0] });
+			}
+			else {
+				grunt.event.emit(this.task.name + '.blockbegin', { type: type, args: args, beginTag: match[0] });
+
+				var nextMatch;
+				while (!_.isNull(nextMatch = re.exec(this.origHtml)) && !_.isString(nextMatch[5])) {
+					contents += this.origHtml.substring(lastIndex, nextMatch.index) + indent;
+
+					var subBlock = this._beginBlock(re, nextMatch);
+					if (subBlock === false)
+						return false;
+
+					// Append the result of the sub block.
+					contents += subBlock;
+
+					// Reset the last index to where the sub block left off.
+					lastIndex = re.lastIndex;
+				}
+
+				if (_.isNull(nextMatch)) {
+					grunt.fail.warn('Missing end tag for block. ' + match[0]);
+					return false;
+				}
+
+				// Append any contents remaining after sub blocks.
+				// If there were no sub blocks, then this will be the
+				// contents since this block's begin tag.
+				contents += this.origHtml.substring(lastIndex, nextMatch.index);
+			}
+
+			var parsed = this._runParser(indent, type, args, contents);
+			if (!_.isString(match[4]))
+				grunt.event.emit(this.task.name + '.blockend', { type: type, args: args, contents: contents, beginTag: match[0] });
+
+			return parsed;
+		},
+
+		_runParser: function(indent, type, args, contents) {
+			var parser = null;
+
+			// User-defined type parser.
+			if (this.options.typeParser && _.isFunction(this.options.typeParser[type]))
+				parser = this.options.typeParser[type];
+
+			// Built-in type parsers.
+			else if (this.typeParser && _.isFunction(this.typeParser[type]))
+				parser = this.typeParser[type];
+
+			if (parser) {
+				var replace = parser.apply(this, [ { type: type, args: args, contents: contents, indent: indent } ]);
+
+				if (_.isString(replace))
+					return replace;
+
+				else if (_.isArray(replace))
+					return replace.join('\n' + indent);
+			}
+
+			return '';
 		},
 
 		splitArgs: function(args, limit) {
@@ -352,14 +400,30 @@ module.exports = function(grunt) {
 						uglifyDests,
 						lessDests;
 
-					grunt.event.on(this.name + '.blockfound', function(ev) {
-						grunt.log.subhead("Block found: " + grunt.log.wordlist([
-							ev.type + ' ' + ev.args
+					grunt.event.on(this.name + '.blocksingle', function(ev) {
+						grunt.log.subhead("Build command found: " + grunt.log.wordlist([
+							ev.type + ' ' + (ev.args || '')
 						]));
 
 						concatDests = {};
 						uglifyDests = {};
 						lessDests = {};
+					});
+
+					grunt.event.on(this.name + '.blockbegin', function(ev) {
+						grunt.log.subhead("Block begin: " + grunt.log.wordlist([
+							ev.type + ' ' + (ev.args || '')
+						]));
+
+						concatDests = {};
+						uglifyDests = {};
+						lessDests = {};
+					});
+
+					grunt.event.on(this.name + '.blockend', function(ev) {
+						grunt.log.writeln("Block end: " + grunt.log.wordlist([
+							ev.type + ' ' + (ev.args || '')
+						]));
 					});
 
 					grunt.event.on(this.name + '.notice', function(ev) {
@@ -419,7 +483,7 @@ module.exports = function(grunt) {
 
 					});
 
-					parser.run();
+					var parsedHtml = parser.parse();
 					grunt.verbose.writeln("Run complete");
 
 					if (configChanged) {
@@ -431,7 +495,7 @@ module.exports = function(grunt) {
 					}
 
 					try {
-						grunt.file.write(file.dest, parser.parsedHtml);
+						grunt.file.write(file.dest, parsedHtml);
 					}
 					catch (e) {
 						grunt.verbose.error(e);
