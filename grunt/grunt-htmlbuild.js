@@ -177,6 +177,13 @@ module.exports = function(grunt) {
 		},
 
 		typeParser: {
+			uncomment: function(opts) {
+				if (opts && !_.isString(opts.contents))
+					return '';
+
+				return opts.contents.replace(/^(\s*)<!--/, '$1').replace(/-->(\s*)$/, '$1');
+			},
+
 			requirejs: function(opts) {
 				var syntax = 'Syntax: <data-main> [<dest> [<target>]] [<options-json>]',
 					args = opts.args;
