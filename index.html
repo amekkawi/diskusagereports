@@ -24,7 +24,7 @@ The license is also available at http://diskusagereports.com/license.html
 		<link rel="stylesheet/less" type="text/css" href="app/css/styles.less">
 		<!-- endbuild -->
 
-		<!-- build:clear -->
+		<!-- build:clear dev CSS -->
 		<link rel="stylesheet" type="text/css" href="app/css/styles.css">
 		<!-- endbuild -->
 
@@ -82,8 +82,22 @@ The license is also available at http://diskusagereports.com/license.html
 
 		<div id="Contents"></div>
 
+		<!-- build:clear -->
+
 		<!-- build:requirejs app/config app/app.js -->
 		<script src="app/config.js"></script>
 		<!-- endbuild -->
+
+		<!-- build:requirejs app/config app/app-zepto.js app-zepto { "pragmas": { "usezepto": true }, "map": { "*": { "jquery": "zepto" } } } /-->
+
+		<!-- endbuild -->
+
+		<!-- build:uncomment --><!--
+		<script>
+		document.write('<script src="app/app' +
+		('__proto__' in {} ? '-zepto' : '') +
+		'.js"><\/script>')
+		</script>
+		--><!-- endbuild -->
 	</body>
 </html>

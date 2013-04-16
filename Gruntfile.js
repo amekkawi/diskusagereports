@@ -130,18 +130,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-contrib-less');
 	grunt.loadNpmTasks('grunt-replace');
-
-	grunt.loadTasks('grunt');
-
-	grunt.registerMultiTask('fn', 'Run a custom function', function(target) {
-		var options = this.options({
-			fn: null
-		});
-		if (typeof options.fn != "function")
-			grunt.fail.warn('Target ' + this.target + ' does not have a fn option that is a function.');
-
-		options.fn.apply(this, arguments);
-	});
+	grunt.loadNpmTasks('grunt-htmlbuild');
 
 	grunt.registerTask('build', [
 		'clean',

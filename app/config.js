@@ -25,9 +25,7 @@ require.config({
 	},
 
 	map: {
-		"*": {
-			"underscore": "lodash"
-		}
+
 	},
 
 	packages: [
@@ -37,12 +35,22 @@ require.config({
 			main: "backbone.js"
 		},
 		{
+			name: "zepto",
+			location: "vendor/bower/zepto",
+			main: "zepto.js"
+		},
+		{
 			name: "jquery",
 			location: "vendor/bower/jquery",
 			main: "jquery.js"
 		},
 		{
 			name: "lodash",
+			location: "vendor/bower/lodash",
+			main: "lodash.js"
+		},
+		{
+			name: "underscore",
 			location: "vendor/bower/lodash",
 			main: "lodash.js"
 		},
@@ -80,3 +88,13 @@ require.config({
 	}
 
 });
+
+//>>includeStart("usezepto", pragmas.usezepto);
+require.config({
+	map: {
+		'*': {
+			'jquery': 'zepto'
+		}
+	}
+})
+//>>includeEnd("usezepto");

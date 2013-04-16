@@ -10,6 +10,7 @@
     "requirejs-i18n": "~2.0.2",
     "requirejs-text": "~2.0.5",
     "layoutmanager": "~0.8.7",
-    "modernizr": "~2.6.2"
+    "modernizr": "~2.6.2",
+    "zepto": "~1.0.0rc1"
   }
 }
