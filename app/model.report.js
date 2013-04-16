@@ -5,6 +5,9 @@ define([
 
 	return Backbone.Model.extend({
 
+		tabToShort: null,
+		tabToLong: null,
+
 		initialize: function() {
 			this.tabToShort = {
 				dirs: 'd',
