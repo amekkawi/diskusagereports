@@ -4,8 +4,9 @@ define([
 
 	return Backbone.Router.extend({
 		routes: {
-			'(:hash(/:tab(/:page)))': 'index'
+			'': 'index',
+			':hash(/:tab)(/:page)': 'index'
 		}
 	});
-
+	
 });
