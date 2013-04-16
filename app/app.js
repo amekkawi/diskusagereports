@@ -11,6 +11,10 @@ function(module, _, Router, ModelSettings, ModelReport) {
 
 		config: _.extend(
 			module.config() || {},
+			{
+				report: window && window.location
+					&& _.isString(window.location.search) && window.location.search.substring(1) || ''
+			},
 			window && window['reportConfig'] || {}
 		),
 

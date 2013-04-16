@@ -14,7 +14,7 @@ require.config({
 		app: {
 			reportsBaseURL: 'data/',
 
-			report: null,
+			//report: null,
 
 			suffix: [ '.txt', '' ],
 
