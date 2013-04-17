@@ -1,6 +1,8 @@
 @import "../vendor/bower/bootstrap/less/variables.less";
 @import "../vendor/bower/bootstrap/less/mixins.less";
 
+@report-white: #f7f6f0;
+
 .du-report {
 	padding: 0 10px;
 	position: relative;
@@ -54,16 +56,16 @@
 	padding: 10px;
 	overflow: hidden;
 	background-color: #3980ac;
-}
 
-html.no-cssgradients .du-report-body {
-	background-image: url(../images/contents-background.png);
-	background-repeat: repeat-y;
-	background-position: center center;
-}
+	html.no-cssgradients & {
+		background-image: url(../images/contents-background.png);
+		background-repeat: repeat-y;
+		background-position: center center;
+	}
 
-html.cssgradients .du-report-body {
-	#gradient > .horizontal-three-colors(#3980ac, #5cafcd, 50%, #3980ac);
+	html.cssgradients & {
+		#gradient > .horizontal-three-colors(#3980ac, #5cafcd, 50%, #3980ac);
+	}
 }
 
 .du-directory, .du-tree, .du-tree-resizer {
@@ -85,15 +87,13 @@ html.cssgradients .du-report-body {
 
 .du-tree {
 	float: left;
-	background-color: #f7f6f0;
+	background-color: @report-white;
 	width: 200px;
 }
 
 .du-directory {
 	.du-summary {
-		padding: 6px;
-		padding-left: 40px;
-		padding-bottom: 14px;
+		padding: 4px 4px 14px 40px;
 		margin-left: 6px;
 		background-image: url(../images/folder-large.png);
 		background-repeat: no-repeat;
@@ -106,17 +106,72 @@ html.cssgradients .du-report-body {
 
 		.du-path {
 			font-size: 24px;
-			padding-bottom: 4px;
+			padding-bottom: 2px;
+
+			span {
+				padding-left: 7px;
+			}
+
+			.root {
+				margin-right: 6px;
+			}
+		}
+	}
+
+	.du-tabs {
+		ul, li {
+			padding: 0;
+			margin: 0;
+			list-style: none;
 		}
 
-		.du-path span {
-			padding-left: 5px;
-		//padding-right: 5px;
-		}
+		li {
+			cursor: pointer;
+			float: left;
+			display: block;
+			padding: 6px 8px;
+			margin-left: 10px;
+			color: #5A5842;
+			font-weight: bold;
 
-		.du-path .root {
-			margin-right: 6px;
+			background-color: darken(#dfdccd, 8%);
+
+			html.no-cssgradientsx & {
+				background-image: url(../images/tab-background2.gif);
+				background-position: center bottom;
+				background-repeat: repeat-x;
+			}
+
+			html.cssgradientsx & {
+				#gradient > .vertical-three-colors(lighten(#dfdccd, 5%), darken(#cdcaba, 5%), 89%, #a3a192);
+			}
+
+			html.borderradius & {
+				.border-top-radius(5px);
+			}
+
+			&:hover {
+				text-decoration: underline;
+			}
+
+			html.no-cssgradients &.selected,
+			html.cssgradients &.selected,
+			&.selected {
+				.reset-filter();
+				cursor: default;
+				text-decoration: none;
+				background-color: @report-white;
+				background-image: none;
+				color: #000;
+			}
 		}
+	}
+
+	.du-directory-body {
+		clear: both;
+		overflow: auto;
+		padding: 8px;
+		background-color: @report-white;
 	}
 }
 

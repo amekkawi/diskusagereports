@@ -13,20 +13,26 @@ define([
 
 	return Backbone.Model.extend({
 
+		tabs: null,
 		tabToShort: null,
 		tabToLong: null,
 
 		initialize: function() {
-			this.tabToShort = {
-				dirs: 'd',
-				files: 'f',
-				modified: 'm',
-				sizes: 's',
-				ext: 'e',
-				top: 't'
-			};
+			this.tabs = [
+				{ lang: 'tab_dirs', long: 'dirs', short: 'd' },
+				{ lang: 'tab_files', long: 'files', short: 'f' },
+				{ lang: 'tab_modified', long: 'modified', short: 'm' },
+				{ lang: 'tab_sizes', long: 'sizes', short: 's' },
+				{ lang: 'tab_ext', long: 'ext', short: 'e' },
+				{ lang: 'tab_top', long: 'top', short: 't' }
+			];
 
-			this.tabToLong = _.invert(this.tabToShort);
+			var long = _.map(this.tabs, function(tab) { return tab.long }),
+				short = _.map(this.tabs, function(tab) { return tab.short });
+
+			this.tabToShort = _.zipObject(long, short);
+			this.tabToLong = _.zipObject(short, long);
+			console.log(this.tabs, this.tabToShort, this.tabToLong);
 		},
 
 		defaults: {

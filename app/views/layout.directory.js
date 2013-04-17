@@ -7,18 +7,17 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 define([
+	'app',
 	'backbone',
 	'layoutmanager',
 	'underscore',
-	'text!templates/layout.report-body.html',
-	'views/view.tree',
-	'views/view.tree-resizer',
-	'views/layout.directory'
-], function(Backbone, Layout, _, template, TreeView, TreeResizerView, DirectoryLayout){
+	'text!templates/layout.directory.html',
+	'views/view.summary',
+	'views/view.tabs'
+], function(app, Backbone, Layout, _, template, SummaryView, TabsView){
 
-	var treeView = new TreeView(),
-		treeResizerView = new TreeResizerView(),
-		directoryLayout = new DirectoryLayout();
+	var summaryView = new SummaryView(),
+		tabsView = new TabsView({ model: app.models.report });
 
 	return Backbone.Layout.extend({
 
@@ -26,21 +25,22 @@ define([
 		el: false,
 
 		views: {
-			'': [
-				treeView,
-				treeResizerView,
-				directoryLayout
+			'.du-directory-head': [
+				summaryView,
+				tabsView
 			]
 		},
 
 		resize: function(maxWidth, maxHeight) {
 			var $el = this.$el,
 				diff = $el.outerHeight(true) - $el.height(),
-				innerHeight = maxHeight - diff;
+				innerHeight = maxHeight - diff,
 
-			$el.height(innerHeight);
+				$body = $el.find('>.du-directory-body'),
+				bodyTop = $body.position().top,
+				bodyDiff = $body.outerHeight(true) - $body.height();
 
-			directoryLayout.resize(maxWidth, innerHeight);
+			$el.find('>.du-directory-body').height(innerHeight - bodyDiff - bodyTop);
 		}
 	});
 

@@ -1,0 +1,9 @@
+<div class="du-tabs">
+	<ul>
+		<%
+		tabs && _.each(tabs, function(tab){
+			%><li class="<%= _.isString(selected) && selected == tab.long ? 'selected' : '' %>"><%- lang[tab.lang] %></li><%
+		});
+		%>
+	</ul>
+</div>

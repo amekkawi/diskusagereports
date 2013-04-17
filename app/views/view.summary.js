@@ -10,7 +10,7 @@ define([
 	'backbone',
 	'layoutmanager',
 	'underscore',
-	'text!templates/view.dirsummary.html',
+	'text!templates/view.summary.html',
 	'i18n!nls/report'
 ], function(Backbone, Layout, _, template, lang){
 
@@ -31,20 +31,9 @@ define([
 			};
 		},
 
-		initialize: function() {
-			//if (this.model)
-			//	this.listenTo(this.model, "change:name", this.render);
-		},
-
-		renderX: function() {
-			this.$el.html(_.template(template, {
-				lang: lang,
-				path: [],
-				size: { total: 0, direct: 0 },
-				files: { total: 0, direct: 0 }
-			}));
-
-			return this;
+		listen: function() {
+			if (this.model)
+				this.listenTo(this.model, "change:hash", this.render);
 		}
 	});
 

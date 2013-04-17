@@ -1,11 +1,11 @@
-<div class="du-dirsummary">
+<div class="du-summary">
 	<div class="du-path"><%
 		for (var i in path) {
 			if (i > 0) { %><span>/ </span><% }
 			%><%- path[i].name %><%
 		}
 	%></div>
-	<div class="du-contents-summary">
+	<div class="du-text">
 		<%= _.template(lang['total_size'], size) %><br>
 		<%= _.template(lang['total_files'], files) %>
 	</div>

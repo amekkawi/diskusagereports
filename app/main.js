@@ -24,7 +24,7 @@ function(app, Backbone, _, $, Layout, ReportLayout) {
 	var resizeReport = function(){
 		reportLayout.trigger('resize', reportLayout.$el.width(), reportLayout.$el.height());
 	};
-	$(window).on("resize", _.throttle(resizeReport, 100));
+	$(window).on("resize", _.throttle(resizeReport, 200));
 
 	// Initial resize.
 	resizeReport();

@@ -12,11 +12,10 @@ define([
 	'layoutmanager',
 	'underscore',
 	'text!templates/layout.report.html',
-	'views/layout.report-body',
 	'views/view.title',
-	'views/view.dirsummary',
+	'views/layout.report-body',
 	'views/view.footer'
-], function(app, Backbone, Layout, _, template, ReportBodyView, TitleView, DirSummaryView, FooterView){
+], function(app, Backbone, Layout, _, template, TitleView, ReportBodyView, FooterView){
 
 	var titleView = new TitleView({ model: app.models.settings }),
 		reportBodyView = new ReportBodyView(),

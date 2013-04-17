@@ -13,6 +13,7 @@ define([
 	return Backbone.Model.extend({
 
 		defaults: {
+			hash: null,
 			name: null,
 			parents: [],
 
