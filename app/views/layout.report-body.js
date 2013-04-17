@@ -10,13 +10,25 @@ define([
 	'backbone',
 	'layoutmanager',
 	'underscore',
-	'text!templates/layout.report-body.html'
-], function(Backbone, Layout, _, template){
+	'text!templates/layout.report-body.html',
+	'views/view.tree',
+	'views/view.tree-resizer'
+], function(Backbone, Layout, _, template, TreeView, TreeResizerView){
+
+	var treeView = new TreeView(),
+		treeResizerView = new TreeResizerView();
 
 	return Backbone.Layout.extend({
 
 		template: _.template(template),
 		el: false,
+
+		views: {
+			'': [
+				treeView,
+				treeResizerView
+			]
+		},
 
 		initialize: function() {
 			this.on("resize", this.resize, this);
