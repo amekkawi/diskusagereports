@@ -1,0 +1,139 @@
+@import "../vendor/bower/bootstrap/less/variables.less";
+@import "../vendor/bower/bootstrap/less/mixins.less";
+
+.du-report {
+	padding: 0 10px;
+	position: relative;
+	height: 100%;
+
+	background-color: #343434;
+	background-image: url(../images/background.gif);
+	background-repeat: repeat-x;
+
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+
+	a {
+		color: #00F;
+	}
+}
+
+.du-title {
+	position: relative;
+
+	font-size: 25px;
+	color: #FFF;
+	line-height: 1.2em;
+
+	padding: 8px;
+	padding-left: 42px;
+	margin-left: 10px;
+
+	background-image: url(../images/title-icon2.png);
+	background-repeat: no-repeat;
+	background-position: 0 6px;
+	text-shadow: rgba(0,0,0,0.5) 2px 2px 4px;
+
+	b {
+		color: #dfcd90;
+		font-weight: normal;
+	}
+
+	.du-title-created {
+		color: #CCCCCC;
+		font-size: 13px;
+		position: absolute;
+		bottom: 8px;
+		right: -70px;
+		text-align: right;
+	}
+}
+
+.du-report-body {
+	position: relative;
+	padding: 10px;
+	overflow: hidden;
+	background-color: #3980ac;
+}
+
+html.no-cssgradients .du-report-body {
+	background-image: url(../images/contents-background.png);
+	background-repeat: repeat-y;
+	background-position: center center;
+}
+
+html.cssgradients .du-report-body {
+	#gradient > .horizontal-three-colors(#3980ac, #5cafcd, 50%, #3980ac);
+}
+
+.du-directory, .du-tree, .du-tree-resizer {
+	position: relative;
+	overflow: hidden;
+	height: 100%;
+}
+
+.du-tree-resizer {
+	float: left;
+	margin: 0 2px;
+	width: 8px;
+	cursor: move;
+	cursor: ew-resize;
+	background-image: url(../images/resizer.png);
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.du-tree {
+	float: left;
+	background-color: #f7f6f0;
+	width: 200px;
+}
+
+.du-directory {
+	.du-summary {
+		padding: 6px;
+		padding-left: 40px;
+		padding-bottom: 14px;
+		margin-left: 6px;
+		background-image: url(../images/folder-large.png);
+		background-repeat: no-repeat;
+		background-position: 0 7px;
+		color: #FFF;
+
+		a {
+			color: #FFF;
+		}
+
+		.du-path {
+			font-size: 24px;
+			padding-bottom: 4px;
+		}
+
+		.du-path span {
+			padding-left: 5px;
+		//padding-right: 5px;
+		}
+
+		.du-path .root {
+			margin-right: 6px;
+		}
+	}
+}
+
+.du-footer {
+	background-color: #343434;
+	width: 100%;
+	position: absolute;
+	bottom: 0;
+	left: 0;
+
+	font-size: 14px;
+	padding-top: 4px;
+	padding-bottom: 6px;
+	color: #AAA;
+	text-align: center;
+
+	a {
+		color: #AAA;
+	}
+}

@@ -12,5 +12,8 @@
     "layoutmanager": "~0.8.7",
     "modernizr": "~2.6.2",
     "zepto": "~1.0.0rc1"
+  },
+  "devDependencies": {
+    "bootstrap": "~2.3.1"
   }
 }

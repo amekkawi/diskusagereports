@@ -7,8 +7,34 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 require([
-	
+	'app',
+	'backbone',
+	'underscore',
+	'jquery',
+	'layoutmanager',
+	'views/layout.report'
 ],
-function($, Backbone, _, LayoutManager, i18n, text) {
+function(app, Backbone, _, $, Layout, ReportLayout) {
 
-});
+	var reportLayout = new ReportLayout();
+	reportLayout.$el.appendTo('body');
+	reportLayout.render();
+
+	// Handle browser-resizing.
+	var resizeReport = function(){
+		reportLayout.trigger('resize', reportLayout.$el.width(), reportLayout.$el.height());
+	};
+	$(window).on("resize", _.throttle(resizeReport, 100));
+
+	// Initial resize.
+	resizeReport();
+
+	// TODO: When to trigger history handling?
+	//Backbone.history.start({ pushState: false });
+
+}/*,
+
+function() {
+	// TODO: Handle script errors.
+	console.log('Handler:', arguments);
+}*/);

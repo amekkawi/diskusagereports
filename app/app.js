@@ -1,12 +1,20 @@
+/*
+ * Disk Usage Reports
+ * http://diskusagereports.com/
+ *
+ * Copyright (c) 2013 André Mekkawi <diskusage@andremekkawi.com>
+ * This source file is subject to the MIT license in the file LICENSE.txt.
+ * The license is also available at http://diskusagereports.com/license.html
+ */
 define([
 	'module',
 	'underscore',
 	'router',
-	'model.settings',
-	'model.report'
+	'models/model.settings',
+	'models/model.report'
 ],
 function(module, _, Router, ModelSettings, ModelReport) {
-	return {
+	return _.extend({
 		version: '@@SourceVersion',
 
 		config: _.extend(
@@ -24,5 +32,5 @@ function(module, _, Router, ModelSettings, ModelReport) {
 			settings: new ModelSettings(),
 			report: new ModelReport()
 		}
-	};
+	}, Backbone.Events);
 });

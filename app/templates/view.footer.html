@@ -1,0 +1,6 @@
+<div class="du-footer"><%=
+	_.template(_.isString(created) ? lang['footer_long'] : lang['footer'], {
+		created: created,
+		link: '<a target="_blank" href="http://diskusagereports.com/">Disk Usage Reports</a>'
+	})
+%></div>

@@ -8,12 +8,26 @@
  */
 define([
 	'backbone'
-], function(Backbone) {
+], function(Backbone){
 
-	return Backbone.Router.extend({
-		routes: {
-			'': 'index',
-			':hash(/:tab)(/:page)': 'index'
+	return Backbone.Model.extend({
+		defaults: {
+			version: null,
+			listversion: 1,
+
+			name: null,
+			root: null,
+			path: null,
+
+			ds: "/",
+			created: null,
+			directorytree: true,
+			escaped: false,
+
+			errors: [],
+
+			modified: [],
+			sizes: []
 		}
 	});
 
