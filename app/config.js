@@ -117,7 +117,7 @@ require.config({
 require.config({
 	map: {
 		'*': {
-			'jquery': 'zepto'
+			//'jquery': 'zepto'
 		}
 	}
 })
