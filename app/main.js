@@ -17,9 +17,10 @@ require([
 ],
 function(app, Backbone, _, $, Layout, lang, ReportLayout) {
 
-	var reportLayout = new ReportLayout();
+	var reportLayout = new ReportLayout({ models: app.models });
 	reportLayout.$el.appendTo('body');
 	reportLayout.render();
+	reportLayout.addListeners();
 
 	// Handle browser-resizing.
 	var resizeReport = function(){

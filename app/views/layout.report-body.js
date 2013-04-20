@@ -7,7 +7,6 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 define([
-	'app',
 	'backbone',
 	'layout',
 	'underscore',
@@ -15,39 +14,41 @@ define([
 	'views/view.tree',
 	'views/view.tree-resizer',
 	'views/layout.directory'
-], function(app, Backbone, Layout, _, MessageView, TreeView, TreeResizerView, DirectoryLayout){
-
-	var messageView = new MessageView({ model: app.models.report }),
-		treeView = new TreeView(),
-		treeResizerView = new TreeResizerView(),
-		directoryLayout = new DirectoryLayout();
+], function(Backbone, Layout, _, MessageView, TreeView, TreeResizerView, DirectoryLayout){
 
 	return Layout.extend({
 
 		tagName: 'div',
 		className: 'du-report-body',
 
-		views: {
-			'': [
-				treeView,
-				treeResizerView,
-				messageView,
-				directoryLayout
-			]
+		_models: null,
+
+		initialize: function(options) {
+			var models = this._models = options && options.models || {};
+
+			this.setViews({
+				'': [
+					new MessageView({ model: models.report }),
+					new TreeView(),
+					new TreeResizerView(),
+					new DirectoryLayout({ models: models })
+				]
+			});
 		},
 
 		resize: function(maxWidth, maxHeight) {
-			if (!this.$el.is(':visible'))
+			var $el = this.$el;
+
+			if (!$el.is(':visible'))
 				return;
 
-			maxWidth = maxWidth || this._lastMaxWidth || this.$el.width();
-			maxHeight = maxHeight || this._lastMaxHeight || this.$el.height();
+			maxWidth = maxWidth || this._lastMaxWidth || $el.width();
+			maxHeight = maxHeight || this._lastMaxHeight || $el.height();
 
 			this._lastMaxWidth = maxWidth;
 			this._lastMaxHeight = maxHeight;
 
-			var $el = this.$el,
-				diff = $el.outerHeight(true) - $el.height(),
+			var diff = $el.outerHeight(true) - $el.height(),
 				innerHeight = maxHeight - diff;
 
 			$el.height(innerHeight);
