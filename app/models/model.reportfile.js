@@ -15,18 +15,11 @@ define([
 		suffix: null,
 
 		initialize: function(attributes, options) {
-			if (_.isString(options.suffix))
-				this.suffix = [ options.suffix ];
-
-			else if (!_.isArray(options.suffix) || options.suffix.length < 1 || !_.isString(options.suffix[0]))
-				this.suffix = [ '' ];
-
-			else
-				this.suffix = options.suffix;
+			this.suffix = _.isString(options.suffix) ? [ options.suffix ] : _.toArray(options.suffix);
 		},
 
 		url: function() {
-			return this.urlRoot + this.id + (this.suffix && this.suffix[0] || '')
+			return this.urlRoot + this.id + (this.suffix && this.suffix[0] || this.suffix || '')
 		}
 	});
 
