@@ -70,13 +70,13 @@ require.config({
 		},
 		{
 			name: "lodash",
-			location: "vendor/bower/lodash",
-			main: "lodash.js"
+			location: "vendor/bower/lodash/dist",
+			main: "lodash.underscore.js"
 		},
 		{
 			name: "underscore",
-			location: "vendor/bower/lodash",
-			main: "lodash.js"
+			location: "vendor/bower/lodash/dist",
+			main: "lodash.underscore.js"
 		},
 		{
 			name: "i18n",
