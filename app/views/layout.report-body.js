@@ -10,7 +10,6 @@ define([
 	'backbone',
 	'layoutmanager',
 	'underscore',
-	'text!templates/layout.report-body.html',
 	'views/view.tree',
 	'views/view.tree-resizer',
 	'views/layout.directory'
@@ -22,8 +21,8 @@ define([
 
 	return Backbone.Layout.extend({
 
-		template: _.template(template),
-		el: false,
+		tagName: 'div',
+		className: 'du-report-body',
 
 		views: {
 			'': [

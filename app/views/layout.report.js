@@ -11,7 +11,6 @@ define([
 	'backbone',
 	'layoutmanager',
 	'underscore',
-	'text!templates/layout.report.html',
 	'views/view.title',
 	'views/layout.report-body',
 	'views/view.footer'
@@ -23,8 +22,8 @@ define([
 
 	return Backbone.Layout.extend({
 
-		template: _.template(template),
-		el: false,
+		tagName: 'div',
+		className: 'du-report du-loading',
 
 		views: {
 			'': [

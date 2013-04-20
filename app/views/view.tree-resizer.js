@@ -8,19 +8,12 @@
  */
 define([
 	'backbone',
-	'layoutmanager',
-	'underscore',
-	'text!templates/view.tree-resizer.html'
-], function(Backbone, Layout, _, template){
+	'layoutmanger'
+], function(Backbone, Layout){
 
 	return Backbone.Layout.extend({
-
-		template: _.template(template),
-		el: false,
-
-		initialize: function() {
-
-		}
+		tagName: 'div',
+		className: 'du-tree-resizer'
 	});
 
 });
