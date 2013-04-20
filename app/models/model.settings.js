@@ -32,6 +32,22 @@ define([
 
 			modified: [],
 			sizes: []
+		},
+
+		validate: function(attributes) {
+			if (!_.isString(attributes.root) || attributes.root.length == 0)
+				return 'Invalid root hash';
+
+			if (!_.isString(attributes.ds))
+				return 'Invalid directory separator';
+
+			if (!_.isBoolean(attributes.directorytree))
+				return 'Invalid directory tree flag';
+
+			if (!_.isBoolean(attributes.escaped))
+				return 'Invalid escaped flag';
+
+			// TODO: Validate modified and sizes.
 		}
 	});
 
