@@ -22,7 +22,7 @@ define([
 		serialize: function() {
 			return {
 				lang: lang,
-				tabs: this.model && this.model.tabs || null,
+				tabs: this.model && this.model.tabs || [],
 				selected: this.model && this.model.attributes.tab || null
 			};
 		},
