@@ -14,6 +14,11 @@ define({
 		"tab_ext": "File Types",
 		"tab_top": "Top 100",
 
-		message_loading: "Loading..."
+		message_loading: "Loading...",
+		message_settings: "The report could not be loaded. Error: <%= status %>",
+		message_settings_200: "The settings file for the report is invalid JSON.",
+		message_settings_304: "The settings file for the report is invalid JSON.",
+		message_settings_404: "The report was not found. Verify that the web address is correct and try again.",
+		message_settings_invalid: "The settings file for the report has invalid values."
 	}
 });

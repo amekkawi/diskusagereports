@@ -12,9 +12,10 @@ require([
 	'underscore',
 	'jquery',
 	'layoutmanager',
+	'i18n!nls/report',
 	'views/layout.report'
 ],
-function(app, Backbone, _, $, Layout, ReportLayout) {
+function(app, Backbone, _, $, Layout, lang, ReportLayout) {
 
 	var reportLayout = new ReportLayout();
 	reportLayout.$el.appendTo('body');
@@ -36,6 +37,41 @@ function(app, Backbone, _, $, Layout, ReportLayout) {
 
 	// Initial resize.
 	resizeReport();
+
+	// Delay the loading message to avoid it from blinking quickly.
+	var messageDelay = _.delay(function(){
+		app.models.report.set({
+			message: lang['message_loading'],
+			messageType: 'loading'
+		});
+	}, 250);
+
+	//_.delay(function(){
+	var settings = app.models.settings;
+
+	settings.fetch({
+		success: function(model, response, options) {
+			clearTimeout(messageDelay);
+
+			if (!settings.isValid()) {
+				app.models.report.set({
+					message: lang['message_settings_invalid'],
+					messageType: 'error'
+				});
+			}
+			else {
+				app.models.report.set('message', null);
+			}
+		},
+		error: function(model, response, options){
+			clearTimeout(messageDelay);
+			app.models.report.set({
+				message: _.template(lang['message_settings_' + response.status] || lang['message_settings'], { status: response.status+'' }),
+				messageType: 'error'
+			});
+		}
+	});
+	//}, 2000);
 
 	// TODO: When to trigger history handling?
 	//Backbone.history.start({ pushState: false });
