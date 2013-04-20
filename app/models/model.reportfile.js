@@ -15,11 +15,11 @@ define([
 		suffix: null,
 
 		initialize: function(attributes, options) {
-			this.suffix = _.isString(options.suffix) ? [ options.suffix ] : _.toArray(options.suffix);
+			this.suffix = _.isString(options.suffix) ? [ options.suffix ] : options.suffix;
 		},
 
 		url: function() {
-			return this.urlRoot + this.id + (this.suffix && this.suffix[0] || this.suffix || '')
+			return Backbone.Model.prototype.url.apply(this, arguments) + (this.suffix && this.suffix[0] || '')
 		}
 	});
 
