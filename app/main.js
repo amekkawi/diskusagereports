@@ -46,14 +46,11 @@ function(app, Backbone, _, $, Layout, lang, ReportLayout) {
 		});
 	}, 250);
 
-	//_.delay(function(){
-	var settings = app.models.settings;
-
-	settings.fetch({
+	app.models.settings.fetch({
 		success: function(model, response, options) {
 			clearTimeout(messageDelay);
 
-			if (!settings.isValid()) {
+			if (!model.isValid()) {
 				app.models.report.set({
 					message: lang['message_settings_invalid'],
 					messageType: 'error'
@@ -66,12 +63,11 @@ function(app, Backbone, _, $, Layout, lang, ReportLayout) {
 		error: function(model, response, options){
 			clearTimeout(messageDelay);
 			app.models.report.set({
-				message: _.template(lang['message_settings_' + response.status] || lang['message_settings'], { status: response.status+'' }),
+				message: _.template(lang['message_settings_' + (response.status || response.statusText)] || lang['message_settings'], { status: (response.status || response.statusText)+'' }),
 				messageType: 'error'
 			});
 		}
 	});
-	//}, 2000);
 
 	// TODO: When to trigger history handling?
 	//Backbone.history.start({ pushState: false });
