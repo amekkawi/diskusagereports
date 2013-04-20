@@ -30,9 +30,8 @@ define([
 			var long = _.map(this.tabs, function(tab) { return tab.long }),
 				short = _.map(this.tabs, function(tab) { return tab.short });
 
-			this.tabToShort = _.zipObject(long, short);
-			this.tabToLong = _.zipObject(short, long);
-			console.log(this.tabs, this.tabToShort, this.tabToLong);
+			this.tabToShort = _.object(long, short);
+			this.tabToLong = _.object(short, long);
 		},
 
 		defaults: {
