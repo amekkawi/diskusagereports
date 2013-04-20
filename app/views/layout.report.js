@@ -41,7 +41,16 @@ define([
 			if (!this.$el.is(':visible'))
 				return;
 
-			reportBodyView.resize(maxWidth, maxHeight - titleView.$el.outerHeight(true) - footerView.$el.outerHeight(true));
+			maxWidth = maxWidth || this._lastMaxWidth || this.$el.width();
+			maxHeight = maxHeight || this._lastMaxHeight || this.$el.height();
+
+			this._lastMaxWidth = maxWidth;
+			this._lastMaxHeight = maxHeight;
+
+			var innerHeight = maxHeight - titleView.$el.outerHeight(true) - footerView.$el.outerHeight(true);
+			this.getViews().each(function(view){
+				view.resize(maxWidth, innerHeight);
+			});
 		},
 
 		addListeners: function() {
