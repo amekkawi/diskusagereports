@@ -9,11 +9,9 @@
 define([
 	'module',
 	'underscore',
-	'router',
-	'models/model.settings',
-	'models/model.report'
+	'router'
 ],
-function(module, _, Router, ModelSettings, ModelReport) {
+function(module, _, Router) {
 	var config = _.extend(
 		module.config() || {},
 		{
@@ -28,16 +26,6 @@ function(module, _, Router, ModelSettings, ModelReport) {
 
 		config: config,
 
-		router: new Router(),
-
-		models: {
-			settings: new ModelSettings({}, {
-				urlRoot: config.reportsBaseURL + config.report + '/',
-				suffix: config.suffix
-			}),
-			report: new ModelReport({}, {
-				suffix: config.suffix
-			})
-		}
-	}, Backbone.Events);
+		router: new Router()
+	});
 });

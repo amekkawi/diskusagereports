@@ -21,8 +21,6 @@ define([
 		tagName: 'div',
 		className: 'du-report-body',
 
-		_models: null,
-
 		initialize: function(options) {
 			var models = this._models = options && options.models || {};
 
@@ -59,8 +57,8 @@ define([
 		},
 
 		addListeners: function() {
-			if (this.model)
-				this.listenTo(this.model, "change:message", this._changeMessage);
+			if (this._models.report)
+				this.listenTo(this._models.report, "change:message", this._changeMessage);
 
 			this.getViews().each(function(view){
 				view.addListeners();

@@ -97,10 +97,16 @@
 	.du-loading &, .du-notree & {
 		display: none;
 	}
+
+	&.du-loading {
+		background-image: url(../images/ajax-loader.gif);
+		background-repeat: no-repeat;
+		background-position: center center;
+	}
 }
 
 .du-directory {
-	.du-loading &, .du-showmessage & {
+	&.du-loading, .du-loading &, .du-showmessage & {
 		display: none;
 	}
 
