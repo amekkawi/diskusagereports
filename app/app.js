@@ -14,23 +14,30 @@ define([
 	'models/model.report'
 ],
 function(module, _, Router, ModelSettings, ModelReport) {
+	var config = _.extend(
+		module.config() || {},
+		{
+			report: window && window.location
+				&& _.isString(window.location.search) && window.location.search.substring(1) || ''
+		},
+		window && window['reportConfig'] || {}
+	);
+
 	return _.extend({
 		version: '@@SourceVersion',
 
-		config: _.extend(
-			module.config() || {},
-			{
-				report: window && window.location
-					&& _.isString(window.location.search) && window.location.search.substring(1) || ''
-			},
-			window && window['reportConfig'] || {}
-		),
+		config: config,
 
 		router: new Router(),
 
 		models: {
-			settings: new ModelSettings(),
-			report: new ModelReport()
+			settings: new ModelSettings({}, {
+				urlRoot: config.reportsBaseURL + config.report + '/',
+				suffix: config.suffix
+			}),
+			report: new ModelReport({}, {
+				suffix: config.suffix
+			})
 		}
 	}, Backbone.Events);
 });
