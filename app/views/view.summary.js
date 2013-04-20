@@ -20,14 +20,19 @@ define([
 		el: false,
 
 		serialize: function() {
+			var isValid = this.model && this.model.isValid || false;
 			return {
 				lang: lang,
-				path: [
-					{ name: 'Utilities', hash: 'd41d8cd98f00b204e9800998ecf8427e' },
-					{ name: 'Spoon' }
-				],
-				size: { total: 0, direct: 0 },
-				files: { total: 0, direct: 0 }
+				name: isValid ? this.model.attributes.name : '',
+				parents: isValid ? this.model.attributes.parents : [],
+				size: {
+					total: isValid ? this.model.attributes.size.total : [],
+					direct: isValid ? this.model.attributes.size.direct : []
+				},
+				files: {
+					total: isValid ? this.model.attributes.files.total : [],
+					direct: isValid ? this.model.attributes.files.direct : []
+				}
 			};
 		},
 

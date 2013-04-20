@@ -16,7 +16,7 @@ define([
 	'views/view.tabs'
 ], function(app, Backbone, Layout, _, template, SummaryView, TabsView){
 
-	var summaryView = new SummaryView(),
+	var summaryView = new SummaryView({ model: app.models.directory }),
 		tabsView = new TabsView({ model: app.models.report });
 
 	return Layout.extend({
