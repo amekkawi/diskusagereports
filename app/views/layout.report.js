@@ -9,7 +9,7 @@
 define([
 	'app',
 	'backbone',
-	'layoutmanager',
+	'layout',
 	'underscore',
 	'views/view.title',
 	'views/layout.report-body',
@@ -20,7 +20,7 @@ define([
 		reportBodyView = new ReportBodyView(),
 		footerView = new FooterView({ model: app.models.settings });
 
-	return Backbone.Layout.extend({
+	return Layout.extend({
 
 		tagName: 'div',
 		className: 'du-report du-loading',
@@ -39,6 +39,13 @@ define([
 
 		resize: function(maxWidth, maxHeight) {
 			reportBodyView.resize(maxWidth, maxHeight - titleView.$el.outerHeight(true) - footerView.$el.outerHeight(true));
+		},
+
+		addListeners: function() {
+			this.getViews().each(function(view){
+				view.addListeners();
+			});
+			return this;
 		}
 	});
 

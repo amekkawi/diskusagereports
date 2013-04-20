@@ -8,12 +8,19 @@
  */
 define([
 	'backbone',
-	'layout'
-], function(Backbone, Layout){
+	'layoutmanager'
+], function(Backbone){
 
-	return Layout.extend({
-		tagName: 'div',
-		className: 'du-tree-resizer'
+	return Backbone.Layout.extend({
+
+		resize: function(maxWidth, maxHeight) {
+
+		},
+
+		addListeners: function() {
+			return this;
+		}
+
 	});
 
 });

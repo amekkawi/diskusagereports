@@ -8,7 +8,7 @@
  */
 define([
 	'backbone',
-	'layoutmanager',
+	'layout',
 	'underscore',
 	'views/view.tree',
 	'views/view.tree-resizer',
@@ -19,7 +19,7 @@ define([
 		treeResizerView = new TreeResizerView(),
 		directoryLayout = new DirectoryLayout();
 
-	return Backbone.Layout.extend({
+	return Layout.extend({
 
 		tagName: 'div',
 		className: 'du-report-body',
@@ -40,6 +40,13 @@ define([
 			$el.height(innerHeight);
 
 			directoryLayout.resize(maxWidth, innerHeight);
+		},
+
+		addListeners: function() {
+			this.getViews().each(function(view){
+				view.addListeners();
+			});
+			return this;
 		}
 	});
 

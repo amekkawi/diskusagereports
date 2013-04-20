@@ -8,18 +8,18 @@
  */
 define([
 	'backbone',
-	'layoutmanager',
+	'layout',
 	'underscore',
 	'text!templates/view.tree.html'
 ], function(Backbone, Layout, _, template){
 
-	return Backbone.Layout.extend({
+	return Layout.extend({
 
 		template: _.template(template),
 		el: false,
 
-		initialize: function() {
-
+		addListeners: function() {
+			return this;
 		}
 	});
 

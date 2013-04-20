@@ -8,13 +8,13 @@
  */
 define([
 	'backbone',
-	'layoutmanager',
+	'layout',
 	'underscore',
 	'text!templates/view.summary.html',
 	'i18n!nls/report'
 ], function(Backbone, Layout, _, template, lang){
 
-	return Backbone.Layout.extend({
+	return Layout.extend({
 
 		template: _.template(template),
 		el: false,
@@ -31,9 +31,11 @@ define([
 			};
 		},
 
-		listen: function() {
+		addListeners: function() {
 			if (this.model)
 				this.listenTo(this.model, "change:hash", this.render);
+
+			return this;
 		}
 	});
 

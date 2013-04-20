@@ -8,13 +8,13 @@
  */
 define([
 	'backbone',
-	'layoutmanager',
+	'layout',
 	'underscore',
 	'text!templates/view.footer.html',
 	'i18n!nls/report'
 ], function(Backbone, Layout, _, template, lang){
 
-	return Backbone.Layout.extend({
+	return Layout.extend({
 
 		template: _.template(template),
 		el: false,
@@ -26,9 +26,10 @@ define([
 			};
 		},
 
-		initialize: function() {
+		addListeners: function() {
 			if (this.model)
 				this.listenTo(this.model, "change:created", this.render);
+			return this;
 		}
 	});
 

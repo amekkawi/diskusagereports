@@ -9,7 +9,7 @@
 define([
 	'app',
 	'backbone',
-	'layoutmanager',
+	'layout',
 	'underscore',
 	'text!templates/layout.directory.html',
 	'views/view.summary',
@@ -19,7 +19,7 @@ define([
 	var summaryView = new SummaryView(),
 		tabsView = new TabsView({ model: app.models.report });
 
-	return Backbone.Layout.extend({
+	return Layout.extend({
 
 		template: _.template(template),
 		el: false,
@@ -41,6 +41,13 @@ define([
 				bodyDiff = $body.outerHeight(true) - $body.height();
 
 			$el.find('>.du-directory-body').height(innerHeight - bodyDiff - bodyTop);
+		},
+
+		addListeners: function() {
+			this.getViews().each(function(view){
+				view.addListeners();
+			});
+			return this;
 		}
 	});
 
