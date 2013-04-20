@@ -33,6 +33,9 @@ define([
 		},
 
 		resize: function(maxWidth, maxHeight) {
+			if (!this.$el.is(':visible'))
+				return;
+
 			var $el = this.$el,
 				diff = $el.outerHeight(true) - $el.height(),
 				innerHeight = maxHeight - diff;

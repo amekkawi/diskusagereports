@@ -38,6 +38,9 @@ define([
 		},
 
 		resize: function(maxWidth, maxHeight) {
+			if (!this.$el.is(':visible'))
+				return;
+
 			reportBodyView.resize(maxWidth, maxHeight - titleView.$el.outerHeight(true) - footerView.$el.outerHeight(true));
 		},
 
