@@ -7,10 +7,10 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 define([
-	'backbone'
-], function(Backbone){
+	'models/model.reportfile'
+], function(ReportFile){
 
-	return Backbone.Model.extend({
+	return ReportFile.extend({
 
 		defaults: {
 			hash: null,
