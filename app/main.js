@@ -24,7 +24,15 @@ function(app, Backbone, _, $, Layout, ReportLayout) {
 	var resizeReport = function(){
 		reportLayout.trigger('resize', reportLayout.$el.width(), reportLayout.$el.height());
 	};
-	$(window).on("resize", _.throttle(resizeReport, 200));
+	var resizeThrottle = _.throttle(resizeReport, 200);
+	$(window).on("resize", resizeThrottle);
+
+	// Do a resize just in case every 15 seconds.
+	var resizeCheck = function() {
+		resizeThrottle();
+		_.delay(resizeCheck, 15000);
+	};
+	_.delay(resizeCheck, 15000);
 
 	// Initial resize.
 	resizeReport();
