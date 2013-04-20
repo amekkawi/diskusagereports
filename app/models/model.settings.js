@@ -48,6 +48,26 @@ define([
 				return 'Invalid escaped flag';
 
 			// TODO: Validate modified and sizes.
+		},
+
+		fetch: function(options) {
+			var self = this,
+				options = options || {},
+				origError = options.error;
+
+			options.error = function(){
+				if (self.suffix.length)
+					self.suffix.shift();
+
+				if (self.suffix.length) {
+					self.fetch(options);
+				}
+				else if (_.isFunction(origError)) {
+					origError.apply(this, arguments);
+				}
+			};
+
+			ReportFile.prototype.fetch.call(this, options);
 		}
 	});
 
