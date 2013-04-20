@@ -14,10 +14,10 @@ define([
 	'views/view.title',
 	'views/layout.report-body',
 	'views/view.footer'
-], function(app, Backbone, Layout, _, template, TitleView, ReportBodyView, FooterView){
+], function(app, Backbone, Layout, _, TitleView, ReportBodyView, FooterView){
 
 	var titleView = new TitleView({ model: app.models.settings }),
-		reportBodyView = new ReportBodyView(),
+		reportBodyView = new ReportBodyView({ model: app.models.report }),
 		footerView = new FooterView({ model: app.models.settings });
 
 	return Layout.extend({

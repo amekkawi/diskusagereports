@@ -35,6 +35,9 @@ define([
 		},
 
 		defaults: {
+			message: null,
+			messageType: null,
+
 			name: null,
 			hash: null,
 			tab: 'dirs',

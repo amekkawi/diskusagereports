@@ -7,15 +7,18 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 define([
+	'app',
 	'backbone',
 	'layout',
 	'underscore',
+	'views/view.message',
 	'views/view.tree',
 	'views/view.tree-resizer',
 	'views/layout.directory'
-], function(Backbone, Layout, _, template, TreeView, TreeResizerView, DirectoryLayout){
+], function(app, Backbone, Layout, _, MessageView, TreeView, TreeResizerView, DirectoryLayout){
 
-	var treeView = new TreeView(),
+	var messageView = new MessageView({ model: app.models.report }),
+		treeView = new TreeView(),
 		treeResizerView = new TreeResizerView(),
 		directoryLayout = new DirectoryLayout();
 
@@ -28,6 +31,7 @@ define([
 			'': [
 				treeView,
 				treeResizerView,
+				messageView,
 				directoryLayout
 			]
 		},
@@ -54,10 +58,23 @@ define([
 		},
 
 		addListeners: function() {
+			if (this.model)
+				this.listenTo(this.model, "change:message", this._changeMessage);
+
 			this.getViews().each(function(view){
 				view.addListeners();
 			});
 			return this;
+		},
+
+		_changeMessage: function(model, message) {
+			var isString = _.isString(message),
+				changed = _.isString(model.previous('message')) !== isString;
+
+			if (changed) {
+				this.$el[isString ? 'addClass' : 'removeClass']('du-showmessage');
+				this.resize();
+			}
 		}
 	});
 

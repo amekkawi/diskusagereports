@@ -83,15 +83,27 @@
 	background-image: url(../images/resizer.png);
 	background-position: center center;
 	background-repeat: no-repeat;
+
+	.du-loading &, .du-notree & {
+		display: none;
+	}
 }
 
 .du-tree {
 	float: left;
 	background-color: @report-white;
 	width: 200px;
+
+	.du-loading &, .du-notree & {
+		display: none;
+	}
 }
 
 .du-directory {
+	.du-loading &, .du-showmessage & {
+		display: none;
+	}
+
 	.du-summary {
 		padding: 4px 4px 14px 40px;
 		margin-left: 6px;
@@ -190,5 +202,26 @@
 
 	a {
 		color: #AAA;
+	}
+}
+
+.du-message {
+	display: none;
+	font-size: 20px;
+	padding: 12px 22px;
+	background-color: @report-white;
+	overflow: hidden;
+
+	.du-showmessage & {
+		display: block;
+	}
+
+	.border-radius(15px);
+
+	&.error {
+		padding-left: 60px;
+		background-image: url(../images/error32x32.png);
+		background-repeat: no-repeat;
+		background-position: 19px .5em;
 	}
 }

@@ -12,6 +12,8 @@ define({
 		"tab_modified": "Last Modified",
 		"tab_sizes": "File Sizes",
 		"tab_ext": "File Types",
-		"tab_top": "Top 100"
+		"tab_top": "Top 100",
+
+		message_loading: "Loading..."
 	}
 });
