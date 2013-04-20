@@ -1,10 +1,9 @@
 <div class="du-summary">
 	<div class="du-path"><%
-		for (var i in path) {
-			if (i > 0) { %><span>/ </span><% }
-			%><%- path[i].name %><%
+		for (var i in parents) {
+			%><a href="#<%- parents[i].hash %>"><%- parents[i].name %></a><span>/ </span><%
 		}
-	%></div>
+	%><%- name %></div>
 	<div class="du-text">
 		<%= _.template(lang['total_size'], size) %><br>
 		<%= _.template(lang['total_files'], files) %>
