@@ -16,7 +16,8 @@ define([
 	return Layout.extend({
 
 		template: _.template(template),
-		el: false,
+		tagName: 'div',
+		className: 'du-tree du-loading',
 
 		addListeners: function() {
 			return this;

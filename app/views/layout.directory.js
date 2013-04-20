@@ -17,7 +17,8 @@ define([
 	return Layout.extend({
 
 		template: _.template(template),
-		el: false,
+		tagName: 'div',
+		className: 'du-directory du-loading',
 
 		_models: null,
 
