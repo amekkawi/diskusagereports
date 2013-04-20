@@ -38,19 +38,12 @@ define([
 			message: null,
 			messageType: null,
 
-			name: null,
 			hash: null,
 			tab: 'dirs',
 			page: 1
 		},
 
 		validate: function(attributes) {
-			if (!_.isObject(attributes))
-				return 'Invalid attributes object';
-
-			if (!_.isString(attributes.name))
-				return 'Invalid name attribute';
-
 			if (!_.isString(attributes.hash))
 				return 'Invalid hash attribute';
 
