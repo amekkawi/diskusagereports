@@ -20,18 +20,21 @@ define([
 		el: false,
 
 		serialize: function() {
-			var isValid = this.model && this.model.isValid || false;
+			var model = this.model,
+				attributes = model && model.attributes,
+				isValid = model && model.isValid() || false;
+
 			return {
 				lang: lang,
-				name: isValid ? this.model.attributes.name : '',
-				parents: isValid ? this.model.attributes.parents : [],
+				name: isValid ? attributes.name : '',
+				parents: isValid ? attributes.parents : [],
 				size: {
-					total: isValid ? this.model.attributes.size.total : [],
-					direct: isValid ? this.model.attributes.size.direct : []
+					total: isValid ? attributes.size.total : [],
+					direct: isValid ? attributes.size.direct : []
 				},
 				files: {
-					total: isValid ? this.model.attributes.files.total : [],
-					direct: isValid ? this.model.attributes.files.direct : []
+					total: isValid ? attributes.files.total : [],
+					direct: isValid ? attributes.files.direct : []
 				}
 			};
 		},
