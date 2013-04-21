@@ -95,27 +95,16 @@ define([
 				models = this.models,
 				loadOptions = options || {};
 
-			// Delay the loading message to avoid it from blinking quickly.
-			var messageDelay = _.delay(function(){
-				models.report.set({
-					message: lang['message_loading'],
-					messageType: 'loading'
-				});
-			}, 250);
+			this.setMessage(lang['message_loading'], 'loading', { delay: true });
 
 			// Start with the settings file.
 			models.settings.fetch({
 				success: function(model, response, options) {
-					clearTimeout(messageDelay);
-
 					if (!model.isValid()) {
-						models.report.set({
-							message: lang['message_settings_invalid'],
-							messageType: 'error'
-						});
+						self.setMessage(lang['message_settings_invalid'], 'error');
 					}
 					else {
-						models.report.set('message', null);
+						self.clearMessage();
 
 						$el.removeClass('du-loading');
 						self.resize();
@@ -138,11 +127,10 @@ define([
 					}
 				},
 				error: function(model, response, options){
-					clearTimeout(messageDelay);
-					models.report.set({
-						message: _.template(lang['message_settings_' + (response.status || response.statusText)] || lang['message_settings'], { status: (response.status || response.statusText)+'' }),
-						messageType: 'error'
-					});
+					self.setMessage(
+						_.template(lang['message_settings_' + (response.status || response.statusText)] || lang['message_settings'], { status: (response.status || response.statusText)+'' }),
+						'error'
+					);
 					loadOptions.error && loadOptions.error.apply(this, arguments);
 				}
 			});
@@ -166,6 +154,38 @@ define([
 					_.keys(this.model.defaults)
 				)
 			, _.extend({}, options, { validate: true }));
+		},
+
+		setMessage: function(message, type, options) {
+			var report = this.models.report;
+
+			if (this._messageTimeout) {
+				clearTimeout(this._messageTimeout);
+				delete this._messageTimeout;
+			}
+
+			var setFn = function(){
+				report.set({
+					message: message,
+					messageType: type || ''
+				});
+			};
+
+			// Delay the loading message to avoid it from blinking quickly.
+			if (options && options.delay)
+				this._messageTimeout = _.delay(setFn, _.isNumber(options.delay) ? options.delay : 250);
+			else
+				setFn();
+		},
+
+		clearMessage: function() {
+			if (this._messageTimeout)
+				clearTimeout(this._messageTimeout);
+
+			this.models.report.set({
+				message: null,
+				messageType: null
+			});
 		}
 	});
 
