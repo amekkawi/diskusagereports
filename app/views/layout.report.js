@@ -83,17 +83,6 @@ define([
 		},
 
 		addListeners: function() {
-			// Report setup only done once after valid settings are loaded.
-			this.models.settings.once("change", function(model){
-				if (model.isValid()) {
-					if (!model.attributes.directorytree)
-						this.$el.addClass('du-notree');
-
-					this.$el.removeClass('du-loading');
-					this.resize();
-				}
-			}, this);
-
 			this.getViews().each(function(view){
 				view.addListeners();
 			});
@@ -101,7 +90,9 @@ define([
 		},
 
 		load: function(options) {
-			var models = this.models,
+			var $el = this.$el,
+				self = this,
+				models = this.models,
 				loadOptions = options || {};
 
 			// Delay the loading message to avoid it from blinking quickly.
@@ -126,11 +117,24 @@ define([
 					else {
 						models.report.set('message', null);
 
+						$el.removeClass('du-loading');
+						self.resize();
+
 						if (model.attributes.directorytree) {
 							// TODO: Start loading the directory tree.
 						}
+						else {
+							$el.addClass('du-notree');
+						}
 
-						loadOptions.success && loadOptions.success.call(this, models);
+						// Set the hash to the root if it is null.
+						if (!_.isString(models.report.attributes.hash)) {
+							models.report.set({
+								hash: model.attributes.root
+							}, { validate: true, root: true });
+						}
+
+						loadOptions.success && loadOptions.success.apply(this, arguments);
 					}
 				},
 				error: function(model, response, options){
