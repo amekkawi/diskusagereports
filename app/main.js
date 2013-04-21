@@ -35,6 +35,26 @@ function(app, Backbone, _, $, Layout, lang, Report) {
 	report.addListeners();
 
 	// ====================================
+	// Handle history
+	// ====================================
+
+	report.model.on("change", function(model, options){
+		if (_.has(model.changed, 'hash') || _.has(model.changed, 'tab') || _.has(model.changed, 'page'))
+			if (!_.isNull(model.attributes.hash) && !options.history && !options.root)
+				app.router.navigate(model.attributes.hash + '/' + model.tabToShort[model.attributes.tab] + '/' + model.attributes.page);
+	});
+
+	app.router.on("route:directory", function(hash, tab, page) {
+		report.set({
+			hash: hash,
+			tab: tab,
+			page: page
+		}, { history: true });
+	});
+
+	Backbone.history.start({ pushState: false });
+
+	// ====================================
 	// Handle browser-resizing.
 	// ====================================
 

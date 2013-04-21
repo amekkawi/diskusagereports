@@ -12,8 +12,8 @@ define([
 
 	return Backbone.Router.extend({
 		routes: {
-			'': 'index',
-			':hash(/:tab)(/:page)': 'index'
+			'': 'directory',
+			':hash(/:tab)(/:page)': 'directory'
 		}
 	});
 
