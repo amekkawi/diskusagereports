@@ -19,29 +19,29 @@ define([
 		template: _.template(template),
 		el: false,
 
-		serialize: function() {
-			var model = this.model,
-				attributes = model && model.attributes,
-				isValid = model && model.isValid() || false;
+		initialize: function(options) {
+			this._models = options && options.models || {};
+			this.model = this._models.directory;
+		},
 
+		serialize: function() {
+			var attributes = this.model.attributes,
+				report = this._models.report;
 			return {
 				lang: lang,
-				name: isValid ? attributes.name : '',
-				parents: isValid ? attributes.parents : [],
-				size: {
-					total: isValid ? attributes.size.total : [],
-					direct: isValid ? attributes.size.direct : []
-				},
-				files: {
-					total: isValid ? attributes.files.total : [],
-					direct: isValid ? attributes.files.direct : []
-				}
+				tab: report.tabToShort[report.attributes.tab],
+				parents: attributes.parents,
+				name: attributes.name,
+				num: attributes.num,
+				totalnum: attributes.totalnum,
+				bytes: attributes.bytes,
+				totalbytes: attributes.totalbytes
 			};
 		},
 
 		addListeners: function() {
 			if (this.model)
-				this.listenTo(this.model, "change:hash", this.render);
+				this.listenTo(this.model, "change", this.render);
 
 			return this;
 		}

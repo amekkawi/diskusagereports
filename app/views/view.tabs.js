@@ -19,17 +19,27 @@ define([
 		template: _.template(template),
 		el: false,
 
+		initialize: function(options) {
+			this._models = options && options.models || {};
+			this.model = this._models.report;
+		},
+
 		serialize: function() {
+			var model = this.model,
+				attributes = model.attributes;
+
 			return {
 				lang: lang,
-				tabs: this.model && this.model.tabs || [],
-				selected: this.model && this.model.attributes.tab || null
+				hash: attributes.hash,
+				tabs: model.tabs,
+				selected: attributes.tab
 			};
 		},
 
 		addListeners: function() {
 			if (this.model)
-				this.listenTo(this.model, "change:tab", this.render);
+				this.listenTo(this.model, "change", this.render);
+
 			return this;
 		}
 	});

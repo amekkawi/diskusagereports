@@ -27,8 +27,8 @@ define([
 
 			this.setViews({
 				'.du-directory-head': [
-					new SummaryView({ model: this._models.directory }),
-					new TabsView({ model: this._models.report })
+					new SummaryView({ models: this._models }),
+					new TabsView({ models: this._models })
 				]
 			});
 		},

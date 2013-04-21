@@ -2,7 +2,7 @@
 	<ul>
 		<%
 		tabs && _.each(tabs, function(tab){
-			%><li class="<%= _.isString(selected) && selected == tab.long ? 'selected' : '' %>"><%- lang[tab.lang] %></li><%
+			%><li><a class="<%= _.isString(selected) && selected == tab.long ? 'selected' : '' %>" href="#<%- hash %>/<%- tab.short %>"><%- lang[tab.lang] %></a></li><%
 		});
 		%>
 	</ul>

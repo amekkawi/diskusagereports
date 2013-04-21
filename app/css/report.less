@@ -143,7 +143,7 @@
 			list-style: none;
 		}
 
-		li {
+		a {
 			cursor: pointer;
 			float: left;
 			display: block;
@@ -151,6 +151,7 @@
 			margin-left: 10px;
 			color: #5A5842;
 			font-weight: bold;
+			text-decoration: none;
 
 			background-color: darken(#dfdccd, 8%);
 
@@ -176,7 +177,6 @@
 			html.cssgradients &.selected,
 			&.selected {
 				.reset-filter();
-				cursor: default;
 				text-decoration: none;
 				background-color: @report-white;
 				background-image: none;
