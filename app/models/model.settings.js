@@ -55,7 +55,12 @@ define([
 				options = options || {},
 				origError = options.error;
 
-			options.error = function(){
+			options.error = function(model, response){
+				if (response.status == 0 && response.statusText == "abort") {
+					origError.apply(this, arguments);
+					return;
+				}
+
 				if (self.suffix.length)
 					self.suffix.shift();
 
@@ -67,7 +72,7 @@ define([
 				}
 			};
 
-			ReportFile.prototype.fetch.call(this, options);
+			return ReportFile.prototype.fetch.call(this, options);
 		}
 	});
 
