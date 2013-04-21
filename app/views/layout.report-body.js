@@ -26,9 +26,9 @@ define([
 
 			this.setViews({
 				'': [
-					new MessageView({ model: models.report }),
 					new TreeView(),
 					new TreeResizerView(),
+					new MessageView({ model: models.report }),
 					new DirectoryLayout({ models: models })
 				]
 			});
