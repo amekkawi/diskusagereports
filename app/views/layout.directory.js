@@ -34,11 +34,15 @@ define([
 		},
 
 		resize: function(maxWidth, maxHeight) {
-			if (!this.$el.is(':visible'))
+			var $el = this.$el;
+
+			this._lastMaxHeight = this._lastMaxHeight || maxHeight;
+			maxHeight = maxHeight || this._lastMaxHeight || $el.height();
+
+			if (!$el.is(':visible'))
 				return;
 
-			var $el = this.$el,
-				diff = $el.outerHeight(true) - $el.height(),
+			var diff = $el.outerHeight(true) - $el.height(),
 				innerHeight = maxHeight - diff,
 
 				$body = $el.find('>.du-directory-body'),

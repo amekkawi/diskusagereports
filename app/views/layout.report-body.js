@@ -37,14 +37,11 @@ define([
 		resize: function(maxWidth, maxHeight) {
 			var $el = this.$el;
 
-			if (!$el.is(':visible'))
-				return;
-
-			maxWidth = maxWidth || this._lastMaxWidth || $el.width();
+			this._lastMaxHeight = this._lastMaxHeight || maxHeight;
 			maxHeight = maxHeight || this._lastMaxHeight || $el.height();
 
-			this._lastMaxWidth = maxWidth;
-			this._lastMaxHeight = maxHeight;
+			if (!$el.is(':visible'))
+				return;
 
 			var diff = $el.outerHeight(true) - $el.height(),
 				innerHeight = maxHeight - diff;
