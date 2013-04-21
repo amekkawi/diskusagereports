@@ -24,6 +24,7 @@ define([
 
 		initialize: function(options) {
 			this._models = options && options.models || {};
+			this.model = this._models.directory;
 
 			this.setViews({
 				'.du-directory-head': [
@@ -53,6 +54,24 @@ define([
 		},
 
 		addListeners: function() {
+			var self = this,
+				$el = this.$el;
+
+			this._models.report.on('change:hash', function(model, options) {
+				if (model.isValid() && _.isString(model.attributes.hash)) {
+					this.model.id = model.attributes.hash;
+					this.model.fetch({
+						success: function(model, response, options) {
+							$el.removeClass('du-loading');
+							self.resize();
+						},
+						error: function(model, response, options) {
+
+						}
+					});
+				}
+			}, this);
+
 			this.getViews().each(function(view){
 				view.addListeners();
 			});

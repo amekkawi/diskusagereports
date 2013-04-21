@@ -12,34 +12,34 @@ define([
 
 	return ReportFile.extend({
 
+		id: null,
+
 		defaults: {
 			hash: null,
 			name: null,
 			parents: [],
 
-			files: {
-				direct: 0,
-				total: 0
-			},
+			subdirs: [],
+			totalsubdirs: 0,
 
-			size: {
-				direct: 0,
-				total: 0
-			},
+			num: 0,
+			totalnum: 0,
 
-			subdirs: {
-				total: 0,
-				list: []
-			},
+			bytes: 0,
+			totalbytes: 0,
 
-			modified: {},
-			sizes: {},
-			top100: []
+			files: null,
+
+			modified: null,
+			sizes: null,
+			top100: null
 		},
 
-		initialize: function() {
-
+		parse: function(response, options) {
+			response.hash = this.id;
+			return response;
 		}
+
 	});
 
 });

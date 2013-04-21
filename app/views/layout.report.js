@@ -13,10 +13,11 @@ define([
 	'i18n!nls/report',
 	'models/model.report',
 	'models/model.settings',
+	'models/model.directory',
 	'views/view.title',
 	'views/layout.report-body',
 	'views/view.footer'
-], function(Backbone, Layout, _, lang, ModelReport, ModelSettings, TitleView, ReportBodyView, FooterView){
+], function(Backbone, Layout, _, lang, ModelReport, ModelSettings, ModelDirectory, TitleView, ReportBodyView, FooterView){
 
 	return Layout.extend({
 
@@ -52,6 +53,10 @@ define([
 					urlRoot: this.options.urlRoot
 				}),
 				settings: new ModelSettings({}, {
+					suffix: this.options.suffix,
+					urlRoot: this.options.urlRoot
+				}),
+				directory: new ModelDirectory({}, {
 					suffix: this.options.suffix,
 					urlRoot: this.options.urlRoot
 				})
