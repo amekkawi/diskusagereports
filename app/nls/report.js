@@ -1,5 +1,46 @@
 define({
 	"root": {
+		"format_number": function(num){
+			num += '';
+
+			var split = num.split('.');
+
+			if (split.length)
+				split[0] = split[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
+
+			return split.join('.');
+		},
+
+		"compact_bytes": function(bytes){
+			bytes = parseInt(bytes);
+
+			if (bytes >= 1000 * 1024 * 1024 * 1024) {
+				return this["format_number"](Math.round(bytes * 100 / 1024 / 1024 / 1024 / 1024) / 100) + " " + (this["byte_terabyte"] || "TB");
+			}
+			else if (bytes >= 1000 * 1024 * 1024) {
+				return this["format_number"](Math.round(bytes * 100 / 1024 / 1024 / 1024) / 100) + " " + (this["byte_gigabyte"] || "GB");
+			}
+			else if (bytes >= 1000 * 1024) {
+				return this["format_number"](Math.round(bytes * 100 / 1024 / 1024) / 100) + " " + (this["byte_megabyte"] || "MB");
+			}
+			else if (bytes >= 1000) {
+				return this["format_number"](Math.round(bytes * 100 / 1024) / 100) + " " + (this["byte_kilobyte"] || "KB");
+			}
+			else if (bytes == 1) {
+				return this["format_number"](bytes) + " " + (this["byte_byte"] || "byte");
+			}
+			else {
+				return this["format_number"](bytes) + " " + (this["byte_bytes"] || "bytes");
+			}
+		},
+
+		"byte_byte": "byte",
+		"byte_bytes": "bytes",
+		"byte_kilobyte": "KB",
+		"byte_megabyte": "MB",
+		"byte_gigabyte": "GB",
+		"byte_terabyte": "TB",
+
 		"footer": "Report generated using <%= link %>.",
 		"footer_long": "Report generated on <%- created %> using <%= link %>.",
 		"title": "Disk Usage Report",
