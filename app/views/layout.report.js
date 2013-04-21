@@ -146,6 +146,26 @@ define([
 					loadOptions.error && loadOptions.error.apply(this, arguments);
 				}
 			});
+		},
+
+		set: function(attributes, options) {
+			attributes = _.extend({}, attributes);
+
+			if (!_.isString(attributes.hash))
+				attributes.hash = this.model.attributes.hash;
+
+			if (_.isString(attributes.tab) && attributes.tab.length == 1)
+				attributes.tab = this.model.tabToLong[attributes.tab];
+
+			if (_.isString(attributes.page))
+				attributes.page = parseInt(attributes.page);
+
+			this.model.set(
+				_.pick(
+					_.defaults(attributes || {}, this.model.defaults),
+					_.keys(this.model.defaults)
+				)
+			, _.extend({}, options, { validate: true }));
 		}
 	});
 
