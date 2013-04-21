@@ -35,22 +35,16 @@ define([
 		},
 
 		defaults: {
-			message: null,
-			messageType: null,
-
 			hash: null,
 			tab: 'dirs',
 			page: 1
 		},
 
 		validate: function(attributes) {
-			if (!_.isString(attributes.hash))
-				return 'Invalid hash attribute';
-
 			if (!_.isString(attributes.tab) || !_.isString(this.tabToShort[attributes.tab]))
 				return 'Invalid tab attribute';
 
-			if (!_.isFinite(attributes.page) || attributes.page % 1 != 0 || attributes.page < 1)
+			if (!_.isNumber(attributes.page) || !_.isFinite(attributes.page) || attributes.page % 1 != 0 || attributes.page < 1)
 				return 'Invalid page attribute';
 		}
 	});
