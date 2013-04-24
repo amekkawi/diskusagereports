@@ -36,6 +36,7 @@ public:
 
 	CFinder(void);
 
+	void setFollowLinks(bool flag);
 	void setDelim(_TCHAR delim);
 	void setDirSeparator(_TCHAR separator);
 	int run(_TCHAR* directory);
@@ -52,6 +53,8 @@ private:
 	
 	char dirSeparator;
 	_TCHAR _tdirSeparator;
+
+	bool followLinks;
 
 	CPathHelper path;
 

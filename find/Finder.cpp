@@ -18,6 +18,8 @@ CFinder::CFinder(void) {
 	
 	delim = ' ';
 	_tdelim = _T(' ');
+
+	followLinks = false;
 }
 
 void CFinder::setDelim(_TCHAR delim) {
@@ -46,6 +48,10 @@ void CFinder::setDirSeparator(_TCHAR separator) {
 	}
 
 	delete[] separatorUTF8;
+}
+
+void CFinder::setFollowLinks(bool flag) {
+	this->followLinks = flag;
 }
 
 int CFinder::run(_TCHAR* directory) {
@@ -224,7 +230,12 @@ void CFinder::processEntry(int depth, WIN32_FIND_DATA findData) {
 	char type;
 
 	if (findData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
-		type = 'l';
+		if (this->followLinks && findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+			type = 'd';
+		}
+		else {
+			type = 'l';
+		}
 	}
 	else if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 		type = 'd';

@@ -13,7 +13,7 @@
 
 using namespace std;
 
-const char* SYNTAX = "Syntax: find.exe [-d <char|'null'>] [-ds <char>] [-] <directory-to-scan>\nUse -h for full help or visit diskusagereports.com/docs.";
+const char* SYNTAX = "Syntax: find.exe [-d <char|'null'>] [-ds <char>] [-r] [-] <directory-to-scan>\nUse -h for full help or visit diskusagereports.com/docs.";
 const char* VERSION = "$Source Version$";
 
 int _tmain(int argc, _TCHAR* argv[]) {
@@ -68,7 +68,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
 			|| _tcscmp(argv[i], _T("/h")) == 0) {
 			
 			cerr << endl
-				<< "Syntax: find.exe [-d <char|'null'>] [-ds <char>] [-] <directory-to-scan>" << endl
+				<< "Syntax: find.exe [-d <char|'null'>] [-ds <char>] [-r] [-] <directory-to-scan>" << endl
 				<< endl
 				<< "Arguments:" << endl
 				<< endl
@@ -80,6 +80,10 @@ int _tmain(int argc, _TCHAR* argv[]) {
 				<< "-ds <directoryseparator>" << endl
 				<< "Optionally specify the directory separator used between directory names." << endl
 				<< "The default is the backslash (\\) character." << endl
+				<< endl
+				<< "-r" << endl
+				<< "Follow directories that are NTFS reparse points. Normally these are" << endl
+				<< "marked as links and their contents are not included in the output." << endl
 				<< endl
 				<< "- (hyphen)" << endl
 				<< "If the <directory-to-scan> is the same as one of the arguments for this script" << endl
@@ -148,6 +152,9 @@ int _tmain(int argc, _TCHAR* argv[]) {
 			}
 
 			finder.setDirSeparator(argv[i][0]);
+		}
+		else if (_tcscmp(argv[i], _T("-r")) == 0) {
+			finder.setFollowLinks(true);
 		}
 		else {
 			
