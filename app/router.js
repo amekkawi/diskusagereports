@@ -13,7 +13,7 @@ define([
 	return Backbone.Router.extend({
 		routes: {
 			'': 'directory',
-			':hash(/:tab)(/:page)': 'directory'
+			':hash(/:tab)(/:col)(/:page)': 'directory'
 		}
 	});
 
