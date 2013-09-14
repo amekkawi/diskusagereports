@@ -1,3 +1,5 @@
+ - Dir separator and escape character must not match.
+
  - Add to FAQ that running out of allowed memory usage can cause process.php to exit suddenly.
  - Use http://code.google.com/p/flot/ for charts.
  - Add max error limit to process.php
