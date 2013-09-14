@@ -42,8 +42,8 @@ module.exports = function(grunt) {
 						'**/.htaccess',
 
 						// Exclude anything from vendor
-						'!app/vendor',
-						'!app/vendor/**/*'
+						'!vendor',
+						'!vendor/**/*'
 					]
 				}]
 			}

@@ -31,42 +31,42 @@ require.config({
 	packages: [
 		{
 			name: "backbone",
-			location: "vendor/bower/backbone",
+			location: "../vendor/bower/backbone",
 			main: "backbone.js"
 		},
 		{
 			name: "zepto",
-			location: "vendor/bower/zepto",
+			location: "../vendor/bower/zepto",
 			main: "zepto.js"
 		},
 		{
 			name: "jquery",
-			location: "vendor/bower/jquery",
+			location: "../vendor/bower/jquery",
 			main: "jquery.js"
 		},
 		{
 			name: "lodash",
-			location: "vendor/bower/lodash/dist",
+			location: "../vendor/bower/lodash/dist",
 			main: "lodash.underscore.js"
 		},
 		{
 			name: "underscore",
-			location: "vendor/bower/lodash/dist",
+			location: "../vendor/bower/lodash/dist",
 			main: "lodash.underscore.js"
 		},
 		{
 			name: "i18n",
-			location: "vendor/bower/requirejs-i18n",
+			location: "../vendor/bower/requirejs-i18n",
 			main: "i18n.js"
 		},
 		{
 			name: "text",
-			location: "vendor/bower/requirejs-text",
+			location: "../vendor/bower/requirejs-text",
 			main: "text.js"
 		},
 		{
 			name: "layoutmanager",
-			location: "vendor/bower/layoutmanager",
+			location: "../vendor/bower/layoutmanager",
 			main: "backbone.layoutmanager.js"
 		}
 	],
