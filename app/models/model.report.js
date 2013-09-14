@@ -7,12 +7,11 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 define([
-	'backbone',
+	'models/model',
 	'underscore',
 	'tabs'
-], function(Backbone, _, Tabs){
-	
-	return Backbone.Model.extend({
+], function(Model, _, Tabs){
+	return Model.extend({
 
 		defaults: {
 			hash: null,
