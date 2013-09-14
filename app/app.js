@@ -13,12 +13,13 @@ define([
 ],
 function(module, _, Router) {
 	var config = _.extend(
-		module.config() || {},
+		{},
+		module.config(),
 		{
 			report: window && window.location
 				&& _.isString(window.location.search) && window.location.search.substring(1) || ''
 		},
-		window && window['reportConfig'] || {}
+		window && window['reportConfig']
 	);
 
 	return _.extend({
