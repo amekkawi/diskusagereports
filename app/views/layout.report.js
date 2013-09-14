@@ -11,13 +11,14 @@ define([
 	'layout',
 	'underscore',
 	'i18n!nls/report',
+	'tabs',
 	'models/model.report',
 	'models/model.settings',
 	'models/model.directory',
 	'views/view.title',
 	'views/layout.report-body',
 	'views/view.footer'
-], function(Backbone, Layout, _, lang, ModelReport, ModelSettings, ModelDirectory, TitleView, ReportBodyView, FooterView){
+], function(Backbone, Layout, _, lang, Tabs, ModelReport, ModelSettings, ModelDirectory, TitleView, ReportBodyView, FooterView){
 
 	return Layout.extend({
 
@@ -147,8 +148,9 @@ define([
 			if (!_.isString(attributes.hash))
 				attributes.hash = this.model.attributes.hash;
 
-			if (_.isString(attributes.tab) && attributes.tab.length == 1)
-				attributes.tab = this.model.tabToLong[attributes.tab];
+			var tab = Tabs.lookup[attributes.tab];
+			if (tab)
+				attributes.tab = tab.long;
 
 			if (_.isString(attributes.page))
 				attributes.page = parseInt(attributes.page);

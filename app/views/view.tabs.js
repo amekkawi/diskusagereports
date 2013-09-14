@@ -11,8 +11,9 @@ define([
 	'layout',
 	'underscore',
 	'text!templates/view.tabs.html',
-	'i18n!nls/report'
-], function(Backbone, Layout, _, template, lang){
+	'i18n!nls/report',
+	'tabs'
+], function(Backbone, Layout, _, template, lang, Tabs){
 
 	return Layout.extend({
 
@@ -31,7 +32,7 @@ define([
 			return {
 				lang: lang,
 				hash: attributes.hash,
-				tabs: model.tabs,
+				tabs: Tabs.list,
 				selected: attributes.tab
 			};
 		},

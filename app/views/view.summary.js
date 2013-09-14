@@ -11,8 +11,9 @@ define([
 	'layout',
 	'underscore',
 	'text!templates/view.summary.html',
-	'i18n!nls/report'
-], function(Backbone, Layout, _, template, lang){
+	'i18n!nls/report',
+	'tabs'
+], function(Backbone, Layout, _, template, lang, Tabs){
 
 	return Layout.extend({
 
@@ -29,7 +30,7 @@ define([
 				report = this._models.report;
 			return {
 				lang: lang,
-				tab: report.tabToShort[report.attributes.tab],
+				tab: Tabs.lookup[report.attributes.tab],
 				parents: attributes.parents,
 				name: attributes.name,
 				num: attributes.num,

@@ -13,9 +13,10 @@ require([
 	'jquery',
 	'layoutmanager',
 	'i18n!nls/report',
+	'Tabs',
 	'views/layout.report'
 ],
-function(app, Backbone, _, $, Layout, lang, Report) {
+function(app, Backbone, _, $, Layout, lang, Tabs, Report) {
 
 	// ====================================
 	// Create the report layout.
@@ -41,7 +42,7 @@ function(app, Backbone, _, $, Layout, lang, Report) {
 	report.model.on("change", function(model, options){
 		if (_.has(model.changed, 'hash') || _.has(model.changed, 'tab') || _.has(model.changed, 'page'))
 			if (!_.isNull(model.attributes.hash) && !options.history && !options.root)
-				app.router.navigate(model.attributes.hash + '/' + model.tabToShort[model.attributes.tab] + '/' + model.attributes.page);
+				app.router.navigate(model.attributes.hash + '/' + Tabs.lookup[model.attributes.tab] + '/' + model.attributes.page);
 	});
 
 	app.router.on("route:directory", function(hash, tab, page) {

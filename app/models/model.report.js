@@ -8,31 +8,11 @@
  */
 define([
 	'backbone',
-	'underscore'
-], function(Backbone, _){
-
+	'underscore',
+	'tabs'
+], function(Backbone, _, Tabs){
+	
 	return Backbone.Model.extend({
-
-		tabs: null,
-		tabToShort: null,
-		tabToLong: null,
-
-		initialize: function() {
-			this.tabs = [
-				{ lang: 'tab_dirs', long: 'dirs', short: 'd' },
-				{ lang: 'tab_files', long: 'files', short: 'f' },
-				{ lang: 'tab_modified', long: 'modified', short: 'm' },
-				{ lang: 'tab_sizes', long: 'sizes', short: 's' },
-				{ lang: 'tab_ext', long: 'ext', short: 'e' },
-				{ lang: 'tab_top', long: 'top', short: 't' }
-			];
-
-			var long = _.map(this.tabs, function(tab) { return tab.long }),
-				short = _.map(this.tabs, function(tab) { return tab.short });
-
-			this.tabToShort = _.object(long, short);
-			this.tabToLong = _.object(short, long);
-		},
 
 		defaults: {
 			hash: null,
@@ -41,7 +21,8 @@ define([
 		},
 
 		validate: function(attributes) {
-			if (!_.isString(attributes.tab) || !_.isString(this.tabToShort[attributes.tab]))
+			var tab = Tabs.lookup[attributes.tab];
+			if (!tab || attributes.tab !== tab.long)
 				return 'Invalid tab attribute';
 
 			if (!_.isNumber(attributes.page) || !_.isFinite(attributes.page) || attributes.page % 1 != 0 || attributes.page < 1)
