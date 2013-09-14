@@ -16,6 +16,7 @@ define([
 		defaults: {
 			hash: null,
 			tab: 'dirs',
+			col: 1,
 			page: 1
 		},
 
