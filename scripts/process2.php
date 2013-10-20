@@ -2,93 +2,11 @@
 
 require("inc/class.util.php");
 require("inc/class.options.php");
+require("inc/class.largelist.php");
+require("inc/class.fileiterator.php");
 
 //ini_set('display_errors', 1);
 //error_reporting(E_ALL);
-
-class LargeList {
-
-	public $prefix = 'root_';
-
-	protected $maxPerTemp;
-	protected $tempCount = 0;
-	protected $tempSize;
-	protected $list;
-	protected $outputs;
-
-	public function __construct(array $outputs = null) {
-		$this->maxPerTemp = 80 * 1024;
-		$this->outputs = $outputs;
-		$this->startNew();
-	}
-
-	public function add($compareVal, $itemJSON) {
-		$addLen = strlen($itemJSON) + 1;
-
-		if (is_string($compareVal)) {
-			$compareVal = str_replace("\n", "", $compareVal);
-		}
-		elseif (is_array($compareVal)) {
-			foreach ($compareVal as $i => $compareValItem) {
-				if (is_string($compareValItem))
-					$compareVal[$i] = str_replace("\n", "", $compareValItem);
-			}
-		}
-
-		if ($this->tempSize + $addLen > $this->maxPerTemp) {
-			$this->saveTemp();
-		}
-
-		$this->tempSize += $addLen;
-		$this->list[] = array($compareVal, $itemJSON);
-	}
-
-	protected function saveTemp() {
-		$this->tempCount++;
-
-		echo "Saving temp #{$this->tempCount} with " . count($this->list) . " items at {$this->tempSize} bytes...\n";
-
-		foreach ($this->outputs as $output) {
-			$tempFile = $output->openTempFile($this->prefix, $this->tempCount, 'w');
-
-			// Sort each output.
-			usort($this->list, array($output, 'compare'));
-
-			// Write each list item serialized on its own line.
-			foreach ($this->list as $item) {
-				if (!isset($item[2]))
-					$item[2] = serialize($item);
-
-				fwrite($tempFile, $item[2] . "\n");
-			}
-
-			fclose($tempFile);
-		}
-
-		$this->startNew();
-	}
-
-	protected function startNew() {
-		$this->list = array();
-		$this->tempSize = 0;
-	}
-
-	public function compare($a, $b) {
-		if ($a[0] < $b[0])
-			return -1;
-		if ($a[0] > $b[0])
-			return 1;
-		return 0;
-	}
-
-}
-
-interface ListOutput {
-	public function getMaxSegments();
-	public function openTempFile($prefix, $index, $mode);
-	public function openOutFile($prefix, $index, $mode = 'w');
-	public function compare($a, $b);
-}
 
 class DirOutput implements ListOutput {
 
@@ -254,62 +172,6 @@ class FileInfo {
 			. ']';
 	}
 }
-
-class FileIterator implements Iterator {
-
-	private $handle = null;
-	private $readLength;
-
-	private $lineNum = 0;
-	private $line = null;
-	private $readBytes = 0;
-	private $length = null;
-
-	public function __construct($fileHandle, $readLength = 1024) {
-		$this->handle = $fileHandle;
-		$this->readLength = $readLength;
-
-		if (is_array($stat = @fstat($this->handle)) && $stat['mode'] & 0100000)
-			$this->length = $stat['size'];
-
-		$this->next();
-	}
-
-	public function length() {
-		return $this->length;
-	}
-
-	public function current() {
-		return $this->line;
-	}
-
-	public function next() {
-		$line = fgets($this->handle, $this->readLength);
-
-		if ($line === false) {
-			$this->line = null;
-		}
-		else {
-			$this->lineNum++;
-			$this->readBytes += strlen($line);
-			$this->line = rtrim($line, "\n\r");
-		}
-	}
-
-	public function key() {
-		return $this->lineNum > 0 ? $this->lineNum : null;
-	}
-
-	public function valid() {
-		return $this->line !== null;
-	}
-
-	public function rewind() {
-		if ($this->lineNum > 1)
-			throw new Exception("Cannot rewind FileIterator");
-	}
-}
-
 
 class ScanReader {
 
