@@ -8,31 +8,35 @@ require("inc/class.options.php");
 
 class LargeList {
 
-	protected $maxPerSegment;
-	protected $maxPerTemp;
+	public $prefix = 'root_';
 
-	protected $tempCount = 1;
+	protected $maxPerTemp;
+	protected $tempCount = 0;
 	protected $tempSize;
 	protected $list;
+	protected $outputs;
 
-	protected $comparator;
-
-	public function __construct($maxPerSegment = 40, $comparator = null) {
-		$this->maxPerSegment = $maxPerSegment * 1024;
+	public function __construct(array $outputs = null) {
 		$this->maxPerTemp = 80 * 1024;
-		$this->comparator = $comparator === null ? array($this, 'compare') : $comparator;
+		$this->outputs = $outputs;
 		$this->startNew();
 	}
 
 	public function add($compareVal, $itemJSON) {
 		$addLen = strlen($itemJSON) + 1;
 
-		if (is_string($compareVal))
+		if (is_string($compareVal)) {
 			$compareVal = str_replace("\n", "", $compareVal);
+		}
+		elseif (is_array($compareVal)) {
+			foreach ($compareVal as $i => $compareValItem) {
+				if (is_string($compareValItem))
+					$compareVal[$i] = str_replace("\n", "", $compareValItem);
+			}
+		}
 
 		if ($this->tempSize + $addLen > $this->maxPerTemp) {
 			$this->saveTemp();
-			$this->startNew();
 		}
 
 		$this->tempSize += $addLen;
@@ -40,12 +44,28 @@ class LargeList {
 	}
 
 	protected function saveTemp() {
-		echo "Saving temp {$this->tempCount} with " . count($this->list) . " items at {$this->tempSize} bytes...\n";
 		$this->tempCount++;
 
-		foreach ($this->list as $item) {
-			// strlen(serialize($item) . "\n");
+		echo "Saving temp #{$this->tempCount} with " . count($this->list) . " items at {$this->tempSize} bytes...\n";
+
+		foreach ($this->outputs as $output) {
+			$tempFile = $output->openTempFile($this->prefix, $this->tempCount, 'w');
+
+			// Sort each output.
+			usort($this->list, array($output, 'compare'));
+
+			// Write each list item serialized on its own line.
+			foreach ($this->list as $item) {
+				if (!isset($item[2]))
+					$item[2] = serialize($item);
+
+				fwrite($tempFile, $item[2] . "\n");
+			}
+
+			fclose($tempFile);
 		}
+
+		$this->startNew();
 	}
 
 	protected function startNew() {
@@ -63,7 +83,54 @@ class LargeList {
 
 }
 
+interface ListOutput {
+	public function getMaxSegments();
+	public function openTempFile($prefix, $index, $mode);
+	public function openOutFile($prefix, $index, $mode = 'w');
+	public function compare($a, $b);
+}
+
+class DirOutput implements ListOutput {
+
+	protected $report;
+	protected $sortIndex;
+	protected $sortName;
+	protected $reverseSort;
+
+	public function __construct($report, $sortIndex, $sortName, $reverseSort = false) {
+		$this->report = $report;
+		$this->sortIndex = $sortIndex;
+		$this->sortName = $sortName;
+		$this->reverseSort = $reverseSort;
+	}
+
+	public function getMaxSegments() {
+		return false;
+	}
+
+	public function openTempFile($prefix, $index, $mode) {
+		return fopen($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.tmp'), $mode);
+	}
+
+	public function openOutFile($prefix, $index, $mode = 'w') {
+		return fopen($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.dat'), $mode);
+	}
+
+	public function compare($a, $b) {
+		$sortIndex = $this->sortIndex;
+		if ($a[0][$sortIndex] < $b[0][$sortIndex])
+			return $this->reverseSort ? 1 : -1;
+		if ($a[0][$sortIndex] > $b[0][$sortIndex])
+			return $this->reverseSort ? -1 : 1;
+		return 0;
+	}
+
+}
+
 class DirInfo extends FileInfo {
+
+	protected $report;
+
 	public $parent;
 
 	public $subDirCount = 0;
@@ -76,9 +143,10 @@ class DirInfo extends FileInfo {
 
 	public $fileList;
 
-	function __construct(DirInfo $parent = null) {
+	function __construct(Report $report, DirInfo $parent = null) {
 		$this->parent = $parent;
-		$this->fileList = new LargeList();
+		$this->report = $report;
+		$this->fileList = new LargeList($report->fileListOutputs);
 	}
 
 	public function setFromOptions(Options $options) {
@@ -87,7 +155,14 @@ class DirInfo extends FileInfo {
 		$this->dirname = '';
 		$this->basename = $options->basename === null || $options->basename == '' ? '.' : $options->basename;
 		$this->hash = md5('');
+		$this->fileList->prefix = $this->hash;
 	}
+
+	public function setFromLine(Options $options, $line) {
+		parent::setFromLine($options, $line);
+		$this->fileList->prefix = $this->hash;
+	}
+
 
 	public function onPop() {
 		$parents = array();
@@ -110,7 +185,7 @@ class DirInfo extends FileInfo {
 	public function processFileInfo(FileInfo $fileInfo) {
 		$this->directFileCount++;
 		$this->directSize += $fileInfo->size;
-		$this->fileList->add($fileInfo->basename, $fileInfo->toJSON());
+		$this->fileList->add(array($fileInfo->basename, $fileInfo->size, $fileInfo->date . ' ' . $fileInfo->time), $fileInfo->toJSON());
 	}
 
 }
@@ -180,10 +255,6 @@ class FileInfo {
 	}
 }
 
-abstract class FileInfoHandler {
-	abstract public function handleFileInfo(FileInfo $fileInfo);
-}
-
 class FileIterator implements Iterator {
 
 	private $handle = null;
@@ -201,7 +272,6 @@ class FileIterator implements Iterator {
 		if (is_array($stat = @fstat($this->handle)) && $stat['mode'] & 0100000)
 			$this->length = $stat['size'];
 
-		//echo "Opened file: {$this->length}\n";
 		$this->next();
 	}
 
@@ -214,14 +284,12 @@ class FileIterator implements Iterator {
 	}
 
 	public function next() {
-		//echo "next...\n";
 		$line = fgets($this->handle, $this->readLength);
 
 		if ($line === false) {
 			$this->line = null;
 		}
 		else {
-			//echo "Line: $line\n";
 			$this->lineNum++;
 			$this->readBytes += strlen($line);
 			$this->line = rtrim($line, "\n\r");
@@ -238,13 +306,20 @@ class FileIterator implements Iterator {
 
 	public function rewind() {
 		if ($this->lineNum > 1)
-			throw new Exception("Cannot rewind");
+			throw new Exception("Cannot rewind FileIterator");
 	}
 }
+
 
 class ScanReader {
 
 	const DEBUG = false;
+
+	protected $report;
+
+	public function __construct(Report $report) {
+		$this->report = $report;
+	}
 
 	public function read($filename) {
 
@@ -256,7 +331,7 @@ class ScanReader {
 		$iterator = new FileIterator($fh);
 		$fileInfo = new FileInfo();
 
-		$currentDir = new DirInfo();
+		$currentDir = new DirInfo($this->report);
 		$currentDir->setFromOptions($options);
 
 		$headerAllowed = true;
@@ -284,7 +359,7 @@ class ScanReader {
 				}
 
 				elseif ($flag == 'd') {
-					$currentDir = new DirInfo($currentDir);
+					$currentDir = new DirInfo($this->report, $currentDir);
 					$currentDir->setFromLine($options, $line);
 					if (self::DEBUG)
 						echo "Entering dir: {$currentDir->path}\n";
@@ -345,9 +420,24 @@ class ScanReader {
 
 		fclose($fh);
 	}
+}
 
-	protected function processFileInfo(FileInfo $fileInfo) {
+class Report {
+	public $directory;
+	public $fileListOutputs;
 
+	public function __construct($directory) {
+		$this->directory = rtrim(realpath($directory), DIRECTORY_SEPARATOR);
+
+		$this->fileListOutputs = array(
+			new DirOutput($this, 0, 'name'),
+			new DirOutput($this, 1, 'size'),
+			new DirOutput($this, 2, 'date')
+		);
+	}
+
+	public function buildPath($extension) {
+		return $this->directory . DIRECTORY_SEPARATOR . $extension;
 	}
 }
 
@@ -407,7 +497,7 @@ class ScanException extends Exception {
 }
 
 try {
-	$reader = new ScanReader();
+	$reader = new ScanReader(new Report('/Users/amekkawi/Sites/git/diskusage-data/v2test/'));
 	$reader->read('/Users/amekkawi/Sites/git/diskusage/amekkawi.dat');
 }
 catch (Exception $e) {
