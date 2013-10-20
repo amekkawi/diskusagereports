@@ -3,6 +3,7 @@
 require("inc/class.util.php");
 require("inc/class.options.php");
 require("inc/class.largelist.php");
+require("inc/class.largemap.php");
 require("inc/class.fileiterator.php");
 
 //ini_set('display_errors', 1);
@@ -30,6 +31,10 @@ class DirOutput implements ListOutput {
 		return fopen($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.tmp'), $mode);
 	}
 
+	public function deleteTempFile($prefix, $index) {
+		return unlink($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.tmp'));
+	}
+
 	public function openOutFile($prefix, $index, $mode = 'w') {
 		return fopen($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.dat'), $mode);
 	}
@@ -41,6 +46,10 @@ class DirOutput implements ListOutput {
 		if ($a[0][$sortIndex] > $b[0][$sortIndex])
 			return $this->reverseSort ? -1 : 1;
 		return 0;
+	}
+
+	public function getMaxPerOut() {
+		return 40;
 	}
 
 }
@@ -91,6 +100,20 @@ class DirInfo extends FileInfo {
 				'hash' => $parent->hash
 			);
 			$parent = $parent->parent;
+		}
+
+		$reportListMap = $this->report->fileListMap;
+		if ($this->fileList->getTotalSize() < $reportListMap->getMaxPerOut()) {
+			$fileListJSON = $this->fileList->toJSON();
+			if (strlen($fileListJSON) > 10) {
+				$this->fileList = $reportListMap->add($this->hash, $fileListJSON);
+			}
+			else {
+				$this->fileList = $fileListJSON;
+			}
+		}
+		else {
+			$this->fileList->save();
 		}
 	}
 
@@ -287,6 +310,7 @@ class ScanReader {
 class Report {
 	public $directory;
 	public $fileListOutputs;
+	public $fileListMap;
 
 	public function __construct($directory) {
 		$this->directory = rtrim(realpath($directory), DIRECTORY_SEPARATOR);
@@ -296,6 +320,8 @@ class Report {
 			new DirOutput($this, 1, 'size'),
 			new DirOutput($this, 2, 'date')
 		);
+
+		$this->fileListMap = new LargeMap(new DirOutput($this, 0, 'filemap'));
 	}
 
 	public function buildPath($extension) {

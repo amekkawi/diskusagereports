@@ -1,8 +1,10 @@
 <?php
 
 interface ListOutput {
+	public function getMaxPerOut();
 	public function getMaxSegments();
 	public function openTempFile($prefix, $index, $mode);
+	public function deleteTempFile($prefix, $index);
 	public function openOutFile($prefix, $index, $mode = 'w');
 	public function compare($a, $b);
 }
@@ -12,6 +14,7 @@ class LargeList {
 	public $prefix = 'root_';
 
 	protected $maxPerTemp;
+	protected $totalSize = 0;
 	protected $tempCount = 0;
 	protected $tempSize;
 	protected $list;
@@ -21,6 +24,26 @@ class LargeList {
 		$this->maxPerTemp = 80 * 1024;
 		$this->outputs = $outputs;
 		$this->startNew();
+	}
+
+	public function getTotalSize() {
+		return $this->totalSize;
+	}
+
+	public function toJSON() {
+		if ($this->tempCount > 0)
+			throw new Exception("Cannot convert list with multiple segments to JSON");
+
+		$ret = '';
+		foreach ($this->list as $item) {
+			$ret .= ',' . $item[1];
+		}
+
+		if ($ret == '')
+			return '[]';
+
+		$ret[0] = '[';
+		return $ret . ']';
 	}
 
 	public function add($compareVal, $itemJSON) {
@@ -36,10 +59,11 @@ class LargeList {
 			}
 		}
 
-		if ($this->tempSize + $addLen > $this->maxPerTemp) {
+		if ($this->tempSize > 0 && $this->tempSize + $addLen > $this->maxPerTemp) {
 			$this->saveTemp();
 		}
 
+		$this->totalSize += $addLen;
 		$this->tempSize += $addLen;
 		$this->list[] = array($compareVal, $itemJSON);
 	}
@@ -80,6 +104,75 @@ class LargeList {
 		if ($a[0] > $b[0])
 			return 1;
 		return 0;
+	}
+
+	public function save() {
+
+		foreach ($this->outputs as $output) {
+			$maxPerOut = $output->getMaxPerOut() * 1024;
+
+			// Sort the list.
+			usort($this->list, array($output, 'compare'));
+
+			// Create a list of iterators with the list as one of them.
+			$iterators = array(new ArrayIterator($this->list));
+			$currentValues = array();
+
+			// Get the current unserialized value for the list.
+			$currentValues[] = $iterators[0]->valid() ? $iterators[0]->current() : null;
+
+			// Add iterators for any temp files and get their current unserialized values.
+			for ($i = 1; $i <= $this->tempCount; $i++) {
+				$iterator = new FileIterator($output->openTempFile($this->prefix, $i, 'r'));
+				$iterator->closeOnEnd();
+				$iterators[] = $iterator;
+				$currentValues[] = $iterator->valid() ? unserialize($iterator->current()) : null;
+			}
+
+			$outIndex = 1;
+			$outSize = 0;
+			$outFile = $output->openOutFile($this->prefix, $outIndex);
+
+			do {
+				$topIndex = null;
+				$topVal = null;
+
+				foreach ($currentValues as $i => $currentValue) {
+					if ($currentValue !== null) {
+						if ($topIndex === null || $output->compare($topVal, $currentValue) < 0) {
+							$topIndex = $i;
+							$topVal = $currentValue;
+						}
+					}
+				}
+
+				if ($topIndex !== null) {
+					$topSize = strlen($topVal[1]) + 1;
+
+					// Move to the next file if this will make the current one too large.
+					if ($outSize > 0 && $outSize + $topSize + 2 > $maxPerOut) {
+						fwrite($outFile, ']');
+						fclose($outFile);
+						$outIndex++;
+						$outSize = 0;
+						$outFile = $output->openOutFile($this->prefix, $outIndex);
+					}
+
+					fwrite($outFile, ($outSize > 0 ? ',' : '[') . $topVal[1] . "\n");
+					$outSize += $topSize + 1;
+
+					$iterator = $iterators[$topIndex];
+					$iterator->next();
+					$currentValues[$topIndex] = $iterator->valid() ? (is_string($iterator->current()) ? unserialize($iterator->current()) : $iterator->current()) : null;
+				}
+
+			} while ($topIndex !== null);
+
+			// Delete temp files.
+			for ($i = 1; $i <= $this->tempCount; $i++) {
+				$output->deleteTempFile($this->prefix, $i);
+			}
+		}
 	}
 
 }
