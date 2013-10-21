@@ -48,8 +48,8 @@ class DirOutput implements ListOutput {
 		return 0;
 	}
 
-	public function getMaxPerOut() {
-		return 40;
+	public function isOverMax($size, $count) {
+		return /*$size > 40 * 1024 || */ $count > 900;
 	}
 
 }
@@ -82,12 +82,12 @@ class DirInfo extends FileInfo {
 		$this->dirname = '';
 		$this->basename = $options->basename === null || $options->basename == '' ? '.' : $options->basename;
 		$this->hash = md5('');
-		$this->fileList->prefix = $this->hash;
+		$this->fileList->prefix = $this->hash . '_files';
 	}
 
 	public function setFromLine(Options $options, $line) {
 		parent::setFromLine($options, $line);
-		$this->fileList->prefix = $this->hash;
+		$this->fileList->prefix = $this->hash . '_files';
 	}
 
 
@@ -103,7 +103,7 @@ class DirInfo extends FileInfo {
 		}
 
 		$reportListMap = $this->report->fileListMap;
-		if ($this->fileList->getTotalSize() < $reportListMap->getMaxPerOut()) {
+		if ($this->fileList->getTotalSize() < $reportListMap->getMaxPerItem()) {
 			$fileListJSON = $this->fileList->toJSON();
 			if (strlen($fileListJSON) > 10) {
 				$this->fileList = $reportListMap->add($this->hash, $fileListJSON);
@@ -307,6 +307,32 @@ class ScanReader {
 	}
 }
 
+class ReportMapOutput implements MapOutput {
+
+	protected $report;
+	protected $maxPerOut;
+	protected $maxPerItem;
+
+	public function __construct($report, $maxPerOut, $maxPerItem) {
+		$this->report = $report;
+		$this->maxPerOut = $maxPerOut;
+		$this->maxPerItem = $maxPerItem;
+	}
+
+	public function openOutFile($prefix, $index, $mode = 'w') {
+		return fopen($this->report->buildPath($prefix . '_' . $index . '.dat'), $mode);
+	}
+
+	public function getMaxPerOut() {
+		return $this->maxPerOut;
+	}
+
+	public function getMaxPerItem() {
+		return $this->maxPerItem;
+	}
+
+}
+
 class Report {
 	public $directory;
 	public $fileListOutputs;
@@ -321,7 +347,8 @@ class Report {
 			new DirOutput($this, 2, 'date')
 		);
 
-		$this->fileListMap = new LargeMap(new DirOutput($this, 0, 'filemap'));
+		$this->fileListMap = new LargeMap(new ReportMapOutput($this, 80 * 1024, 40 * 1024));
+		$this->fileListMap->prefix = 'filelists';
 	}
 
 	public function buildPath($extension) {

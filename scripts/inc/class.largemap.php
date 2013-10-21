@@ -1,5 +1,11 @@
 <?php
 
+interface MapOutput {
+	public function getMaxPerItem();
+	public function getMaxPerOut();
+	public function openOutFile($prefix, $index, $mode = 'w');
+}
+
 class LargeMapOpenOut {
 	public $index;
 	public $handle;
@@ -13,7 +19,7 @@ class LargeMapOpenOut {
 
 class LargeMap {
 
-	public $prefix = 'root_';
+	public $prefix = 'root';
 
 	protected $output;
 	protected $outCount = 0;
@@ -23,9 +29,13 @@ class LargeMap {
 	protected $openOuts = array();
 	protected $maxOpenOuts = 25;
 
-	public function __construct(ListOutput $output) {
+	public function __construct(MapOutput $output) {
 		$this->output = $output;
-		$this->maxPerOut = $this->output->getMaxPerOut() * 1024;
+		$this->maxPerOut = $this->output->getMaxPerOut();
+	}
+
+	public function getMaxPerItem() {
+		return $this->output->getMaxPerItem();
 	}
 
 	public function getMaxPerOut() {
@@ -41,7 +51,7 @@ class LargeMap {
 		$addLen = strLen($keyJSON) + strlen($itemJSON) + 2;
 
 		$out = $this->findOut($addLen);
-		fwrite($out->handle, ($out->size > 0 ? ',' : '{') . "\n\t" . $keyJSON . ':' . $itemJSON);
+		fwrite($out->handle, ($out->size > 0 ? ',' : '{') . $keyJSON . ':' . $itemJSON);
 		$out->size += $addLen;
 		return $this->outCount;
 	}
@@ -86,9 +96,9 @@ class LargeMap {
 	}
 
 	protected function closeOut(LargeMapOpenOut $openOut) {
-		fwrite($openOut->handle, "\n}");
+		fwrite($openOut->handle, '}');
 		fclose($openOut->handle);
-		echo "Closing map out #{$openOut->index} with size {$openOut->size}.\n"; usleep(150000);
+		echo "Closing map out #{$openOut->index} with size {$openOut->size}.\n"; //usleep(50000);
 		$openOut->size = 0;
 	}
 

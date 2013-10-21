@@ -1,8 +1,8 @@
 <?php
 
 interface ListOutput {
-	public function getMaxPerOut();
 	public function getMaxSegments();
+	public function isOverMax($size, $count);
 	public function openTempFile($prefix, $index, $mode);
 	public function deleteTempFile($prefix, $index);
 	public function openOutFile($prefix, $index, $mode = 'w');
@@ -11,7 +11,7 @@ interface ListOutput {
 
 class LargeList {
 
-	public $prefix = 'root_';
+	public $prefix = 'root';
 
 	protected $maxPerTemp;
 	protected $totalSize = 0;
@@ -109,8 +109,6 @@ class LargeList {
 	public function save() {
 
 		foreach ($this->outputs as $output) {
-			$maxPerOut = $output->getMaxPerOut() * 1024;
-
 			// Sort the list.
 			usort($this->list, array($output, 'compare'));
 
@@ -131,6 +129,7 @@ class LargeList {
 
 			$outIndex = 1;
 			$outSize = 0;
+			$outLines = 0;
 			$outFile = $output->openOutFile($this->prefix, $outIndex);
 
 			do {
@@ -150,16 +149,18 @@ class LargeList {
 					$topSize = strlen($topVal[1]) + 1;
 
 					// Move to the next file if this will make the current one too large.
-					if ($outSize > 0 && $outSize + $topSize + 2 > $maxPerOut) {
+					if ($outSize > 0 && $output->isOverMax($outSize + $topSize + 2, $outLines + 1)) {
 						fwrite($outFile, ']');
 						fclose($outFile);
 						$outIndex++;
 						$outSize = 0;
+						$outLines = 0;
 						$outFile = $output->openOutFile($this->prefix, $outIndex);
 					}
 
-					fwrite($outFile, ($outSize > 0 ? ',' : '[') . $topVal[1] . "\n");
+					fwrite($outFile, ($outSize > 0 ? ',' : '[') . $topVal[1]);
 					$outSize += $topSize + 1;
+					$outLines++;
 
 					$iterator = $iterators[$topIndex];
 					$iterator->next();
