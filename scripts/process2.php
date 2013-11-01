@@ -11,7 +11,7 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 interface SortOutputSaveHandler {
-	public function onSave($index, $index, $firstItem, $lastItem);
+	public function onSave($index, $index, $firstItem, $lastItem, $path);
 }
 
 class SingleSortOutput implements ListOutput {
@@ -52,10 +52,10 @@ class SingleSortOutput implements ListOutput {
 		return 0;
 	}
 
-	public function onSave($index, $firstItem, $lastItem, $size) {
+	public function onSave($index, $firstItem, $lastItem, $size, $path) {
 		$this->report->outSize += $size;
 		if ($this->saveHandler !== null)
-			$this->saveHandler->onSave($index, null, $firstItem, $lastItem);
+			$this->saveHandler->onSave($index, null, $firstItem, $lastItem, $path);
 	}
 }
 
@@ -104,10 +104,10 @@ class MultiSortOutput implements ListOutput {
 		return 0;
 	}
 
-	public function onSave($index, $firstItem, $lastItem, $size) {
+	public function onSave($index, $firstItem, $lastItem, $size, $path) {
 		$this->report->outSize += $size;
 		if ($this->saveHandler !== null)
-			$this->saveHandler->onSave($index, $this->sortIndex, $firstItem, $lastItem);
+			$this->saveHandler->onSave($index, $this->sortIndex, $firstItem, $lastItem, $path);
 	}
 }
 
@@ -559,7 +559,7 @@ class ReportMapOutput implements MapOutput {
 		return $this->maxPerItem;
 	}
 
-	public function onSave($index, $size) {
+	public function onSave($index, $size, $path) {
 		$this->report->outSize += $size;
 	}
 }
@@ -568,7 +568,7 @@ class RangeLookup implements SortOutputSaveHandler {
 
 	public $ranges = array();
 
-	public function onSave($index, $sortIndex, $firstItem, $lastItem) {
+	public function onSave($index, $sortIndex, $firstItem, $lastItem, $path) {
 		$this->ranges[] = array(
 			$sortIndex === null ? $firstItem[0] : $firstItem[0][$sortIndex],
 			$sortIndex === null ? $lastItem[0] : $lastItem[0][$sortIndex],

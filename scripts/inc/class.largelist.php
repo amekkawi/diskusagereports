@@ -3,9 +3,18 @@
 interface ListOutput {
 	public function openTempFile($prefix, $index, $mode);
 	public function deleteTempFile($prefix, $index);
+
+	/**
+	 * @param        $prefix
+	 * @param        $index
+	 * @param string $mode
+	 *
+	 * @return FileStream
+	 */
 	public function openOutFile($prefix, $index, $mode = 'w');
+
 	public function compare($a, $b);
-	public function onSave($index, $firstItem, $lastItem, $size);
+	public function onSave($index, $firstItem, $lastItem, $size, $path);
 }
 
 class LargeList implements MapItem {
@@ -231,7 +240,7 @@ class LargeList implements MapItem {
 					if ($outSize > 0 && $this->isOverMax($outSize + $topSize + 2, $outLines + 1)) {
 						$outFile->write($this->asObject ? '}' : ']');
 						$outFile->close();
-						$output->onSave($outIndex, $firstItem, $lastItem, $outSize + 1);
+						$output->onSave($outIndex, $firstItem, $lastItem, $outSize + 1, $outFile->getPath());
 						$outIndex++;
 						$outSize = 0;
 						$outLines = 0;
@@ -258,8 +267,8 @@ class LargeList implements MapItem {
 
 			if ($outSize > 0) {
 				$outFile->write($this->asObject ? '}' : ']');
+				$output->onSave($outIndex, $firstItem, $lastItem, $outSize + 1, $outFile->getPath());
 				$outFile->close();
-				$output->onSave($outIndex, $firstItem, $lastItem, $outSize + 1);
 			}
 
 			// Delete temp files.
