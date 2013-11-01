@@ -1,11 +1,5 @@
 <?php
 
-interface MapItem {
-	public function getSize();
-	public function getKey();
-	public function toJSON();
-}
-
 interface MapOutput {
 	/**
 	 * @return integer The maximum size that a single item can be in a map file.
@@ -70,13 +64,18 @@ class LargeMap {
 		return $this->outCount;
 	}
 
-	public function add(MapItem $mapItem) {
-		$key = $mapItem->getKey();
+	public function add(KeyedJSON $item) {
+		$key = $item->getKey();
 		$keyJSON = json_encode($key);
-		if (strLen($keyJSON) + $mapItem->getSize() + 2 > $this->maxPerOut)
+
+		$jsonSize = $item->getJSONSize();
+		if ($jsonSize === false)
 			return false;
 
-		return $this->addJSON($key, $mapItem->toJSON());
+		if (strLen($keyJSON) + $jsonSize + 2 > $this->maxPerOut)
+			return false;
+
+		return $this->addJSON($key, $item->toJSON());
 	}
 
 	public function addJSON($key, $itemJSON) {

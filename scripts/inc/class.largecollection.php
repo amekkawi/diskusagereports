@@ -1,55 +1,10 @@
 <?php
 
-interface CollectionOutput {
-
-	/**
-	 * @param $prefix
-	 * @param $index
-	 * @param $mode
-	 *
-	 * @return FileStream
-	 */
-	public function openTempFile($prefix, $index, $mode);
-
-	/**
-	 * @param $prefix
-	 * @param $index
-	 *
-	 * @return boolean
-	 */
-	public function deleteTempFile($prefix, $index);
-
-	/**
-	 * @param        $prefix
-	 * @param        $index
-	 * @param string $mode
-	 *
-	 * @return FileStream
-	 */
-	public function openOutFile($prefix, $index, $mode = 'w');
-
-	/**
-	 * @param $a
-	 * @param $b
-	 *
-	 * @return int
-	 */
-	public function compare($a, $b);
-
-	/**
-	 * @param $index
-	 * @param $firstItem
-	 * @param $lastItem
-	 * @param $size
-	 * @param $path
-	 */
-	public function onSave($index, $firstItem, $lastItem, $size, $path);
-}
-
-class LargeCollection implements MapItem {
+class LargeCollection implements KeyedJSON {
 
 	public $prefix = 'root';
-	public $key;
+
+	protected $key = null;
 
 	protected $totalLength = 0;
 	protected $totalSize = 0;
@@ -67,9 +22,11 @@ class LargeCollection implements MapItem {
 	protected $list;
 	protected $outputs;
 
-	public function __construct(array $outputs = null, array $options = array(), $key = null) {
-		$this->key = $key;
+	public function __construct(array $outputs = null, array $options = array()) {
 		$this->outputs = $outputs;
+
+		if (!is_array($outputs))
+			throw new Exception(get_class($this) . "'s outputs argument must be an array.");
 
 		if (isset($options['prefix']) && is_string($options['prefix']))
 			$this->prefix = $options['prefix'];
@@ -81,16 +38,27 @@ class LargeCollection implements MapItem {
 			$this->maxLength = is_int($options['maxLength']) && $options['maxLength'] > 0 ? $options['maxLength'] : false;
 
 		if ($this->maxSize === false && $this->maxLength === false)
-			throw new Exception("Either maxSize or maxLength must be set via options and must be a int greater than 0.");
+			throw new Exception("Either " . get_class($this) . "'s maxSize or maxLength options must be set and must be a int greater than 0.");
 
-		if (isset($options['asObject']))
+		if (isset($options['asObject'])) {
+			if (!is_bool($options['asObject']))
+				throw new Exception(get_class($this) . "'s asObject option must be a boolean.");
+
 			$this->asObject = $options['asObject'];
+		}
+
+		if (isset($options['key']) && is_string($options['key']))
+			$this->key = $options['key'];
 
 		$this->startNew();
 	}
 
 	public function getSize() {
 		return $this->totalSize;
+	}
+
+	public function getJSONSize() {
+		return $this->tempFiles > 0 ? false : $this->totalSize;
 	}
 
 	public function getLength() {
@@ -123,6 +91,10 @@ class LargeCollection implements MapItem {
 
 	public function getKey() {
 		return $this->key;
+	}
+
+	public function setKey($key) {
+		$this->key = $key;
 	}
 
 	public function toJSON() {

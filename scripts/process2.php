@@ -1,5 +1,6 @@
 <?php
 
+require("inc/interfaces.php");
 require("inc/class.util.php");
 require("inc/class.options.php");
 require("inc/class.largemap.php");
@@ -152,17 +153,17 @@ class DirInfo extends FileInfo {
 		$this->dirname = '';
 		$this->basename = $options->basename === null || $options->basename == '' ? '.' : $options->basename;
 		$this->hash = md5('');
-		$this->dirList->key = $this->hash;
+		$this->dirList->setKey($this->hash);
 		$this->dirList->prefix = 'subdirs_' . $this->hash;
-		$this->fileList->key = $this->hash;
+		$this->fileList->setKey($this->hash);
 		$this->fileList->prefix = 'files_' . $this->hash;
 	}
 
 	public function setFromLine(Options $options, $line) {
 		parent::setFromLine($options, $line);
-		$this->dirList->key = $this->hash;
+		$this->dirList->setKey($this->hash);
 		$this->dirList->prefix = 'subdirs_' . $this->hash;
-		$this->fileList->key = $this->hash;
+		$this->fileList->setKey($this->hash);
 		$this->fileList->prefix = 'files_' . $this->hash;
 	}
 
