@@ -5,7 +5,7 @@ interface ListOutput {
 	public function deleteTempFile($prefix, $index);
 	public function openOutFile($prefix, $index, $mode = 'w');
 	public function compare($a, $b);
-	public function onSave($index, $firstItem, $lastItem);
+	public function onSave($index, $firstItem, $lastItem, $size);
 }
 
 class LargeList implements MapItem {
@@ -152,9 +152,8 @@ class LargeList implements MapItem {
 			fclose($tempFile);
 		}
 
-		$outSize = round($outSize / max(1, count($this->outputs)));
-
-		echo "Saved temp file #{$this->tempFiles} x " . count($this->outputs) . " each with " . count($this->list) . " items at ~$outSize bytes...\n";
+		//$outSize = round($outSize / max(1, count($this->outputs)));
+		//echo "Saved temp file #{$this->tempFiles} x " . count($this->outputs) . " each with " . count($this->list) . " items at ~$outSize bytes...\n";
 
 		$this->startNew();
 	}
@@ -232,7 +231,7 @@ class LargeList implements MapItem {
 					if ($outSize > 0 && $this->isOverMax($outSize + $topSize + 2, $outLines + 1)) {
 						fwrite($outFile, $this->asObject ? '}' : ']');
 						fclose($outFile);
-						$output->onSave($outIndex, $firstItem, $lastItem);
+						$output->onSave($outIndex, $firstItem, $lastItem, $outSize + 1);
 						$outIndex++;
 						$outSize = 0;
 						$outLines = 0;
@@ -260,7 +259,7 @@ class LargeList implements MapItem {
 			if ($outSize > 0) {
 				fwrite($outFile, $this->asObject ? '}' : ']');
 				fclose($outFile);
-				$output->onSave($outIndex, $firstItem, $lastItem);
+				$output->onSave($outIndex, $firstItem, $lastItem, $outSize + 1);
 			}
 
 			// Delete temp files.
