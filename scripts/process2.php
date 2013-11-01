@@ -3,7 +3,7 @@
 require("inc/class.util.php");
 require("inc/class.options.php");
 require("inc/class.largemap.php");
-require("inc/class.largelist.php");
+require("inc/class.largecollection.php");
 require("inc/class.filestream.php");
 require("inc/class.fileiterator.php");
 
@@ -14,7 +14,7 @@ interface SortOutputSaveHandler {
 	public function onSave($index, $index, $firstItem, $lastItem, $path);
 }
 
-class SingleSortOutput implements ListOutput {
+class SingleSortOutput implements CollectionOutput {
 
 	/**
 	 * @var $report Report
@@ -59,7 +59,7 @@ class SingleSortOutput implements ListOutput {
 	}
 }
 
-class MultiSortOutput implements ListOutput {
+class MultiSortOutput implements CollectionOutput {
 
 	/**
 	 * @var $report Report
@@ -138,10 +138,10 @@ class DirInfo extends FileInfo {
 	function __construct(Report $report) {
 		$this->report = $report;
 		$this->maxInlineSize = 1024;
-		$this->dirList = new LargeList($report->subDirOutputs, array(
+		$this->dirList = new LargeCollection($report->subDirOutputs, array(
 			'maxLength' => 200
 		));
-		$this->fileList = new LargeList($report->fileListOutputs, array(
+		$this->fileList = new LargeCollection($report->fileListOutputs, array(
 			'maxLength' => 900
 		));
 	}
@@ -590,7 +590,7 @@ class Report {
 	public $directoryLookup;
 
 	/**
-	 * @var LargeList
+	 * @var LargeCollection
 	 */
 	public $directoryList;
 
@@ -618,7 +618,7 @@ class Report {
 
 		$this->maxDirListSize = 40 * 1024;
 
-		$this->directoryList = new LargeList(array(
+		$this->directoryList = new LargeCollection(array(
 			new SingleSortOutput($this, $this->directoryLookup)
 		), array(
 			'prefix' => 'dirmap',

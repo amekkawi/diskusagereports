@@ -1,7 +1,22 @@
 <?php
 
-interface ListOutput {
+interface CollectionOutput {
+
+	/**
+	 * @param $prefix
+	 * @param $index
+	 * @param $mode
+	 *
+	 * @return FileStream
+	 */
 	public function openTempFile($prefix, $index, $mode);
+
+	/**
+	 * @param $prefix
+	 * @param $index
+	 *
+	 * @return boolean
+	 */
 	public function deleteTempFile($prefix, $index);
 
 	/**
@@ -13,11 +28,25 @@ interface ListOutput {
 	 */
 	public function openOutFile($prefix, $index, $mode = 'w');
 
+	/**
+	 * @param $a
+	 * @param $b
+	 *
+	 * @return int
+	 */
 	public function compare($a, $b);
+
+	/**
+	 * @param $index
+	 * @param $firstItem
+	 * @param $lastItem
+	 * @param $size
+	 * @param $path
+	 */
 	public function onSave($index, $firstItem, $lastItem, $size, $path);
 }
 
-class LargeList implements MapItem {
+class LargeCollection implements MapItem {
 
 	public $prefix = 'root';
 	public $key;
@@ -142,7 +171,7 @@ class LargeList implements MapItem {
 		$this->tempFiles++;
 		$outSize = 0;
 
-		/** @var $output ListOutput */
+		/** @var $output CollectionOutput */
 		foreach ($this->outputs as $output) {
 			$tempFile = $output->openTempFile($this->prefix, $this->tempFiles, 'w');
 
@@ -190,7 +219,7 @@ class LargeList implements MapItem {
 
 		$ret = array();
 
-		/** @var $output ListOutput */
+		/** @var $output CollectionOutput */
 		foreach ($this->outputs as $output) {
 			// Sort the buffer.
 			usort($this->list, array($output, 'compare'));
