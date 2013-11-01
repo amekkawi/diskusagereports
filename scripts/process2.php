@@ -2,33 +2,97 @@
 
 require("inc/class.util.php");
 require("inc/class.options.php");
-require("inc/class.largelist.php");
 require("inc/class.largemap.php");
+require("inc/class.largelist.php");
 require("inc/class.fileiterator.php");
 
-//ini_set('display_errors', 1);
-//error_reporting(E_ALL);
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
-class DirOutput implements ListOutput {
+interface SortOutputSaveHandler {
+	public function onSave($index, $index, $firstItem, $lastItem);
+}
 
+class SingleSortOutput implements ListOutput {
+
+	/**
+	 * @var $report Report
+	 */
 	protected $report;
+
+	/**
+	 * @var $saveHandler SortOutputSaveHandler
+	 */
+	protected $saveHandler;
+
+	public function __construct($report, $saveHandler = null) {
+		$this->report = $report;
+		$this->saveHandler = $saveHandler;
+	}
+
+		public function openTempFile($prefix, $index, $mode) {
+		$path = $this->report->buildPath($prefix . '_' . $index . '.tmp');
+		$fh = fopen($path, $mode);
+		if ($fh === false)
+			throw new Exception("Failed to open temp file for $mode at $path.");
+		return $fh;
+	}
+
+	public function deleteTempFile($prefix, $index) {
+		return unlink($this->report->buildPath($prefix . '_' . $index . '.tmp'));
+	}
+
+	public function openOutFile($prefix, $index, $mode = 'w') {
+		$path = $this->report->buildPath($prefix . '_' . $index . '.dat');
+		$fh = fopen($path, $mode);
+		if ($fh === false)
+			throw new Exception("Failed to open out file for $mode at $path.");
+		return $fh;
+	}
+
+	public function compare($a, $b) {
+		if ($a[0] < $b[0])
+			return -1;
+		if ($a[0] > $b[0])
+			return 1;
+		return 0;
+	}
+
+	public function onSave($index, $firstItem, $lastItem) {
+		if ($this->saveHandler !== null)
+			$this->saveHandler->onSave($index, null, $firstItem, $lastItem);
+	}
+}
+
+class MultiSortOutput implements ListOutput {
+
+	/**
+	 * @var $report Report
+	 */
+	protected $report;
+
+	/**
+	 * @var $saveHandler SortOutputSaveHandler
+	 */
+	protected $saveHandler;
+
 	protected $sortIndex;
 	protected $sortName;
 	protected $reverseSort;
 
-	public function __construct($report, $sortIndex, $sortName, $reverseSort = false) {
+	public function __construct($report, $sortIndex, $sortName, $saveHandler = null, $reverseSort = false) {
 		$this->report = $report;
 		$this->sortIndex = $sortIndex;
 		$this->sortName = $sortName;
 		$this->reverseSort = $reverseSort;
 	}
 
-	public function getMaxSegments() {
-		return false;
-	}
-
 	public function openTempFile($prefix, $index, $mode) {
-		return fopen($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.tmp'), $mode);
+		$path = $this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.tmp');
+		$fh = fopen($path, $mode);
+		if ($fh === false)
+			throw new Exception("Failed to open temp file for $mode at $path.");
+		return $fh;
 	}
 
 	public function deleteTempFile($prefix, $index) {
@@ -36,7 +100,11 @@ class DirOutput implements ListOutput {
 	}
 
 	public function openOutFile($prefix, $index, $mode = 'w') {
-		return fopen($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.dat'), $mode);
+		$path = $this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.dat');
+		$fh = fopen($path, $mode);
+		if ($fh === false)
+			throw new Exception("Failed to open out file for $mode at $path.");
+		return $fh;
 	}
 
 	public function compare($a, $b) {
@@ -48,17 +116,20 @@ class DirOutput implements ListOutput {
 		return 0;
 	}
 
-	public function isOverMax($size, $count) {
-		return /*$size > 40 * 1024 || */ $count > 900;
+	public function onSave($index, $firstItem, $lastItem) {
+		if ($this->saveHandler !== null)
+			$this->saveHandler->onSave($index, $this->sortIndex, $firstItem, $lastItem);
 	}
-
 }
 
 class DirInfo extends FileInfo {
 
 	protected $report;
+	protected $dirList;
+	protected $fileList;
+	protected $maxInlineSize;
 
-	public $parent;
+	public $parent = null;
 
 	public $subDirCount = 0;
 
@@ -68,12 +139,19 @@ class DirInfo extends FileInfo {
 	public $directSize = 0;
 	public $subSize = 0;
 
-	public $fileList;
+	public $parents = array();
+	public $dirs;
+	public $files;
 
-	function __construct(Report $report, DirInfo $parent = null) {
-		$this->parent = $parent;
+	function __construct(Report $report) {
 		$this->report = $report;
-		$this->fileList = new LargeList($report->fileListOutputs);
+		$this->maxInlineSize = 1024;
+		$this->dirList = new LargeList($report->subDirOutputs, array(
+			'maxLength' => 200
+		));
+		$this->fileList = new LargeList($report->fileListOutputs, array(
+			'maxLength' => 900
+		));
 	}
 
 	public function setFromOptions(Options $options) {
@@ -82,38 +160,74 @@ class DirInfo extends FileInfo {
 		$this->dirname = '';
 		$this->basename = $options->basename === null || $options->basename == '' ? '.' : $options->basename;
 		$this->hash = md5('');
-		$this->fileList->prefix = $this->hash . '_files';
+		$this->dirList->key = $this->hash;
+		$this->dirList->prefix = 'subdirs_' . $this->hash;
+		$this->fileList->key = $this->hash;
+		$this->fileList->prefix = 'files_' . $this->hash;
 	}
 
 	public function setFromLine(Options $options, $line) {
 		parent::setFromLine($options, $line);
-		$this->fileList->prefix = $this->hash . '_files';
+		$this->dirList->key = $this->hash;
+		$this->dirList->prefix = 'subdirs_' . $this->hash;
+		$this->fileList->key = $this->hash;
+		$this->fileList->prefix = 'files_' . $this->hash;
 	}
 
-
 	public function onPop() {
-		$parents = array();
 		$parent = $this->parent;
 		while ($parent !== null) {
-			$parents[] = array(
-				'name' => $parent->basename,
-				'hash' => $parent->hash
+			$this->parents[] = array(
+				$parent->basename,
+				$parent->hash
 			);
 			$parent = $parent->parent;
 		}
 
 		$reportListMap = $this->report->fileListMap;
-		if ($this->fileList->getTotalSize() < $reportListMap->getMaxPerItem()) {
-			$fileListJSON = $this->fileList->toJSON();
-			if (strlen($fileListJSON) > 10) {
-				$this->fileList = $reportListMap->add($this->hash, $fileListJSON);
-			}
-			else {
-				$this->fileList = $fileListJSON;
-			}
+		$fileList = $this->fileList;
+
+		// Multi-part lists must always be saved.
+		if ($fileList->isMultiPart()) {
+			$this->files = json_encode($fileList->save());
 		}
+
+		// If it is small enough, store it with the directory entry.
+		elseif ($fileList->getSize() < 100) {
+			$this->files = $fileList->toJSON();
+		}
+
+		// Attempt to store it in the map.
+		elseif (($this->files = $reportListMap->add($fileList)) !== false) {
+			$this->files = json_encode($this->files);
+		}
+
+		// Otherwise, force it to save.
 		else {
-			$this->fileList->save();
+			$this->files = json_encode($fileList->save());
+		}
+
+		$subDirsMap = $this->report->subDirMap;
+		$dirsList = $this->dirList;
+
+		// Multi-part lists must always be saved.
+		if ($dirsList->isMultiPart()) {
+			$this->dirs = json_encode($dirsList->save());
+		}
+
+		// If it is small enough, store it with the directory entry.
+		elseif ($dirsList->getSize() < 100) {
+			$this->dirs = $dirsList->toJSON();
+		}
+
+		// Attempt to store it in the map.
+		elseif (($this->dirs = $subDirsMap->add($dirsList)) !== false) {
+			$this->dirs = json_encode($this->dirs);
+		}
+
+		// Otherwise, force it to save.
+		else {
+			$this->dirs = json_encode($dirsList->save());
 		}
 	}
 
@@ -121,12 +235,55 @@ class DirInfo extends FileInfo {
 		$this->subDirCount += $dirInfo->subDirCount + 1;
 		$this->subSize += $dirInfo->directSize + $dirInfo->subSize;
 		$this->subFileCount += $dirInfo->directFileCount + $dirInfo->subFileCount;
+
+		$this->dirList->add(array(
+			$dirInfo->basename,
+			$dirInfo->directSize + $dirInfo->subSize,
+			$dirInfo->directFileCount + $dirInfo->subFileCount,
+			$dirInfo->subDirCount
+		), $dirInfo->toSubdirJSON());
 	}
 
 	public function processFileInfo(FileInfo $fileInfo) {
 		$this->directFileCount++;
 		$this->directSize += $fileInfo->size;
-		$this->fileList->add(array($fileInfo->basename, $fileInfo->size, $fileInfo->date . ' ' . $fileInfo->time), $fileInfo->toJSON());
+
+		$this->fileList->add(array(
+			$fileInfo->basename,
+			$fileInfo->size,
+			$fileInfo->date . ' ' . $fileInfo->time
+		), $fileInfo->toJSON());
+	}
+
+	public function toJSON() {
+		return '{'
+		. '"n":' . $this->getEncodedBasename()
+		. ',"d":' . json_encode($this->subDirCount)
+		. ',"F":' . json_encode($this->directFileCount)
+		. ',"f":' . json_encode($this->subFileCount)
+		. ',"S":' . json_encode($this->directSize)
+		. ',"s":' . json_encode($this->subSize)
+		. ',"L":' . $this->dirs
+		. ',"l":' . $this->files
+		. ',"p":' . json_encode($this->parents)
+		. '}';
+	}
+
+	public function toSubdirJSON() {
+		return '{'
+		. '"h":' . json_encode($this->hash)
+		. ',"n":' . $this->getEncodedBasename()
+		. ',"d":' . json_encode($this->subDirCount)
+		. ',"f":' . json_encode($this->directFileCount + $this->subFileCount)
+		. ',"s":' . json_encode($this->directSize + $this->subSize)
+		. '}';
+	}
+
+	public function toMinimalJSON() {
+		return '['
+		. json_encode($this->hash)
+		. ',' . $this->getEncodedBasename()
+		. ']';
 	}
 
 }
@@ -173,7 +330,7 @@ class FileInfo {
 		$this->basename = basename($this->path);
 	}
 
-	public function toJSON() {
+	protected function getEncodedBasename() {
 		$basename = @json_encode($this->basename);
 
 		// Attempt to convert it from Windows-1252 to UTF, if the json_encode failed.
@@ -185,10 +342,14 @@ class FileInfo {
 				$basename = array_values(unpack('C*', $this->basename));
 		}
 
+		return $basename;
+	}
+
+	public function toJSON() {
 		return
 			'['
 			. json_encode($this->type)
-			. ',' . $basename
+			. ',' . $this->getEncodedBasename()
 			. ',' . json_encode($this->size)
 			. ',' . json_encode($this->date)
 			. ',' . json_encode($this->time)
@@ -215,6 +376,7 @@ class ScanReader {
 		$options = new Options();
 		$iterator = new FileIterator($fh);
 		$fileInfo = new FileInfo();
+		$dirList = $this->report->directoryList;
 
 		$currentDir = new DirInfo($this->report);
 		$currentDir->setFromOptions($options);
@@ -244,8 +406,29 @@ class ScanReader {
 				}
 
 				elseif ($flag == 'd') {
-					$currentDir = new DirInfo($this->report, $currentDir);
-					$currentDir->setFromLine($options, $line);
+					$newDir = new DirInfo($this->report);
+					$newDir->setFromLine($options, $line);
+
+					while ($currentDir->path != $newDir->dirname) {
+
+						if ($currentDir->parent === null)
+							throw new ScanException(ScanException::POPDIR_NOPARENT);
+
+						if (self::DEBUG)
+							echo "Popping dir: {$currentDir->path}\n";
+
+						$popDir = $currentDir;
+						$currentDir = $currentDir->parent;
+
+						$popDir->onPop();
+						$dirList->add($popDir->hash, json_encode($popDir->hash) . ":" . $popDir->toJSON());
+
+						$currentDir->onChildPop($popDir);
+					}
+
+					$newDir->parent = $currentDir;
+					$currentDir = $newDir;
+
 					if (self::DEBUG)
 						echo "Entering dir: {$currentDir->path}\n";
 				}
@@ -269,6 +452,8 @@ class ScanReader {
 						$currentDir = $currentDir->parent;
 
 						$popDir->onPop();
+						$dirList->add($popDir->hash, json_encode($popDir->hash) . ":" . $popDir->toJSON());
+
 						$currentDir->onChildPop($popDir);
 					}
 
@@ -276,7 +461,7 @@ class ScanReader {
 				}
 			}
 			catch (LineException $e) {
-				echo "LineException on line $lineNum: $e->getMessage()\n";
+				echo "LineException on line $lineNum: " . $e->getMessage() . "\n";
 			}
 		}
 
@@ -296,12 +481,22 @@ class ScanReader {
 
 		} while ($currentDir->parent !== null);
 
-		foreach (get_object_vars($currentDir) as $attribute => $val)
+		// Save any open maps.
+		$this->report->fileListMap->save();
+
+		// Save the directory list.
+		$dirList->save();
+
+		// Save the directory lookup
+		file_put_contents($this->report->buildPath('lookup.dat'), json_encode($this->report->directoryLookup->ranges));
+
+		foreach (get_object_vars($currentDir) as $attribute => $val) {
 			if (is_scalar($val)) {
-				ob_start();
-				var_dump($val);
-				echo printf("%s", "$attribute: " . trim(ob_get_clean())) . "\n";
+				//ob_start();
+				//print_r($val);
+				echo sprintf("%15s: %s", $attribute, trim(json_encode($val))) . "\n";
 			}
+		}
 
 		fclose($fh);
 	}
@@ -309,7 +504,11 @@ class ScanReader {
 
 class ReportMapOutput implements MapOutput {
 
+	/**
+	 * @var $report Report
+	 */
 	protected $report;
+
 	protected $maxPerOut;
 	protected $maxPerItem;
 
@@ -320,7 +519,11 @@ class ReportMapOutput implements MapOutput {
 	}
 
 	public function openOutFile($prefix, $index, $mode = 'w') {
-		return fopen($this->report->buildPath($prefix . '_' . $index . '.dat'), $mode);
+		$path = $this->report->buildPath($prefix . '_' . $index . '.dat');
+		$fh = fopen($path, $mode);
+		if ($fh === false)
+			throw new Exception("Failed to open out file for $mode at $path.");
+		return $fh;
 	}
 
 	public function getMaxPerOut() {
@@ -333,22 +536,65 @@ class ReportMapOutput implements MapOutput {
 
 }
 
+class RangeLookup implements SortOutputSaveHandler {
+
+	public $ranges = array();
+
+	public function onSave($index, $sortIndex, $firstItem, $lastItem) {
+		$this->ranges[] = array(
+			$sortIndex === null ? $firstItem[0] : $firstItem[0][$sortIndex],
+			$sortIndex === null ? $lastItem[0] : $lastItem[0][$sortIndex],
+			$index
+		);
+	}
+}
+
 class Report {
+
+
 	public $directory;
+
+	public $directoryLookup;
+	public $directoryList;
+
 	public $fileListOutputs;
 	public $fileListMap;
+
+	protected $maxDirListSize;
 
 	public function __construct($directory) {
 		$this->directory = rtrim(realpath($directory), DIRECTORY_SEPARATOR);
 
+		$this->directoryLookup = new RangeLookup();
+
+		$this->maxDirListSize = 40 * 1024;
+
+		$this->directoryList = new LargeList(array(
+			new SingleSortOutput($this, $this->directoryLookup)
+		), array(
+			'prefix' => 'dirmap',
+			'maxSize' => $this->maxDirListSize,
+			'asObject' => true
+		));
+
+		$this->subDirOutputs = array(
+			new MultiSortOutput($this, 0, 'name'),
+			new MultiSortOutput($this, 1, 'size'),
+			new MultiSortOutput($this, 2, 'count'),
+			new MultiSortOutput($this, 3, 'dirs')
+		);
+
+		$this->subDirMap = new LargeMap(new ReportMapOutput($this, 10 * 1024, 5 * 1024));
+		$this->subDirMap->prefix = 'subdirsmap';
+
 		$this->fileListOutputs = array(
-			new DirOutput($this, 0, 'name'),
-			new DirOutput($this, 1, 'size'),
-			new DirOutput($this, 2, 'date')
+			new MultiSortOutput($this, 0, 'name'),
+			new MultiSortOutput($this, 1, 'size'),
+			new MultiSortOutput($this, 2, 'date')
 		);
 
 		$this->fileListMap = new LargeMap(new ReportMapOutput($this, 80 * 1024, 40 * 1024));
-		$this->fileListMap->prefix = 'filelists';
+		$this->fileListMap->prefix = 'filesmap';
 	}
 
 	public function buildPath($extension) {
@@ -416,5 +662,6 @@ try {
 	$reader->read('/Users/amekkawi/Sites/git/diskusage/amekkawi.dat');
 }
 catch (Exception $e) {
-	var_dump($e);
+	echo "\n" . get_class($e) . ": " . $e->getMessage() . "\n";
+	echo $e->getTraceAsString()."\n";
 }

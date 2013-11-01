@@ -1,8 +1,30 @@
 <?php
 
+interface MapItem {
+	public function getSize();
+	public function getKey();
+	public function toJSON();
+}
+
 interface MapOutput {
+	/**
+	 * @return integer The maximum size that a single item can be in a map file.
+	 */
 	public function getMaxPerItem();
+
+	/**
+	 * @return integer The maximum size of a single map file.
+	 */
 	public function getMaxPerOut();
+
+	/**
+	 * Open a map file via fopen().
+	 *
+	 * @param $prefix string The prefix for the map file name.
+	 * @param $index integer The map file index to open.
+	 * @param string $mode The fopen() mode.
+	 * @return resource The file handle.
+	 */
 	public function openOutFile($prefix, $index, $mode = 'w');
 }
 
@@ -27,7 +49,7 @@ class LargeMap {
 	protected $outSize = 0;
 
 	protected $openOuts = array();
-	protected $maxOpenOuts = 25;
+	protected $maxOpenOuts = 50;
 
 	public function __construct(MapOutput $output) {
 		$this->output = $output;
@@ -46,9 +68,20 @@ class LargeMap {
 		return $this->outCount;
 	}
 
-	public function add($key, $itemJSON) {
+	public function add(MapItem $mapItem) {
+		$key = $mapItem->getKey();
+		$keyJSON = json_encode($key);
+		if (strLen($keyJSON) + $mapItem->getSize() + 2 > $this->maxPerOut)
+			return false;
+
+		return $this->addJSON($key, $mapItem->toJSON());
+	}
+
+	public function addJSON($key, $itemJSON) {
 		$keyJSON = json_encode($key);
 		$addLen = strLen($keyJSON) + strlen($itemJSON) + 2;
+		if ($addLen > $this->maxPerOut)
+			return false;
 
 		$out = $this->findOut($addLen);
 		fwrite($out->handle, ($out->size > 0 ? ',' : '{') . $keyJSON . ':' . $itemJSON);
@@ -65,7 +98,10 @@ class LargeMap {
 	}
 
 	protected function findOut($len) {
+		/** @var $largestOut LargeMapOpenOut */
 		$largestOut = null;
+
+		/** @var $openOut LargeMapOpenOut */
 		foreach ($this->openOuts as $openOut) {
 			if ($largestOut === null || $largestOut->size > $openOut->size)
 				$largestOut = $openOut;
