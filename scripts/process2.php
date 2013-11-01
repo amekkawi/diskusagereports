@@ -7,6 +7,7 @@ require("inc/class.largemap.php");
 require("inc/class.largecollection.php");
 require("inc/class.filestream.php");
 require("inc/class.fileiterator.php");
+require("inc/class.multifilesorter.php");
 
 ini_set('display_errors', 1);
 error_reporting(E_ALL);

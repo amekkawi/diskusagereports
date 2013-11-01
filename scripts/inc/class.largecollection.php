@@ -192,19 +192,19 @@ class LargeCollection implements KeyedJSON {
 
 			// Create a list of iterators with the buffer as one of them.
 			$iterators = array($bufferIterator);
-			$currentValues = array();
 
-			// Get the current unserialized value for the list.
-			$currentValues[] = $bufferIterator->valid() ? $bufferIterator->current() : null;
-
-			// Add iterators for any temp files and get their current unserialized values.
+			// Add iterators for temp files.
 			// TODO: Change so only up to 100 files are open at a time to prevent hitting 'ulimit -n' limit.
 			for ($i = 1; $i <= $this->tempFiles; $i++) {
-				$iterator = new FileIterator($output->openTempFile($this->prefix, $i, 'r'));
-				$iterator->closeOnEnd();
+				$iterator = new FileIterator(
+					$output->openTempFile($this->prefix, $i, 'r'), array(
+					'unserialize' => true,
+					'closeOnEnd' => true
+				));
 				$iterators[] = $iterator;
-				$currentValues[] = $iterator->valid() ? unserialize($iterator->current()) : null;
 			}
+
+			$sorter = new MultiFileSorter($iterators, $output);
 
 			$outIndex = 1;
 			$outSize = 0;
@@ -213,50 +213,28 @@ class LargeCollection implements KeyedJSON {
 			$firstItem = null;
 			$lastItem = null;
 
-			do {
-				$topIndex = null;
-				$topVal = null;
+			foreach ($sorter as $item) {
+				$itemSize = strlen($item[1]) + 1;
 
-				foreach ($currentValues as $i => $currentValue) {
-					if ($currentValue !== null) {
-						if ($topIndex === null || $output->compare($currentValue, $topVal) < 0) {
-							$topIndex = $i;
-							$topVal = $currentValue;
-						}
-					}
+				// Move to the next file if this will make the current one too large.
+				if ($outSize > 0 && $this->isOverMax($outSize + $itemSize + 2, $outLines + 1)) {
+					$outFile->write($this->asObject ? '}' : ']');
+					$outFile->close();
+					$output->onSave($outIndex, $firstItem, $lastItem, $outSize + 1, $outFile->getPath());
+					$outIndex++;
+					$outSize = 0;
+					$outLines = 0;
+					$outFile = $output->openOutFile($this->prefix, $outIndex);
 				}
 
-				if ($topIndex !== null) {
-					$topSize = strlen($topVal[1]) + 1;
+				$lastItem = $item;
+				if ($outSize === 0)
+					$firstItem = $item;
 
-					// Move to the next file if this will make the current one too large.
-					if ($outSize > 0 && $this->isOverMax($outSize + $topSize + 2, $outLines + 1)) {
-						$outFile->write($this->asObject ? '}' : ']');
-						$outFile->close();
-						$output->onSave($outIndex, $firstItem, $lastItem, $outSize + 1, $outFile->getPath());
-						$outIndex++;
-						$outSize = 0;
-						$outLines = 0;
-						$outFile = $output->openOutFile($this->prefix, $outIndex);
-					}
-
-					$lastItem = $topVal;
-					if ($outSize === 0)
-						$firstItem = $topVal;
-
-					$outFile->write(($outSize > 0 ? ',' : ($this->asObject ? '{' : '[')) . $topVal[1]);
-					$outSize += $topSize;
-					$outLines++;
-
-					/** @var $iterator Iterator */
-					$iterator = $iterators[$topIndex];
-					$iterator->next();
-					$currentValues[$topIndex] = $iterator->valid() ? (is_string($iterator->current()) ? unserialize($iterator->current()) : $iterator->current()) : null;
-					if ($currentValues[$topIndex] === false)
-						throw new Exception("Failed to unserialize value for #$topIndex: {$iterator->current()}");
-				}
-
-			} while ($topIndex !== null);
+				$outFile->write(($outSize > 0 ? ',' : ($this->asObject ? '{' : '[')) . $item[1]);
+				$outSize += $itemSize;
+				$outLines++;
+			}
 
 			if ($outSize > 0) {
 				$outFile->write($this->asObject ? '}' : ']');
