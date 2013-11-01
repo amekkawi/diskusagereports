@@ -95,4 +95,17 @@ class Util {
 		if ($comp < 0) return -1 - $mid;
 		if ($comp > 0) return -2 - $mid;
 	}
+
+	public static function FormatBytes($bytes) {
+		if ($bytes >= 1024 * 1024 * 1024 * 1024)
+			return number_format($bytes / 1024 / 1024 / 1024 / 1024, 2) . ' TB';
+		elseif ($bytes >= 1024 * 1024 * 1024)
+			return number_format($bytes / 1024 / 1024 / 1024, 2) . ' GB';
+		elseif ($bytes >= 1024 * 1024)
+			return number_format($bytes / 1024 / 1024, 2) . ' MB';
+		elseif ($bytes >= 1024)
+			return number_format($bytes / 1024, 2) . ' KB';
+		else
+			return number_format($bytes) . ' byte' . ($bytes == 1 ? '' : 's');
+	}
 }
