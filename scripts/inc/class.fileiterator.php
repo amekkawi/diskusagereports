@@ -3,26 +3,31 @@
 class FileIterator implements Iterator {
 
 	protected $stream = null;
-	protected $readLength;
+	protected $readLength = 40240;
 
 	protected $lineNum = 0;
 	protected $line = null;
 	protected $readBytes = 0;
 	protected $length = null;
 	protected $closeOnEnd = false;
+	protected $unserialize = false;
 
-	public function __construct(FileStream $stream, $readLength = 40240) {
+	public function __construct(FileStream $stream, array $options = array()) {
 		$this->stream = $stream;
-		$this->readLength = $readLength;
+
+		if (isset($options['readLength']) && is_int($options['readLength']))
+			$this->readLength = $options['readLength'];
+
+		if (isset($options['unserialize']) && is_bool($options['unserialize']))
+			$this->unserialize = $options['unserialize'];
+
+		if (isset($options['closeOnEnd']) && is_bool($options['closeOnEnd']))
+			$this->closeOnEnd = $options['closeOnEnd'];
 
 		if (is_array($stat = $stream->stat()) && $stat['mode'] & 0100000)
 			$this->length = $stat['size'];
 
 		$this->next();
-	}
-
-	public function closeOnEnd() {
-		$this->closeOnEnd = true;
 	}
 
 	public function position() {
@@ -53,6 +58,11 @@ class FileIterator implements Iterator {
 			$this->lineNum++;
 			$this->readBytes += strlen($line);
 			$this->line = rtrim($line, "\n\r");
+			if ($this->unserialize) {
+				$this->line = unserialize($line);
+				if ($this->line === false)
+					throw new Exception("Failed to unserialize line: $line");
+			}
 		}
 	}
 
