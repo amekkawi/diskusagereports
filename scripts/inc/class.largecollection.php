@@ -179,14 +179,6 @@ class LargeCollection implements KeyedJSON {
 			|| ($this->maxLength !== false && $this->maxLength < $length));
 	}
 
-	public function compare($a, $b) {
-		if ($a[0] < $b[0])
-			return -1;
-		if ($a[0] > $b[0])
-			return 1;
-		return 0;
-	}
-
 	public function save() {
 
 		$ret = array();
