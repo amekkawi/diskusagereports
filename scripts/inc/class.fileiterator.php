@@ -11,7 +11,7 @@ class FileIterator implements Iterator {
 	protected $length = null;
 	protected $closeOnEnd = false;
 
-	public function __construct($fileHandle, $readLength = 1024) {
+	public function __construct($fileHandle, $readLength = 40240) {
 		$this->handle = $fileHandle;
 		$this->readLength = $readLength;
 
