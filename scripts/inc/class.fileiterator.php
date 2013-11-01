@@ -25,6 +25,10 @@ class FileIterator implements Iterator {
 		$this->closeOnEnd = true;
 	}
 
+	public function position() {
+		return $this->readBytes;
+	}
+
 	public function length() {
 		return $this->length;
 	}
