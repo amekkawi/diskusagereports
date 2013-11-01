@@ -252,7 +252,7 @@ class LargeList implements MapItem {
 						$firstItem = $topVal;
 
 					$outFile->write(($outSize > 0 ? ',' : ($this->asObject ? '{' : '[')) . $topVal[1]);
-					$outSize += $topSize + 1;
+					$outSize += $topSize;
 					$outLines++;
 
 					/** @var $iterator Iterator */
