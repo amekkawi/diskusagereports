@@ -26,6 +26,8 @@ interface MapOutput {
 	 * @return resource The file handle.
 	 */
 	public function openOutFile($prefix, $index, $mode = 'w');
+
+	public function onSave($index, $size);
 }
 
 class LargeMapOpenOut {
@@ -134,7 +136,9 @@ class LargeMap {
 	protected function closeOut(LargeMapOpenOut $openOut) {
 		fwrite($openOut->handle, '}');
 		fclose($openOut->handle);
-		echo "Closing map out #{$openOut->index} with size {$openOut->size}.\n"; //usleep(50000);
+
+		//echo "Closing map out #{$openOut->index} with size {$openOut->size}.\n"; //usleep(50000);
+		$this->output->onSave($openOut->index, $openOut->size);
 		$openOut->size = 0;
 	}
 
