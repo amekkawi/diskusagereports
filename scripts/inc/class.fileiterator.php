@@ -2,7 +2,7 @@
 
 class FileIterator implements Iterator {
 
-	protected $handle = null;
+	protected $stream = null;
 	protected $readLength;
 
 	protected $lineNum = 0;
@@ -11,11 +11,11 @@ class FileIterator implements Iterator {
 	protected $length = null;
 	protected $closeOnEnd = false;
 
-	public function __construct($fileHandle, $readLength = 40240) {
-		$this->handle = $fileHandle;
+	public function __construct(FileStream $stream, $readLength = 40240) {
+		$this->stream = $stream;
 		$this->readLength = $readLength;
 
-		if (is_array($stat = @fstat($this->handle)) && $stat['mode'] & 0100000)
+		if (is_array($stat = $stream->stat()) && $stat['mode'] & 0100000)
 			$this->length = $stat['size'];
 
 		$this->next();
@@ -38,18 +38,16 @@ class FileIterator implements Iterator {
 	}
 
 	public function next() {
-		if ($this->handle === null)
+		if (!$this->stream->isOpen())
 			return;
 
-		$line = fgets($this->handle, $this->readLength);
+		$line = $this->stream->gets($this->readLength);
 
 		if ($line === false) {
 			$this->line = null;
 
-			if ($this->closeOnEnd) {
-				fclose($this->handle);
-				$this->handle = null;
-			}
+			if ($this->closeOnEnd)
+				$this->stream->close();
 		}
 		else {
 			$this->lineNum++;

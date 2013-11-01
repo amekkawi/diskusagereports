@@ -145,11 +145,11 @@ class LargeList implements MapItem {
 				if (!isset($item[2]))
 					$item[2] = serialize($item);
 
-				fwrite($tempFile, $item[2] . "\n");
+				$tempFile->write($item[2] . "\n");
 			}
 
-			$outSize += ftell($tempFile);
-			fclose($tempFile);
+			$outSize += $tempFile->tell();
+			$tempFile->close();
 		}
 
 		//$outSize = round($outSize / max(1, count($this->outputs)));
@@ -229,8 +229,8 @@ class LargeList implements MapItem {
 
 					// Move to the next file if this will make the current one too large.
 					if ($outSize > 0 && $this->isOverMax($outSize + $topSize + 2, $outLines + 1)) {
-						fwrite($outFile, $this->asObject ? '}' : ']');
-						fclose($outFile);
+						$outFile->write($this->asObject ? '}' : ']');
+						$outFile->close();
 						$output->onSave($outIndex, $firstItem, $lastItem, $outSize + 1);
 						$outIndex++;
 						$outSize = 0;
@@ -242,7 +242,7 @@ class LargeList implements MapItem {
 					if ($outSize === 0)
 						$firstItem = $topVal;
 
-					fwrite($outFile, ($outSize > 0 ? ',' : ($this->asObject ? '{' : '[')) . $topVal[1]);
+					$outFile->write(($outSize > 0 ? ',' : ($this->asObject ? '{' : '[')) . $topVal[1]);
 					$outSize += $topSize + 1;
 					$outLines++;
 
@@ -257,8 +257,8 @@ class LargeList implements MapItem {
 			} while ($topIndex !== null);
 
 			if ($outSize > 0) {
-				fwrite($outFile, $this->asObject ? '}' : ']');
-				fclose($outFile);
+				$outFile->write($this->asObject ? '}' : ']');
+				$outFile->close();
 				$output->onSave($outIndex, $firstItem, $lastItem, $outSize + 1);
 			}
 

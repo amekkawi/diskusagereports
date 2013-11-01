@@ -18,12 +18,12 @@ interface MapOutput {
 	public function getMaxPerOut();
 
 	/**
-	 * Open a map file via fopen().
+	 * Open a map file stream.
 	 *
 	 * @param $prefix string The prefix for the map file name.
 	 * @param $index integer The map file index to open.
 	 * @param string $mode The fopen() mode.
-	 * @return resource The file handle.
+	 * @return FileStream The file stream.
 	 */
 	public function openOutFile($prefix, $index, $mode = 'w');
 
@@ -32,12 +32,12 @@ interface MapOutput {
 
 class LargeMapOpenOut {
 	public $index;
-	public $handle;
+	public $stream;
 	public $size = 0;
 
-	public function __construct($index, $handle) {
+	public function __construct($index, FileStream $stream) {
 		$this->index = $index;
-		$this->handle = $handle;
+		$this->stream = $stream;
 	}
 }
 
@@ -86,7 +86,7 @@ class LargeMap {
 			return false;
 
 		$out = $this->findOut($addLen);
-		fwrite($out->handle, ($out->size > 0 ? ',' : '{') . $keyJSON . ':' . $itemJSON);
+		$out->stream->write(($out->size > 0 ? ',' : '{') . $keyJSON . ':' . $itemJSON);
 		$out->size += $addLen;
 		return $this->outCount;
 	}
@@ -116,7 +116,7 @@ class LargeMap {
 
 		if (count($this->openOuts) >= $this->maxOpenOuts && $largestOut !== null) {
 			$this->closeOut($largestOut);
-			$largestOut->handle = $this->openOutFile();
+			$largestOut->stream = $this->openOutFile();
 			$largestOut->index = $this->outCount;
 			//echo "Replaced with map out #{$largestOut->index}.\n"; usleep(150000);
 			return $largestOut;
@@ -134,8 +134,8 @@ class LargeMap {
 	}
 
 	protected function closeOut(LargeMapOpenOut $openOut) {
-		fwrite($openOut->handle, '}');
-		fclose($openOut->handle);
+		$openOut->stream->write('}');
+		$openOut->stream->close();
 
 		//echo "Closing map out #{$openOut->index} with size {$openOut->size}.\n"; //usleep(50000);
 		$this->output->onSave($openOut->index, $openOut->size);

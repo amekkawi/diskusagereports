@@ -4,6 +4,7 @@ require("inc/class.util.php");
 require("inc/class.options.php");
 require("inc/class.largemap.php");
 require("inc/class.largelist.php");
+require("inc/class.filestream.php");
 require("inc/class.fileiterator.php");
 
 ini_set('display_errors', 1);
@@ -30,12 +31,8 @@ class SingleSortOutput implements ListOutput {
 		$this->saveHandler = $saveHandler;
 	}
 
-		public function openTempFile($prefix, $index, $mode) {
-		$path = $this->report->buildPath($prefix . '_' . $index . '.tmp');
-		$fh = fopen($path, $mode);
-		if ($fh === false)
-			throw new Exception("Failed to open temp file for $mode at $path.");
-		return $fh;
+	public function openTempFile($prefix, $index, $mode) {
+		return new FileStream($this->report->buildPath($prefix . '_' . $index . '.tmp'), $mode);
 	}
 
 	public function deleteTempFile($prefix, $index) {
@@ -44,11 +41,7 @@ class SingleSortOutput implements ListOutput {
 
 	public function openOutFile($prefix, $index, $mode = 'w') {
 		$this->report->outFiles++;
-		$path = $this->report->buildPath($prefix . '_' . $index . '.dat');
-		$fh = fopen($path, $mode);
-		if ($fh === false)
-			throw new Exception("Failed to open out file for $mode at $path.");
-		return $fh;
+		return new FileStream($this->report->buildPath($prefix . '_' . $index . '.dat'), $mode);
 	}
 
 	public function compare($a, $b) {
@@ -90,11 +83,7 @@ class MultiSortOutput implements ListOutput {
 	}
 
 	public function openTempFile($prefix, $index, $mode) {
-		$path = $this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.tmp');
-		$fh = fopen($path, $mode);
-		if ($fh === false)
-			throw new Exception("Failed to open temp file for $mode at $path.");
-		return $fh;
+		return new FileStream($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.tmp'), $mode);
 	}
 
 	public function deleteTempFile($prefix, $index) {
@@ -103,11 +92,7 @@ class MultiSortOutput implements ListOutput {
 
 	public function openOutFile($prefix, $index, $mode = 'w') {
 		$this->report->outFiles++;
-		$path = $this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.dat');
-		$fh = fopen($path, $mode);
-		if ($fh === false)
-			throw new Exception("Failed to open out file for $mode at $path.");
-		return $fh;
+		return new FileStream($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.dat'), $mode);
 	}
 
 	public function compare($a, $b) {
@@ -368,6 +353,9 @@ class ScanReader {
 
 	const DEBUG = false;
 
+	/**
+	 * @var Report
+	 */
 	protected $report;
 
 	public function __construct(Report $report) {
@@ -377,11 +365,15 @@ class ScanReader {
 	public function read($filename) {
 
 		// Attempt to open the file list.
-		if (($fh = fopen($filename, 'r')) === FALSE)
+		try {
+			$stream = new FileStream($filename, 'r');
+		}
+		catch (IOException $e) {
 			throw new ScanException(ScanException::FOPEN_FAIL);
+		}
 
 		$options = new Options();
-		$iterator = new FileIterator($fh);
+		$iterator = new FileIterator($stream);
 		$fileInfo = new FileInfo();
 		$dirList = $this->report->directoryList;
 
@@ -534,7 +526,7 @@ class ScanReader {
 			}
 		}*/
 
-		fclose($fh);
+		$stream->close();
 	}
 }
 
@@ -556,11 +548,7 @@ class ReportMapOutput implements MapOutput {
 
 	public function openOutFile($prefix, $index, $mode = 'w') {
 		$this->report->outFiles++;
-		$path = $this->report->buildPath($prefix . '_' . $index . '.dat');
-		$fh = fopen($path, $mode);
-		if ($fh === false)
-			throw new Exception("Failed to open out file for $mode at $path.");
-		return $fh;
+		return new FileStream($this->report->buildPath($prefix . '_' . $index . '.dat'), $mode);
 	}
 
 	public function getMaxPerOut() {
@@ -701,6 +689,11 @@ class LineException extends Exception {
 	public $line;
 	public $column;
 
+	/**
+	 * @param string $reason
+	 * @param string $line
+	 * @param int    $column
+	 */
 	public function __construct($reason, $line, $column = -1) {
 		parent::__construct($reason);
 		$this->line = $line;
