@@ -43,6 +43,7 @@ class SingleSortOutput implements ListOutput {
 	}
 
 	public function openOutFile($prefix, $index, $mode = 'w') {
+		$this->report->outFiles++;
 		$path = $this->report->buildPath($prefix . '_' . $index . '.dat');
 		$fh = fopen($path, $mode);
 		if ($fh === false)
@@ -58,7 +59,8 @@ class SingleSortOutput implements ListOutput {
 		return 0;
 	}
 
-	public function onSave($index, $firstItem, $lastItem) {
+	public function onSave($index, $firstItem, $lastItem, $size) {
+		$this->report->outSize += $size;
 		if ($this->saveHandler !== null)
 			$this->saveHandler->onSave($index, null, $firstItem, $lastItem);
 	}
@@ -100,6 +102,7 @@ class MultiSortOutput implements ListOutput {
 	}
 
 	public function openOutFile($prefix, $index, $mode = 'w') {
+		$this->report->outFiles++;
 		$path = $this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.dat');
 		$fh = fopen($path, $mode);
 		if ($fh === false)
@@ -116,7 +119,8 @@ class MultiSortOutput implements ListOutput {
 		return 0;
 	}
 
-	public function onSave($index, $firstItem, $lastItem) {
+	public function onSave($index, $firstItem, $lastItem, $size) {
+		$this->report->outSize += $size;
 		if ($this->saveHandler !== null)
 			$this->saveHandler->onSave($index, $this->sortIndex, $firstItem, $lastItem);
 	}
@@ -129,6 +133,9 @@ class DirInfo extends FileInfo {
 	protected $fileList;
 	protected $maxInlineSize;
 
+	/**
+	 * @var $parent DirInfo
+	 */
 	public $parent = null;
 
 	public $subDirCount = 0;
@@ -383,7 +390,27 @@ class ScanReader {
 
 		$headerAllowed = true;
 
+		$progressLastReport = time();
+		$progressLastLines = 0;
+		$progressLastBytes = 0;
+		$progressLastOutFiles = 0;
+		$progressLastOutSize = 0;
+
 		foreach ($iterator as $lineNum => $line) {
+
+			if (time() - $progressLastReport >= 3) {
+				if ($iterator->length() !== null) {
+					$progressPercent = floor($iterator->position() / $iterator->length() * 1000) / 10;
+					echo sprintf('%5.1f', $progressPercent) . "%:";
+				}
+
+				echo " Processed " . ($lineNum - $progressLastLines) . " lines from " . Util::FormatBytes($iterator->position() - $progressLastBytes) . ". Created " . ($this->report->outFiles - $progressLastOutFiles) . " files. Wrote " . Util::FormatBytes($this->report->outSize - $progressLastOutSize) . ".\n";
+				$progressLastReport = time();
+				$progressLastBytes = $iterator->position();
+				$progressLastOutFiles = $this->report->outFiles;
+				$progressLastLines = $lineNum;
+				$progressLastOutSize = $this->report->outSize;
+			}
 
 			// Ignore blank lines
 			if (trim($line) == '')
@@ -482,21 +509,30 @@ class ScanReader {
 		} while ($currentDir->parent !== null);
 
 		// Save any open maps.
+		$this->report->subDirMap->save();
 		$this->report->fileListMap->save();
 
 		// Save the directory list.
+		echo " Saving dir lists...\n";
 		$dirList->save();
 
 		// Save the directory lookup
-		file_put_contents($this->report->buildPath('lookup.dat'), json_encode($this->report->directoryLookup->ranges));
+		echo " Saving dir lookup...\n";
+		$lookupSize = file_put_contents($this->report->buildPath('lookup.dat'), json_encode($this->report->directoryLookup->ranges));
+		if ($lookupSize === false)
+			throw new ScanException("Failed to write lookup.dat.");
+		$this->report->outFiles++;
+		$this->report->outSize += $lookupSize;
 
-		foreach (get_object_vars($currentDir) as $attribute => $val) {
+		echo "Complete! Processed " . $iterator->key() . " lines from " . Util::FormatBytes($iterator->position()) . ". Created " . $this->report->outFiles . " files. Wrote " . Util::FormatBytes($this->report->outSize) . "\n";
+
+		/*foreach (get_object_vars($currentDir) as $attribute => $val) {
 			if (is_scalar($val)) {
 				//ob_start();
 				//print_r($val);
 				echo sprintf("%15s: %s", $attribute, trim(json_encode($val))) . "\n";
 			}
-		}
+		}*/
 
 		fclose($fh);
 	}
@@ -519,6 +555,7 @@ class ReportMapOutput implements MapOutput {
 	}
 
 	public function openOutFile($prefix, $index, $mode = 'w') {
+		$this->report->outFiles++;
 		$path = $this->report->buildPath($prefix . '_' . $index . '.dat');
 		$fh = fopen($path, $mode);
 		if ($fh === false)
@@ -534,6 +571,9 @@ class ReportMapOutput implements MapOutput {
 		return $this->maxPerItem;
 	}
 
+	public function onSave($index, $size) {
+		$this->report->outSize += $size;
+	}
 }
 
 class RangeLookup implements SortOutputSaveHandler {
@@ -551,14 +591,35 @@ class RangeLookup implements SortOutputSaveHandler {
 
 class Report {
 
-
+	/**
+	 * @var string
+	 */
 	public $directory;
 
+	/**
+	 * @var RangeLookup
+	 */
 	public $directoryLookup;
+
+	/**
+	 * @var LargeList
+	 */
 	public $directoryList;
 
+	/**
+	 * @var LargeMap
+	 */
+	public $subDirMap;
+
 	public $fileListOutputs;
+
+	/**
+	 * @var LargeMap
+	 */
 	public $fileListMap;
+
+	public $outFiles = 0;
+	public $outSize = 0;
 
 	protected $maxDirListSize;
 
