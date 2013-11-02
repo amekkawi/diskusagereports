@@ -499,8 +499,10 @@ class ScanReader {
 		$this->report->fileListMap->save();
 
 		// Save the directory list.
+		$startDirLists = microtime(true);
 		echo " Saving dir lists...\n";
 		$dirList->save();
+		echo " Took " . sprintf('%.2f', microtime(true) - $startDirLists) . " sec\n";
 
 		// Save the directory lookup
 		echo " Saving dir lookup...\n";
@@ -510,7 +512,7 @@ class ScanReader {
 		$this->report->outFiles++;
 		$this->report->outSize += $lookupSize;
 
-		echo "Complete! Processed " . Util::FormatNumber($iterator->key()) . " lines from " . Util::FormatBytes($iterator->position()) . ". Created " . Util::FormatNumber($this->report->outFiles) . " files. Wrote " . Util::FormatBytes($this->report->outSize) . "\n";
+		echo "Complete! Processed " . Util::FormatNumber($iterator->key()) . " lines from " . Util::FormatBytes($iterator->position()) . ". Wrote " . Util::FormatBytes($this->report->outSize) . " in " . Util::FormatNumber($this->report->outFiles) . " files.\n";
 
 		$stream->close();
 	}
