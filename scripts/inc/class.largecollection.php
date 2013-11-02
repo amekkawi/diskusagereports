@@ -6,6 +6,8 @@ class LargeCollection implements KeyedJSON {
 
 	protected $key = null;
 
+	protected $ext = 'dat';
+
 	protected $totalLength = 0;
 	protected $totalSize = 0;
 
@@ -24,6 +26,7 @@ class LargeCollection implements KeyedJSON {
 
 	protected $list;
 	protected $outputs;
+	protected $combinedOutput = null;
 
 	public function __construct(array $outputs = null, array $options = array()) {
 		$this->outputs = $outputs;
@@ -33,6 +36,9 @@ class LargeCollection implements KeyedJSON {
 
 		if (isset($options['prefix']) && is_string($options['prefix']))
 			$this->prefix = $options['prefix'];
+
+		if (isset($options['ext']) && is_string($options['ext']))
+			$this->ext = $options['ext'];
 
 		if (isset($options['maxSize']))
 			$this->maxSize = is_int($options['maxSize']) && $options['maxSize'] > 0 ? $options['maxSize'] : false;
@@ -62,10 +68,21 @@ class LargeCollection implements KeyedJSON {
 			$this->asObject = $options['asObject'];
 		}
 
+		if (isset($options['combinedOutput'])) {
+			if (!is_object($options['combinedOutput']) || !($options['combinedOutput'] instanceof CollectionIO))
+				throw new Exception(get_class($this) . "'s combinedOutput option must an instanceof CollectionOutputAdapter.");
+
+			$this->combinedOutput = $options['combinedOutput'];
+		}
+
 		if (isset($options['key']) && is_string($options['key']))
 			$this->key = $options['key'];
 
 		$this->startNew();
+	}
+
+	public function getExt() {
+		return $this->ext;
 	}
 
 	public function getSize() {
@@ -232,10 +249,11 @@ class LargeCollection implements KeyedJSON {
 
 	public function save() {
 
-		$ret = array();
+		$ret = 0;
+		$lastHandlerIndex = count($this->outputs) - 1;
 
 		/** @var $output CollectionOutput */
-		foreach ($this->outputs as $output) {
+		foreach ($this->outputs as $handlerIndex => $output) {
 			// Sort the buffer.
 			usort($this->list, array($output, 'compare'));
 
@@ -262,9 +280,13 @@ class LargeCollection implements KeyedJSON {
 			$outIndex = 1;
 			$outSize = 0;
 			$outLines = 0;
-			$outFile = $output->openFile($this->prefix, $outIndex, 'dat', 'w');
+			$outHandler = $this->combinedOutput === null ? $output : $this->combinedOutput;
+			$outFile = $outHandler->openFile($this->prefix, $outIndex, $this->ext, 'a');
 			$firstItem = null;
 			$lastItem = null;
+
+			if ($this->combinedOutput !== null)
+				$outFile->write($handlerIndex == 0 ? '[' : ',');
 
 			foreach ($sorter as $item) {
 				$itemSize = strlen($item[1]) + 1;
@@ -272,12 +294,18 @@ class LargeCollection implements KeyedJSON {
 				// Move to the next file if this will make the current one too large.
 				if ($outSize > 0 && $this->isOverMax($outSize + $itemSize + 2, $outLines + 1)) {
 					$outFile->write($this->asObject ? '}' : ']');
+
+					if ($handlerIndex == $lastHandlerIndex && $this->combinedOutput !== null) {
+						$outFile->write(']');
+						$this->combinedOutput->onSave($outIndex, null, null, $outFile->tell(), $outFile->getPath());
+					}
+
 					$outFile->close();
-					$output->onSave($outIndex, $firstItem, $lastItem, $outSize + 1, $outFile->getPath());
+					$output->onSave($outIndex, $firstItem, $lastItem, $this->combinedOutput !== null ? false : $outSize + 1, $outFile->getPath());
 					$outIndex++;
 					$outSize = 0;
 					$outLines = 0;
-					$outFile = $output->openFile($this->prefix, $outIndex, 'dat', 'w');
+					$outFile = $outHandler->openFile($this->prefix, $outIndex, $this->ext, 'a');
 				}
 
 				$lastItem = $item;
@@ -290,10 +318,16 @@ class LargeCollection implements KeyedJSON {
 			}
 
 			$outFile->write($this->asObject ? '}' : ']');
-			$output->onSave($outIndex, $firstItem, $lastItem, $outSize + 1, $outFile->getPath());
+			$output->onSave($outIndex, $firstItem, $lastItem, $this->combinedOutput !== null ? false : $outSize + 1, $outFile->getPath());
+
+			if ($handlerIndex == $lastHandlerIndex && $this->combinedOutput !== null) {
+				$outFile->write(']');
+				$this->combinedOutput->onSave($outIndex, null, null, $outFile->tell(), $outFile->getPath());
+			}
+
 			$outFile->close();
 
-			$ret[] = $outIndex;
+			$ret = $outIndex;
 		}
 
 		return $ret;
