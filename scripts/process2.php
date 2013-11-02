@@ -395,10 +395,10 @@ class ScanReader {
 			if (time() - $progressLastReport >= 3) {
 				if ($iterator->length() !== null) {
 					$progressPercent = floor($iterator->position() / $iterator->length() * 1000) / 10;
-					echo sprintf('%5.1f', $progressPercent) . "%:";
+					echo sprintf('%4.1f', $progressPercent) . "%: ";
 				}
 
-				echo " Processed " . Util::FormatNumber($lineNum - $progressLastLines) . " lines from " . Util::FormatBytes($iterator->position() - $progressLastBytes) . ". Wrote " . Util::FormatBytes($this->report->outSize - $progressLastOutSize) . " to " . Util::FormatNumber($this->report->outFiles - $progressLastOutFiles) . " files.\n";
+				echo "Processed " . Util::FormatNumber($lineNum - $progressLastLines) . " lines from " . Util::FormatBytes($iterator->position() - $progressLastBytes) . ". Wrote " . Util::FormatBytes($this->report->outSize - $progressLastOutSize) . " to " . Util::FormatNumber($this->report->outFiles - $progressLastOutFiles) . " files.\n";
 				$progressLastReport = time();
 				$progressLastBytes = $iterator->position();
 				$progressLastOutFiles = $this->report->outFiles;
@@ -508,12 +508,12 @@ class ScanReader {
 
 		// Save the directory list.
 		$startDirLists = microtime(true);
-		echo " Saving dir lists...\n";
+		echo "Saving dir lists...\n";
 		$dirList->save();
-		echo " Took " . sprintf('%.2f', microtime(true) - $startDirLists) . " sec\n";
+		echo "Took " . sprintf('%.2f', microtime(true) - $startDirLists) . " sec\n";
 
 		// Save the directory lookup
-		echo " Saving dir lookup...\n";
+		echo "Saving dir lookup...\n";
 		$lookupSize = file_put_contents($this->report->buildPath('dirmap_lookup.dat'), json_encode($this->report->directoryLookup->ranges));
 		if ($lookupSize === false)
 			throw new ScanException("Failed to write lookup.dat.");

@@ -201,7 +201,9 @@ class LargeCollection implements KeyedJSON {
 		$segmentsPer = ceil($segments / $maxSegments);
 		$newSegments = ceil($segments / $segmentsPer);
 
+		//$start = microtime(true);
 		//echo "Compacting $segments segments into $newSegments with up to $segmentsPer each...\n";
+
 		for ($newSeg = 1; $newSeg <= $newSegments; $newSeg++) {
 			$iterators = array();
 			for ($oldSeg = 1 + ($newSeg - 1) * $segmentsPer; $oldSeg <= min($segments, $newSeg * $segmentsPer); $oldSeg++) {
@@ -222,6 +224,8 @@ class LargeCollection implements KeyedJSON {
 			if ($output->renameTo($compactedFile->getPath(), $this->prefix, $newSeg, 'tmp') === false)
 				throw Exception("Failed to rename compacted file.");
 		}
+
+		//echo " Took " . sprintf('%.2f', microtime(true) - $start) . " sec\n";
 
 		return $newSegments;
 	}
