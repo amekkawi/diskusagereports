@@ -77,7 +77,7 @@ class Util {
 		$mid = 0;
 
 		while ($low <= $high) {
-			$mid = floor(($low + $high) / 2);
+			$mid = intval(floor(($low + $high) / 2));
 
 			$comp = call_user_func($comparator, $list[$mid], $needle);
 
@@ -109,7 +109,7 @@ class Util {
 			return number_format($bytes) . ' byte' . ($bytes == 1 ? '' : 's');
 	}
 
-	public function FormatNumber($num) {
+	public static function FormatNumber($num) {
 		return strrev(preg_replace("/([0-9]{3})(?=[0-9])/", '$1,', strrev($num.'')));
 	}
 }
