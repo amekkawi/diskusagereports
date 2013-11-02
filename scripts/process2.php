@@ -390,7 +390,7 @@ class ScanReader {
 					echo sprintf('%5.1f', $progressPercent) . "%:";
 				}
 
-				echo " Processed " . ($lineNum - $progressLastLines) . " lines from " . Util::FormatBytes($iterator->position() - $progressLastBytes) . ". Created " . ($this->report->outFiles - $progressLastOutFiles) . " files. Wrote " . Util::FormatBytes($this->report->outSize - $progressLastOutSize) . ".\n";
+				echo " Processed " . Util::FormatNumber($lineNum - $progressLastLines) . " lines from " . Util::FormatBytes($iterator->position() - $progressLastBytes) . ". Wrote " . Util::FormatBytes($this->report->outSize - $progressLastOutSize) . " to " . Util::FormatNumber($this->report->outFiles - $progressLastOutFiles) . " files.\n";
 				$progressLastReport = time();
 				$progressLastBytes = $iterator->position();
 				$progressLastOutFiles = $this->report->outFiles;
@@ -510,15 +510,7 @@ class ScanReader {
 		$this->report->outFiles++;
 		$this->report->outSize += $lookupSize;
 
-		echo "Complete! Processed " . $iterator->key() . " lines from " . Util::FormatBytes($iterator->position()) . ". Created " . $this->report->outFiles . " files. Wrote " . Util::FormatBytes($this->report->outSize) . "\n";
-
-		/*foreach (get_object_vars($currentDir) as $attribute => $val) {
-			if (is_scalar($val)) {
-				//ob_start();
-				//print_r($val);
-				echo sprintf("%15s: %s", $attribute, trim(json_encode($val))) . "\n";
-			}
-		}*/
+		echo "Complete! Processed " . Util::FormatNumber($iterator->key()) . " lines from " . Util::FormatBytes($iterator->position()) . ". Created " . Util::FormatNumber($this->report->outFiles) . " files. Wrote " . Util::FormatBytes($this->report->outSize) . "\n";
 
 		$stream->close();
 	}

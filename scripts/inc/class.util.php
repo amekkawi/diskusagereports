@@ -108,4 +108,8 @@ class Util {
 		else
 			return number_format($bytes) . ' byte' . ($bytes == 1 ? '' : 's');
 	}
+
+	public function FormatNumber($num) {
+		return strrev(preg_replace("/([0-9]{3})(?=[0-9])/", '$1,', strrev($num.'')));
+	}
 }
