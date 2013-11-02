@@ -146,10 +146,12 @@ class DirInfo extends FileInfo {
 		$this->report = $report;
 		$this->maxInlineSize = 1024;
 		$this->dirList = new LargeCollection($report->subDirOutputs, array(
-			'maxLength' => 200
+			'maxLength' => 200,
+			'combinedOutput' => $report->combinedOutput
 		));
 		$this->fileList = new LargeCollection($report->fileListOutputs, array(
-			'maxLength' => 900
+			'maxLength' => 200,
+			'combinedOutput' => $report->combinedOutput
 		));
 	}
 
@@ -607,6 +609,8 @@ class Report {
 
 	public $fileListOutputs;
 
+	public $combinedOutput;
+
 	/**
 	 * @var LargeMap
 	 */
@@ -647,6 +651,8 @@ class Report {
 			new MultiSortOutput($this, 1, 'size'),
 			new MultiSortOutput($this, 2, 'date')
 		);
+
+		$this->combinedOutput = new SingleSortOutput($this);
 
 		$this->fileListMap = new LargeMap(new ReportMapOutput($this, 80 * 1024, 40 * 1024));
 		$this->fileListMap->prefix = 'filesmap';
