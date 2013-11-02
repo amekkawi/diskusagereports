@@ -41,6 +41,10 @@ class SingleSortOutput implements CollectionOutput {
 		return unlink($this->report->buildPath($prefix . '_' . $index . '.' . $ext));
 	}
 
+	public function renameTo($fromPath, $prefix, $index, $ext) {
+		return rename($fromPath, $this->report->buildPath($prefix . '_' . $index . '.' . $ext));
+	}
+
 	public function compare($a, $b) {
 		if ($a[0] < $b[0])
 			return -1;
@@ -86,6 +90,10 @@ class MultiSortOutput implements CollectionOutput {
 
 	public function deleteFile($prefix, $index, $ext) {
 		return unlink($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.' . $ext));
+	}
+
+	public function renameTo($fromPath, $prefix, $index, $ext) {
+		return rename($fromPath, $this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.' . $ext));
 	}
 
 	public function compare($a, $b) {

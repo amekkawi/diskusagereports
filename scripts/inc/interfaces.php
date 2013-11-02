@@ -44,8 +44,8 @@ interface Comparator {
 interface CollectionIO {
 
 	/**
-	 * @param        $prefix
-	 * @param        $index
+	 * @param string $prefix
+	 * @param int    $index
 	 * @param string $ext
 	 * @param string $mode
 	 *
@@ -54,22 +54,32 @@ interface CollectionIO {
 	public function openFile($prefix, $index, $ext, $mode);
 
 	/**
-	 * @param $index
-	 * @param $firstItem
-	 * @param $lastItem
-	 * @param $size
-	 * @param $path
+	 * @param int    $index
+	 * @param mixed  $firstItem
+	 * @param mixed  $lastItem
+	 * @param int    $size
+	 * @param string $path
 	 */
 	public function onSave($index, $firstItem, $lastItem, $size, $path);
 
 	/**
-	 * @param $prefix
-	 * @param $index
+	 * @param string $prefix
+	 * @param int    $index
 	 * @param string $ext
 	 *
 	 * @return boolean
 	 */
 	public function deleteFile($prefix, $index, $ext);
+
+	/**
+	 * @param string $fromPath
+	 * @param string $prefix
+	 * @param int    $index
+	 * @param string $ext
+	 *
+	 * @return boolean
+	 */
+	public function renameTo($fromPath, $prefix, $index, $ext);
 }
 
 interface CollectionOutput extends CollectionIO, Comparator {
