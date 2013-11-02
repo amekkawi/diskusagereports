@@ -504,7 +504,7 @@ class ScanReader {
 
 		// Save the directory lookup
 		echo " Saving dir lookup...\n";
-		$lookupSize = file_put_contents($this->report->buildPath('lookup.dat'), json_encode($this->report->directoryLookup->ranges));
+		$lookupSize = file_put_contents($this->report->buildPath('dirmap_lookup.dat'), json_encode($this->report->directoryLookup->ranges));
 		if ($lookupSize === false)
 			throw new ScanException("Failed to write lookup.dat.");
 		$this->report->outFiles++;
