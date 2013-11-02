@@ -570,11 +570,16 @@ class RangeLookup implements SortOutputSaveHandler {
 	public $ranges = array();
 
 	public function onSave($index, $sortIndex, $firstItem, $lastItem, $path) {
-		$this->ranges[] = array(
+		$range = array(
 			$sortIndex === null ? $firstItem[0] : $firstItem[0][$sortIndex],
 			$sortIndex === null ? $lastItem[0] : $lastItem[0][$sortIndex],
 			$index
 		);
+
+		if ($sortIndex !== null)
+			$this->ranges[$sortIndex][] = $range;
+		else
+			$this->ranges[] = $range;
 	}
 }
 
