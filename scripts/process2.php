@@ -33,17 +33,12 @@ class SingleSortOutput implements CollectionOutput {
 		$this->saveHandler = $saveHandler;
 	}
 
-	public function openTempFile($prefix, $index, $mode) {
-		return new FileStream($this->report->buildPath($prefix . '_' . $index . '.tmp'), $mode);
+	public function openFile($prefix, $index, $ext, $mode = 'w') {
+		return new FileStream($this->report->buildPath($prefix . '_' . $index . '.' . $ext), $mode);
 	}
 
-	public function deleteTempFile($prefix, $index) {
-		return unlink($this->report->buildPath($prefix . '_' . $index . '.tmp'));
-	}
-
-	public function openOutFile($prefix, $index, $mode = 'w') {
-		$this->report->outFiles++;
-		return new FileStream($this->report->buildPath($prefix . '_' . $index . '.dat'), $mode);
+	public function deleteFile($prefix, $index, $ext) {
+		return unlink($this->report->buildPath($prefix . '_' . $index . '.' . $ext));
 	}
 
 	public function compare($a, $b) {
@@ -55,6 +50,7 @@ class SingleSortOutput implements CollectionOutput {
 	}
 
 	public function onSave($index, $firstItem, $lastItem, $size, $path) {
+		$this->report->outFiles++;
 		$this->report->outSize += $size;
 		if ($this->saveHandler !== null)
 			$this->saveHandler->onSave($index, null, $firstItem, $lastItem, $path);
@@ -84,17 +80,12 @@ class MultiSortOutput implements CollectionOutput {
 		$this->reverseSort = $reverseSort;
 	}
 
-	public function openTempFile($prefix, $index, $mode) {
-		return new FileStream($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.tmp'), $mode);
+	public function openFile($prefix, $index, $ext, $mode) {
+		return new FileStream($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.' . $ext), $mode);
 	}
 
-	public function deleteTempFile($prefix, $index) {
-		return unlink($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.tmp'));
-	}
-
-	public function openOutFile($prefix, $index, $mode = 'w') {
-		$this->report->outFiles++;
-		return new FileStream($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.dat'), $mode);
+	public function deleteFile($prefix, $index, $ext) {
+		return unlink($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.' . $ext));
 	}
 
 	public function compare($a, $b) {
@@ -107,6 +98,7 @@ class MultiSortOutput implements CollectionOutput {
 	}
 
 	public function onSave($index, $firstItem, $lastItem, $size, $path) {
+		$this->report->outFiles++;
 		$this->report->outSize += $size;
 		if ($this->saveHandler !== null)
 			$this->saveHandler->onSave($index, $this->sortIndex, $firstItem, $lastItem, $path);
@@ -548,9 +540,8 @@ class ReportMapOutput implements MapOutput {
 		$this->maxPerItem = $maxPerItem;
 	}
 
-	public function openOutFile($prefix, $index, $mode = 'w') {
-		$this->report->outFiles++;
-		return new FileStream($this->report->buildPath($prefix . '_' . $index . '.dat'), $mode);
+	public function openFile($prefix, $index, $ext, $mode) {
+		return new FileStream($this->report->buildPath($prefix . '_' . $index . '.' . $ext), $mode);
 	}
 
 	public function getMaxPerOut() {
@@ -562,6 +553,7 @@ class ReportMapOutput implements MapOutput {
 	}
 
 	public function onSave($index, $size, $path) {
+		$this->report->outFiles++;
 		$this->report->outSize += $size;
 	}
 }

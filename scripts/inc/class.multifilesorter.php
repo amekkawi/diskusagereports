@@ -12,6 +12,7 @@ class MultiFileSorter implements Iterator {
 		$this->output = $output;
 
 		// Get the first value for each iterator.
+		/** @var $iterator Iterator */
 		foreach ($iterators as $i => $iterator) {
 			$this->values[$i] = $iterator->valid() ? $iterator->current() : null;
 		}

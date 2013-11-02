@@ -41,15 +41,17 @@ interface Comparator {
 	public function compare($a, $b);
 }
 
-interface CollectionOutputAdapter {
+interface CollectionIO {
+
 	/**
 	 * @param        $prefix
 	 * @param        $index
+	 * @param string $ext
 	 * @param string $mode
 	 *
 	 * @return FileStream
 	 */
-	public function openOutFile($prefix, $index, $mode = 'w');
+	public function openFile($prefix, $index, $ext, $mode);
 
 	/**
 	 * @param $index
@@ -59,27 +61,17 @@ interface CollectionOutputAdapter {
 	 * @param $path
 	 */
 	public function onSave($index, $firstItem, $lastItem, $size, $path);
-}
-
-interface CollectionTempAdapter {
-	/**
-	 * @param $prefix
-	 * @param $index
-	 * @param $mode
-	 *
-	 * @return FileStream
-	 */
-	public function openTempFile($prefix, $index, $mode);
 
 	/**
 	 * @param $prefix
 	 * @param $index
+	 * @param string $ext
 	 *
 	 * @return boolean
 	 */
-	public function deleteTempFile($prefix, $index);
+	public function deleteFile($prefix, $index, $ext);
 }
 
-interface CollectionOutput extends CollectionOutputAdapter, CollectionTempAdapter, Comparator {
+interface CollectionOutput extends CollectionIO, Comparator {
 
 }

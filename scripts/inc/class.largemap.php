@@ -14,12 +14,13 @@ interface MapOutput {
 	/**
 	 * Open a map file stream.
 	 *
-	 * @param $prefix string The prefix for the map file name.
-	 * @param $index integer The map file index to open.
+	 * @param string $prefix The prefix for the map file name.
+	 * @param integer $index The map file index to open.
+	 * @param string $ext
 	 * @param string $mode The fopen() mode.
 	 * @return FileStream The file stream.
 	 */
-	public function openOutFile($prefix, $index, $mode = 'w');
+	public function openFile($prefix, $index, $ext, $mode);
 
 	public function onSave($index, $size, $path);
 }
@@ -129,7 +130,7 @@ class LargeMap {
 	}
 
 	protected function openOutFile() {
-		return $this->output->openOutFile($this->prefix, ++$this->outCount);
+		return $this->output->openFile($this->prefix, ++$this->outCount, 'dat', 'w');
 	}
 
 	protected function closeOut(LargeMapOpenOut $openOut) {

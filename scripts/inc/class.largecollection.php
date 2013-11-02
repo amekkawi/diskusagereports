@@ -145,7 +145,7 @@ class LargeCollection implements KeyedJSON {
 
 		/** @var $output CollectionOutput */
 		foreach ($this->outputs as $output) {
-			$tempFile = $output->openTempFile($this->prefix, $this->tempFiles, 'w');
+			$tempFile = $output->openFile($this->prefix, $this->tempFiles, 'tmp', 'w');
 
 			// Sort each output.
 			usort($this->list, array($output, 'compare'));
@@ -197,7 +197,7 @@ class LargeCollection implements KeyedJSON {
 			// TODO: Change so only up to 100 files are open at a time to prevent hitting 'ulimit -n' limit.
 			for ($i = 1; $i <= $this->tempFiles; $i++) {
 				$iterator = new FileIterator(
-					$output->openTempFile($this->prefix, $i, 'r'), array(
+					$output->openFile($this->prefix, $i, 'tmp', 'r'), array(
 					'unserialize' => true,
 					'closeOnEnd' => true
 				));
@@ -209,7 +209,7 @@ class LargeCollection implements KeyedJSON {
 			$outIndex = 1;
 			$outSize = 0;
 			$outLines = 0;
-			$outFile = $output->openOutFile($this->prefix, $outIndex);
+			$outFile = $output->openFile($this->prefix, $outIndex, 'dat', 'w');
 			$firstItem = null;
 			$lastItem = null;
 
@@ -224,7 +224,7 @@ class LargeCollection implements KeyedJSON {
 					$outIndex++;
 					$outSize = 0;
 					$outLines = 0;
-					$outFile = $output->openOutFile($this->prefix, $outIndex);
+					$outFile = $output->openFile($this->prefix, $outIndex, 'dat', 'w');
 				}
 
 				$lastItem = $item;
@@ -244,7 +244,7 @@ class LargeCollection implements KeyedJSON {
 
 			// Delete temp files.
 			for ($i = 1; $i <= $this->tempFiles; $i++) {
-				$output->deleteTempFile($this->prefix, $i);
+				$output->deleteFile($this->prefix, $i, 'tmp');
 			}
 
 			$ret[] = $outIndex;
