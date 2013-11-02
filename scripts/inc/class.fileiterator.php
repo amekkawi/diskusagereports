@@ -75,7 +75,6 @@ class FileIterator implements Iterator {
 	}
 
 	public function rewind() {
-		if ($this->lineNum > 1)
-			throw new Exception("Cannot rewind FileIterator");
+		$this->stream->rewind();
 	}
 }
