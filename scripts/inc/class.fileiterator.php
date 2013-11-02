@@ -81,6 +81,12 @@ class FileIterator implements Iterator {
 	}
 
 	public function rewind() {
+		if ($this->lineNum == 0)
+			return;
+
 		$this->stream->rewind();
+		$this->lineNum = 0;
+		$this->readBytes = 0;
+		$this->next();
 	}
 }
