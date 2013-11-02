@@ -10,6 +10,7 @@ class FileIterator implements Iterator {
 	protected $readBytes = 0;
 	protected $length = null;
 	protected $closeOnEnd = false;
+	protected $unlinkOnEnd = false;
 	protected $unserialize = false;
 
 	public function __construct(FileStream $stream, array $options = array()) {
@@ -23,6 +24,9 @@ class FileIterator implements Iterator {
 
 		if (isset($options['closeOnEnd']) && is_bool($options['closeOnEnd']))
 			$this->closeOnEnd = $options['closeOnEnd'];
+
+		if (isset($options['unlinkOnEnd']) && is_bool($options['unlinkOnEnd']))
+			$this->unlinkOnEnd = $options['unlinkOnEnd'];
 
 		if (is_array($stat = $stream->stat()) && $stat['mode'] & 0100000)
 			$this->length = $stat['size'];
@@ -51,7 +55,9 @@ class FileIterator implements Iterator {
 		if ($line === false) {
 			$this->line = null;
 
-			if ($this->closeOnEnd)
+			if ($this->unlinkOnEnd)
+				$this->stream->unlink();
+			elseif ($this->closeOnEnd)
 				$this->stream->close();
 		}
 		else {
