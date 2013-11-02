@@ -176,4 +176,17 @@ class FileStream {
 		if (fclose($this->handle) === false && !$ignoreError)
 			throw new IOException("Failed to close file.", $this);
 	}
+
+	/**
+	 * Close the file and unlink it.
+	 *
+	 * @throws IOException
+	 */
+	public function unlink($ignoreError = false) {
+		if ($this->isOpen)
+			$this->close($ignoreError);
+
+		if (unlink($this->path) === false && !$ignoreError)
+			throw new IOException("Failed to unlink the file.", $this);
+	}
 }
