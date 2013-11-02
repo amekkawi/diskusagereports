@@ -13,7 +13,7 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 interface SortOutputSaveHandler {
-	public function onSave($index, $index, $firstItem, $lastItem, $path);
+	public function onSave($index, $sortIndex, $firstItem, $lastItem, $path);
 }
 
 class SingleSortOutput implements CollectionOutput {
