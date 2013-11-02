@@ -150,6 +150,20 @@ class FileStream {
 		return @fstat($this->handle);
 	}
 
+	public function rewind() {
+		if (rewind($this->handle) === false)
+			throw new IOException("Failed to rewind the file stream.", $this);
+	}
+
+	public function seek($offset, $whence = SEEK_SET) {
+		if (fseek($this->handle, $offset, $whence) !== 0)
+			throw new IOException("Failed to seek the file stream.", $this);
+	}
+
+	public function seekToEnd() {
+		$this->seek(-1, SEEK_END);
+	}
+
 	/**
 	 * Close the file.
 	 *
