@@ -54,8 +54,10 @@ class SingleSortOutput implements CollectionOutput {
 	}
 
 	public function onSave($index, $firstItem, $lastItem, $size, $path) {
-		$this->report->outFiles++;
-		$this->report->outSize += $size;
+		if ($size !== false) {
+			$this->report->outFiles++;
+			$this->report->outSize += $size;
+		}
 		if ($this->saveHandler !== null)
 			$this->saveHandler->onSave($index, null, $firstItem, $lastItem, $path);
 	}
@@ -107,8 +109,10 @@ class MultiSortOutput implements CollectionOutput {
 	}
 
 	public function onSave($index, $firstItem, $lastItem, $size, $path) {
-		$this->report->outFiles++;
-		$this->report->outSize += $size;
+		if ($size !== false) {
+			$this->report->outFiles++;
+			$this->report->outSize += $size;
+		}
 		if ($this->saveHandler !== null)
 			$this->saveHandler->onSave($index, $this->sortIndex, $firstItem, $lastItem, $path);
 	}
