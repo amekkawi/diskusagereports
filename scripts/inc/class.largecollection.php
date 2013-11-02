@@ -17,6 +17,9 @@ class LargeCollection implements KeyedJSON {
 	protected $maxSize = false;
 	protected $maxLength = false;
 
+	protected $maxTempSize = 204800;
+	protected $maxOpenFiles = 30;
+
 	protected $asObject;
 
 	protected $list;
@@ -36,6 +39,18 @@ class LargeCollection implements KeyedJSON {
 
 		if (isset($options['maxLength']))
 			$this->maxLength = is_int($options['maxLength']) && $options['maxLength'] > 0 ? $options['maxLength'] : false;
+
+		if (isset($options['maxTempSize'])) {
+			if (!is_int($options['maxTempSize']) || $options['maxTempSize'] < 1024)
+				throw new Exception(get_class($this) . "'s maxTempSize option must be an int no less than 1024.");
+			$this->maxTempSize = $options['maxTempSize'];
+		}
+
+		if (isset($options['maxOpenFiles'])) {
+			if (!is_int($options['maxOpenFiles']) || $options['maxOpenFiles'] < 5)
+				throw new Exception(get_class($this) . "'s maxOpenFiles option must be an int no less than 5.");
+			$this->maxOpenFiles = $options['maxOpenFiles'];
+		}
 
 		if ($this->maxSize === false && $this->maxLength === false)
 			throw new Exception("Either " . get_class($this) . "'s maxSize or maxLength options must be set and must be a int greater than 0.");
@@ -81,12 +96,16 @@ class LargeCollection implements KeyedJSON {
 		return $this->maxLength;
 	}
 
-	public function getFileCount() {
-		return $this->tempFiles + 1;
+	public function getMaxTempSize() {
+		return $this->maxTempSize;
+	}
+
+	public function getMaxOpenFiles() {
+		return $this->maxOpenFiles;
 	}
 
 	public function isMultiPart() {
-		return $this->tempFiles > 0;
+		return $this->isOverMax($this->totalSize, $this->totalLength);
 	}
 
 	public function getKey() {
@@ -126,9 +145,8 @@ class LargeCollection implements KeyedJSON {
 			}
 		}
 
-		if ($this->bufferLength > 0 && $this->isOverMax($this->bufferSize + $addLen, $this->bufferLength + 1)) {
+		if ($this->bufferSize + $addLen > $this->maxTempSize)
 			$this->saveTemp();
-		}
 
 		$this->bufferSize += $addLen;
 		$this->bufferLength++;
@@ -179,6 +197,35 @@ class LargeCollection implements KeyedJSON {
 			|| ($this->maxLength !== false && $this->maxLength < $length));
 	}
 
+	protected function compactSegments($segments, $maxSegments, CollectionOutput $output) {
+		$segmentsPer = ceil($segments / $maxSegments);
+		$newSegments = ceil($segments / $segmentsPer);
+
+		//echo "Compacting $segments segments into $newSegments with up to $segmentsPer each...\n";
+		for ($newSeg = 1; $newSeg <= $newSegments; $newSeg++) {
+			$iterators = array();
+			for ($oldSeg = 1 + ($newSeg - 1) * $segmentsPer; $oldSeg <= min($segments, $newSeg * $segmentsPer); $oldSeg++) {
+				$iterators[] = new FileIterator(
+					$output->openFile($this->prefix, $oldSeg, 'tmp', 'r'), array(
+					'unserialize' => true,
+					'unlinkOnEnd' => true
+				));
+			}
+
+			$compactedFile = $output->openFile('compact', $newSeg, 'tmp', 'w');
+			$sorter = new MultiFileSorter($iterators, $output);
+			foreach ($sorter as $item) {
+				$compactedFile->write(serialize($item) . "\n");
+			}
+			$compactedFile->close();
+
+			if ($output->renameTo($compactedFile->getPath(), $this->prefix, $newSeg, 'tmp') === false)
+				throw Exception("Failed to rename compacted file.");
+		}
+
+		return $newSegments;
+	}
+
 	public function save() {
 
 		$ret = array();
@@ -193,15 +240,17 @@ class LargeCollection implements KeyedJSON {
 			// Create a list of iterators with the buffer as one of them.
 			$iterators = array($bufferIterator);
 
+			$tempFiles = $this->tempFiles;
+			if ($tempFiles > $this->maxOpenFiles)
+				$tempFiles = $this->compactSegments($tempFiles, $this->maxOpenFiles, $output);
+
 			// Add iterators for temp files.
-			// TODO: Change so only up to 100 files are open at a time to prevent hitting 'ulimit -n' limit.
-			for ($i = 1; $i <= $this->tempFiles; $i++) {
-				$iterator = new FileIterator(
+			for ($i = 1; $i <= $tempFiles; $i++) {
+				$iterators[] = new FileIterator(
 					$output->openFile($this->prefix, $i, 'tmp', 'r'), array(
 					'unserialize' => true,
-					'closeOnEnd' => true
+					'unlinkOnEnd' => true
 				));
-				$iterators[] = $iterator;
 			}
 
 			$sorter = new MultiFileSorter($iterators, $output);
@@ -236,16 +285,9 @@ class LargeCollection implements KeyedJSON {
 				$outLines++;
 			}
 
-			if ($outSize > 0) {
-				$outFile->write($this->asObject ? '}' : ']');
-				$output->onSave($outIndex, $firstItem, $lastItem, $outSize + 1, $outFile->getPath());
-				$outFile->close();
-			}
-
-			// Delete temp files.
-			for ($i = 1; $i <= $this->tempFiles; $i++) {
-				$output->deleteFile($this->prefix, $i, 'tmp');
-			}
+			$outFile->write($this->asObject ? '}' : ']');
+			$output->onSave($outIndex, $firstItem, $lastItem, $outSize + 1, $outFile->getPath());
+			$outFile->close();
 
 			$ret[] = $outIndex;
 		}
