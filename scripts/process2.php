@@ -28,7 +28,7 @@ class SingleSortOutput implements CollectionOutput {
 	 */
 	protected $saveHandler;
 
-	public function __construct($report, $saveHandler = null) {
+	public function __construct($report, SortOutputSaveHandler $saveHandler = null) {
 		$this->report = $report;
 		$this->saveHandler = $saveHandler;
 	}
@@ -77,10 +77,11 @@ class MultiSortOutput implements CollectionOutput {
 	protected $sortName;
 	protected $reverseSort;
 
-	public function __construct($report, $sortIndex, $sortName, $saveHandler = null, $reverseSort = false) {
+	public function __construct($report, $sortIndex, $sortName, SortOutputSaveHandler $saveHandler = null, $reverseSort = false) {
 		$this->report = $report;
 		$this->sortIndex = $sortIndex;
 		$this->sortName = $sortName;
+		$this->saveHandler = $saveHandler;
 		$this->reverseSort = $reverseSort;
 	}
 
