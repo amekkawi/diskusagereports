@@ -13,6 +13,17 @@ class Options {
 
 	const MAX_SUPPORTED_SCAN_VERSION = 2;
 
+	const VERBOSITY_QUIET = 0;
+	const VERBOSITY_NORMAL = 1;
+	const VERBOSITY_VERBOSE = 2;
+	const VERBOSITY_VERY_VERBOSE = 3;
+	const VERBOSITY_DEBUG = 4;
+
+	/**
+	 * @var int The verbosity level of output.
+	 */
+	public $verbosity = self::VERBOSITY_NORMAL;
+
 	/**
 	 * @var int The version of the file listing.
 	 */
@@ -53,6 +64,9 @@ class Options {
 	 */
 	public $escaped = false;
 
+	/**
+	 * @var int The maximum length that a line can be in the file list.
+	 */
 	public $maxLineLength = 1024;
 
 	// Default to version 1 columns indexes.
@@ -68,6 +82,43 @@ class Options {
 	 * @var string RegEx pattern that validates a line.
 	 */
 	public $lineRegEx;
+
+	/**
+	 * @var bool Whether or not to display the full path of the root directory in the report.
+	 */
+	public $includeFullPath = false;
+
+	/**
+	 * @var null|string The text will display in the header of the report.
+	 */
+	public $reportName = null;
+
+	/**
+	 * @var bool Whether or not to allow the directory tree UI.
+	 */
+	public $disableDirectoryTree = false;
+
+	/**
+	 * @var int The minimum number of seconds that must elapse before another progress message
+	 *          (e.g. 'Processed X lines ...') is outputted. Default is 15 seconds.
+	 */
+	public $progressMessageSeconds = 15;
+
+	/**
+	 * @var string The suffix of report files.
+	 */
+	public $suffix = '.txt';
+
+	/**
+	 * @var string The timezone for the report.
+	 */
+	public $timezone = null;
+
+	public $fileListDepth = true;
+	public $topListDepth = 3;
+	public $fileSizesDepth = 6;
+	public $fileTypesDepth = 6;
+	public $modifiedDatesDepth = 6;
 
 	public function __construct() {
 		$this->buildLineRegEx();
