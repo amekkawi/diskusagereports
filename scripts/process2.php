@@ -21,7 +21,7 @@ require("inc/class.multifilesorter.php");
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-interface ISortOutputSaveHandler {
+interface ISaveWatcher {
 	public function onSave($index, $sortIndex, $firstItem, $lastItem, $path);
 }
 
@@ -33,11 +33,11 @@ class SingleSortOutput implements ICollectionOutput {
 	protected $report;
 
 	/**
-	 * @var $saveHandler ISortOutputSaveHandler
+	 * @var $saveHandler ISaveWatcher
 	 */
 	protected $saveHandler;
 
-	public function __construct($report, ISortOutputSaveHandler $saveHandler = null) {
+	public function __construct($report, ISaveWatcher $saveHandler = null) {
 		$this->report = $report;
 		$this->saveHandler = $saveHandler;
 	}
@@ -80,7 +80,7 @@ class MultiSortOutput implements ICollectionOutput {
 	protected $report;
 
 	/**
-	 * @var $saveHandler ISortOutputSaveHandler
+	 * @var $saveHandler ISaveWatcher
 	 */
 	protected $saveHandler;
 
@@ -88,7 +88,7 @@ class MultiSortOutput implements ICollectionOutput {
 	protected $sortName;
 	protected $reverseSort;
 
-	public function __construct($report, $sortIndex, $sortName, ISortOutputSaveHandler $saveHandler = null, $reverseSort = false) {
+	public function __construct($report, $sortIndex, $sortName, ISaveWatcher $saveHandler = null, $reverseSort = false) {
 		$this->report = $report;
 		$this->sortIndex = $sortIndex;
 		$this->sortName = $sortName;
@@ -576,7 +576,7 @@ class ReportMapOutput implements IMapOutput {
 	}
 }
 
-class RangeLookup implements ISortOutputSaveHandler {
+class RangeLookup implements ISaveWatcher {
 
 	public $ranges = array();
 
