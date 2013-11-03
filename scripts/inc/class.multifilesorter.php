@@ -17,7 +17,7 @@ class MultiFileSorter implements Iterator {
 	protected $topIndex;
 	protected $key = 0;
 
-	function __construct(array $iterators, CollectionOutput $output) {
+	function __construct(array $iterators, ICollectionOutput $output) {
 		$this->iterators = $iterators;
 		$this->output = $output;
 

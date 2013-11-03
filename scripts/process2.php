@@ -21,11 +21,11 @@ require("inc/class.multifilesorter.php");
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-interface SortOutputSaveHandler {
+interface ISortOutputSaveHandler {
 	public function onSave($index, $sortIndex, $firstItem, $lastItem, $path);
 }
 
-class SingleSortOutput implements CollectionOutput {
+class SingleSortOutput implements ICollectionOutput {
 
 	/**
 	 * @var $report Report
@@ -33,11 +33,11 @@ class SingleSortOutput implements CollectionOutput {
 	protected $report;
 
 	/**
-	 * @var $saveHandler SortOutputSaveHandler
+	 * @var $saveHandler ISortOutputSaveHandler
 	 */
 	protected $saveHandler;
 
-	public function __construct($report, SortOutputSaveHandler $saveHandler = null) {
+	public function __construct($report, ISortOutputSaveHandler $saveHandler = null) {
 		$this->report = $report;
 		$this->saveHandler = $saveHandler;
 	}
@@ -72,7 +72,7 @@ class SingleSortOutput implements CollectionOutput {
 	}
 }
 
-class MultiSortOutput implements CollectionOutput {
+class MultiSortOutput implements ICollectionOutput {
 
 	/**
 	 * @var $report Report
@@ -80,7 +80,7 @@ class MultiSortOutput implements CollectionOutput {
 	protected $report;
 
 	/**
-	 * @var $saveHandler SortOutputSaveHandler
+	 * @var $saveHandler ISortOutputSaveHandler
 	 */
 	protected $saveHandler;
 
@@ -88,7 +88,7 @@ class MultiSortOutput implements CollectionOutput {
 	protected $sortName;
 	protected $reverseSort;
 
-	public function __construct($report, $sortIndex, $sortName, SortOutputSaveHandler $saveHandler = null, $reverseSort = false) {
+	public function __construct($report, $sortIndex, $sortName, ISortOutputSaveHandler $saveHandler = null, $reverseSort = false) {
 		$this->report = $report;
 		$this->sortIndex = $sortIndex;
 		$this->sortName = $sortName;
@@ -542,7 +542,7 @@ class ScanReader {
 	}
 }
 
-class ReportMapOutput implements MapOutput {
+class ReportMapOutput implements IMapOutput {
 
 	/**
 	 * @var $report Report
@@ -576,7 +576,7 @@ class ReportMapOutput implements MapOutput {
 	}
 }
 
-class RangeLookup implements SortOutputSaveHandler {
+class RangeLookup implements ISortOutputSaveHandler {
 
 	public $ranges = array();
 

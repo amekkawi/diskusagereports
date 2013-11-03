@@ -9,7 +9,7 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
-interface MapOutput {
+interface IMapOutput {
 	/**
 	 * @return integer The maximum size that a single item can be in a map file.
 	 */
@@ -57,7 +57,7 @@ class LargeMap {
 	protected $openOuts = array();
 	protected $maxOpenOuts = 50;
 
-	public function __construct(MapOutput $output) {
+	public function __construct(IMapOutput $output) {
 		$this->output = $output;
 		$this->maxPerOut = $this->output->getMaxPerOut();
 	}
@@ -74,7 +74,7 @@ class LargeMap {
 		return $this->outCount;
 	}
 
-	public function add(KeyedJSON $item) {
+	public function add(IKeyedJSON $item) {
 		$key = $item->getKey();
 		$keyJSON = json_encode($key);
 

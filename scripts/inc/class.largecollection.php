@@ -9,7 +9,7 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
-class LargeCollection implements KeyedJSON {
+class LargeCollection implements IKeyedJSON {
 
 	public $prefix = 'root';
 
@@ -78,7 +78,7 @@ class LargeCollection implements KeyedJSON {
 		}
 
 		if (isset($options['combinedOutput'])) {
-			if (!is_object($options['combinedOutput']) || !($options['combinedOutput'] instanceof CollectionIO))
+			if (!is_object($options['combinedOutput']) || !($options['combinedOutput'] instanceof ICollectionIO))
 				throw new Exception(get_class($this) . "'s combinedOutput option must an instanceof CollectionOutputAdapter.");
 
 			$this->combinedOutput = $options['combinedOutput'];
@@ -187,7 +187,7 @@ class LargeCollection implements KeyedJSON {
 		$this->tempFiles++;
 		$outSize = 0;
 
-		/** @var $output CollectionOutput */
+		/** @var $output ICollectionOutput */
 		foreach ($this->outputs as $output) {
 			$tempFile = $output->openFile($this->prefix, $this->tempFiles, 'tmp', 'w');
 
@@ -223,7 +223,7 @@ class LargeCollection implements KeyedJSON {
 			|| ($this->maxLength !== false && $this->maxLength < $length));
 	}
 
-	protected function compactSegments($segments, $maxSegments, CollectionOutput $output) {
+	protected function compactSegments($segments, $maxSegments, ICollectionOutput $output) {
 		$segmentsPer = ceil($segments / $maxSegments);
 		$newSegments = ceil($segments / $segmentsPer);
 
@@ -261,7 +261,7 @@ class LargeCollection implements KeyedJSON {
 		$ret = 0;
 		$lastHandlerIndex = count($this->outputs) - 1;
 
-		/** @var $output CollectionOutput */
+		/** @var $output ICollectionOutput */
 		foreach ($this->outputs as $handlerIndex => $output) {
 			// Sort the buffer.
 			usort($this->list, array($output, 'compare'));

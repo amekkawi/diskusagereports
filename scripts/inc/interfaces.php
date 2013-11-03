@@ -9,7 +9,7 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
-interface Keyed {
+interface IKeyed {
 	/**
 	 * @return string
 	 */
@@ -21,7 +21,7 @@ interface Keyed {
 	public function setKey($key);
 }
 
-interface JSON {
+interface IJSON {
 	/**
 	 * @return string The stringified JSON.
 	 */
@@ -34,11 +34,11 @@ interface JSON {
 	public function getJSONSize();
 }
 
-interface KeyedJSON extends Keyed, JSON {
+interface IKeyedJSON extends IKeyed, IJSON {
 
 }
 
-interface Comparator {
+interface IComparator {
 	/**
 	 * @param $a
 	 * @param $b
@@ -50,7 +50,7 @@ interface Comparator {
 	public function compare($a, $b);
 }
 
-interface CollectionIO {
+interface ICollectionIO {
 
 	/**
 	 * @param string $prefix
@@ -91,6 +91,6 @@ interface CollectionIO {
 	public function renameTo($fromPath, $prefix, $index, $ext);
 }
 
-interface CollectionOutput extends CollectionIO, Comparator {
+interface ICollectionOutput extends ICollectionIO, IComparator {
 
 }
