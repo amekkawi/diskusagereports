@@ -290,7 +290,8 @@ class LargeCollection implements IKeyedJSON {
 			$outSize = 0;
 			$outLines = 0;
 			$outHandler = $this->combinedOutput === null ? $output : $this->combinedOutput;
-			$outFile = $outHandler->openFile($this->prefix, $outIndex, $this->ext, 'a');
+			$openMode = $this->combinedOutput === null ? 'w' : ($handlerIndex == 0 ? 'w' : 'a');
+			$outFile = $outHandler->openFile($this->prefix, $outIndex, $this->ext, $openMode);
 			$firstItem = null;
 			$lastItem = null;
 
@@ -314,7 +315,7 @@ class LargeCollection implements IKeyedJSON {
 					$outIndex++;
 					$outSize = 0;
 					$outLines = 0;
-					$outFile = $outHandler->openFile($this->prefix, $outIndex, $this->ext, 'a');
+					$outFile = $outHandler->openFile($this->prefix, $outIndex, $this->ext, $openMode);
 				}
 
 				$lastItem = $item;
