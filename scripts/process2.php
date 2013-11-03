@@ -21,10 +21,6 @@ require("inc/class.multifilesorter.php");
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-interface ISaveWatcher {
-	public function onSave($index, $sortIndex, $firstItem, $lastItem, $path);
-}
-
 class SingleSortOutput implements ICollectionOutput {
 
 	/**

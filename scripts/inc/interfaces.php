@@ -94,3 +94,7 @@ interface ICollectionIO {
 interface ICollectionOutput extends ICollectionIO, IComparator {
 
 }
+
+interface ISaveWatcher {
+	public function onSave($index, $sortIndex, $firstItem, $lastItem, $path);
+}
