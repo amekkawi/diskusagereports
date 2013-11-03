@@ -699,6 +699,8 @@ class ScanException extends Exception {
 }
 
 $stdErr = fopen('php://stderr', 'w');
+$syntax = '';
+$syntaxLong = '';
 
 try {
 	// Make sure this script is run from the command line.
@@ -707,7 +709,8 @@ try {
 		exit(1);
 	}
 
-	$options = new Options(); //'/Users/amekkawi/Sites/git/diskusage-data/v2test/');
+	$cliargs = array_slice($_SERVER['argv'], 1);
+	$options = new Options();
 	$scanFile = null;
 
 	// Process command line arguments.
@@ -727,7 +730,7 @@ try {
 				$options->setDelim($cliarg = array_shift($cliargs));
 				break;
 			case '-t':
-				if (!preg_match('/^(all|off|[0-9]+)$/', strtolower($cliarg = array_shift($cliargs)))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
+				if (!preg_match('/^(all|off|[0-9]+)$/', strtolower($cliarg = array_shift($cliargs)))) { fwrite($stdErr, "$cliargOrig must be followed by 'all', 'off' or a number no less than 0.\n".$syntax); fclose($stdErr); exit(1); }
 				if ($cliarg == 'all') $cliarg = true;
 				elseif ($cliarg == 'off') $cliarg = false;
 				else $cliarg = intval($cliarg);
