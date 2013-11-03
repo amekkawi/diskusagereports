@@ -21,7 +21,7 @@ require("inc/class.multifilesorter.php");
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-class SingleSortOutput implements ICollectionOutput {
+class CollectionOutput implements ICollectionIO {
 
 	/**
 	 * @var $report Report
@@ -50,14 +50,6 @@ class SingleSortOutput implements ICollectionOutput {
 		return rename($fromPath, $this->report->buildPath($prefix . '_' . $index . '.' . $ext));
 	}
 
-	public function compare($a, $b) {
-		if ($a[0] < $b[0])
-			return -1;
-		if ($a[0] > $b[0])
-			return 1;
-		return 0;
-	}
-
 	public function onSave($index, $firstItem, $lastItem, $size, $path) {
 		if ($size !== false) {
 			$this->report->outFiles++;
@@ -65,6 +57,18 @@ class SingleSortOutput implements ICollectionOutput {
 		}
 		if ($this->saveHandler !== null)
 			$this->saveHandler->onSave($index, null, $firstItem, $lastItem, $path);
+	}
+
+}
+
+class SingleSortOutput extends CollectionOutput implements ICollectionOutput {
+
+	public function compare($a, $b) {
+		if ($a[0] < $b[0])
+			return -1;
+		if ($a[0] > $b[0])
+			return 1;
+		return 0;
 	}
 }
 
