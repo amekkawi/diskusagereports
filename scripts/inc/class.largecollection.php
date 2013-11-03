@@ -248,7 +248,7 @@ class LargeCollection implements IKeyedJSON {
 			$compactedFile->close();
 
 			if ($output->renameTo($compactedFile->getPath(), $this->prefix, $newSeg, 'tmp') === false)
-				throw Exception("Failed to rename compacted file.");
+				throw new Exception("Failed to rename compacted file.");
 		}
 
 		//echo " Took " . sprintf('%.2f', microtime(true) - $start) . " sec\n";
