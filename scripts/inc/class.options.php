@@ -9,24 +9,6 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
-class OptionException extends Exception {
-
-	protected $param;
-	protected $reason;
-
-	public function __construct($param, $reason) {
-		parent::__construct($this->getReason($param));
-	}
-
-	public function getReason($param = null) {
-		return sprintf($this->reason, $param === null ? $this->param : $param);
-	}
-
-	public function getParam() {
-		return $this->param;
-	}
-}
-
 class Options {
 
 	const MAX_SUPPORTED_SCAN_VERSION = 2;
