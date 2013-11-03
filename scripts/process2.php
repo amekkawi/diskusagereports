@@ -168,7 +168,7 @@ class DirInfo extends FileInfo {
 		$this->type = 'd';
 		$this->path = '';
 		$this->dirname = '';
-		$this->basename = $options->basename === null || $options->basename == '' ? '.' : $options->basename;
+		$this->basename = $options->getBasename() === null || $options->getBasename() == '' ? '.' : $options->getBasename();
 		$this->hash = md5('');
 		$this->dirList->setKey($this->hash);
 		$this->dirList->prefix = 'subdirs_' . $this->hash;
@@ -310,15 +310,15 @@ class FileInfo {
 
 	public function setFromLine(Options $options, $line) {
 
-		if (strlen($line) > $options->maxLineLength)
+		if (strlen($line) > $options->getMaxLineLength())
 			throw new LineException(LineException::TOO_LONG, $line);
 
 		// Validate the line up to the path column.
-		if (!preg_match($options->lineRegEx, $line))
+		if (!$options->isValidLine($line))
 			throw new LineException(LineException::PATTERN_MISMATCH, $line);
 
 		// Split the line and validate its length.
-		if (count($split = explode($options->delim, $line, $options->colCount)) != $options->colCount)
+		if (count($split = explode($options->getDelim(), $line, $options->colCount)) != $options->colCount)
 			throw new LineException(LineException::COLUMN_COUNT, $split);
 
 		// Make sure the path is at least one character long.
@@ -390,7 +390,7 @@ class ScanReader {
 			throw new ScanException(ScanException::FOPEN_FAIL);
 		}
 
-		$options = new Options();
+		$options = $this->report->options;
 		$iterator = new FileIterator($stream);
 		$fileInfo = new FileInfo();
 		$dirList = $this->report->directoryList;
@@ -563,9 +563,9 @@ class RangeLookup implements ISaveWatcher {
 class Report {
 
 	/**
-	 * @var string
+	 * @var Options
 	 */
-	public $directory;
+	public $options;
 
 	/**
 	 * @var RangeLookup
@@ -596,8 +596,8 @@ class Report {
 
 	protected $maxDirListSize;
 
-	public function __construct($directory) {
-		$this->directory = rtrim(realpath($directory), DIRECTORY_SEPARATOR);
+	public function __construct(Options $options) {
+		$this->options = $options;
 
 		$this->directoryLookup = new RangeLookup();
 
@@ -634,7 +634,7 @@ class Report {
 	}
 
 	public function buildPath($extension) {
-		return $this->directory . DIRECTORY_SEPARATOR . $extension;
+		return $this->options->buildPath($extension);
 	}
 }
 
@@ -698,11 +698,158 @@ class ScanException extends Exception {
 	}
 }
 
+$stdErr = fopen('php://stderr', 'w');
+
 try {
-	$reader = new ScanReader(new Report('/Users/amekkawi/Sites/git/diskusage-data/v2test/'));
-	$reader->read('/Users/amekkawi/Sites/git/diskusage/amekkawi.dat');
+	// Make sure this script is run from the command line.
+	if (php_sapi_name() != "cli") {
+		fwrite($stdErr, "Must be run from the command line.\n"); fclose($stdErr);
+		exit(1);
+	}
+
+	$options = new Options(); //'/Users/amekkawi/Sites/git/diskusage-data/v2test/');
+	$scanFile = null;
+
+	// Process command line arguments.
+	while (($cliarg = $cliargOrig = array_shift($cliargs)) !== null) {
+		switch ($cliarg) {
+			case '/?':
+			case '-?':
+			case '-h':
+			case '--help':
+				fwrite($stdErr, $syntax_long);
+				fclose($stdErr);
+				exit(1);
+			case '-tz':
+				$options->setTimezone($cliarg = array_shift($cliargs));
+				break;
+			case '-d':
+				$options->setDelim($cliarg = array_shift($cliargs));
+				break;
+			case '-t':
+				if (!preg_match('/^(all|off|[0-9]+)$/', strtolower($cliarg = array_shift($cliargs)))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
+				if ($cliarg == 'all') $cliarg = true;
+				elseif ($cliarg == 'off') $cliarg = false;
+				else $cliarg = intval($cliarg);
+				$options->setFileSizesDepth($cliarg);
+				$options->setFileTypesDepth($cliarg);
+				$options->setModifiedDatesDepth($cliarg);
+				break;
+			case '-nt':
+				$options->setDisableDirectoryTree(true);
+				break;
+			case '-mt':
+				if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
+				//$processor->setMaxTreeSize(intval($cliarg));
+				break;
+			case '-ds':
+				$options->setDirectorySeparator($cliarg = array_shift($cliargs));
+				break;
+			case '-td':
+				if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
+				$options->setTopListDepth(intval($cliarg));
+				break;
+			case '-n':
+				$options->setReportName($cliarg = array_shift($cliargs));
+				break;
+			case '-l':
+				if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
+				$options->setMaxLineLength(intval($cliarg));
+				break;
+			case '-q':
+				$options->setVerbosity(Options::VERBOSITY_QUIET);
+				break;
+			case '-v':
+				$options->setVerbosity(Options::VERBOSITY_VERBOSE);
+				break;
+			case '-vv':
+				$options->setVerbosity(Options::VERBOSITY_VERY_VERBOSE);
+				break;
+			case '-fp':
+				$options->setIncludeFullPath(true);
+				break;
+			case '-su':
+				$options->setSuffix($cliarg = array_shift($cliargs));
+				break;
+			case '-ss':
+				if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) {
+					fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax);
+					fclose($stdErr);
+					exit(1);
+				}
+				$options->setProgressMessageSeconds(intval($cliarg));
+				break;
+
+			/** @noinspection PhpMissingBreakStatementInspection */
+			case '-':
+				if ($options->getReportDirectory() !== null && $options->getScanFile() !== null) {
+					fwrite($stdErr, "Unexpected argument: $cliarg\n" . $syntax);
+					fclose($stdErr);
+					exit(1);
+				}
+				elseif ($cliarg = array_shift($cliargs) === null) {
+					continue;
+				}
+			default:
+				if ($options->getReportDirectory() === null) {
+					$options->setReportDirectory($cliarg);
+				}
+				elseif ($scanFile === null) {
+					$scanFile = $cliarg;
+				}
+				else {
+					fwrite($stdErr, "Unexpected argument: $cliarg\n" . $syntax);
+					fclose($stdErr);
+					exit(1);
+				}
+		}
+
+		// If we shifted and found nothing, output an error.
+		if ($cliarg === null) {
+			fwrite($stdErr, "Missing value after argument $cliargOrig\n" . $syntax);
+			fclose($stdErr);
+			exit(1);
+		}
+	}
+
+	// Make sure the <reportdir> was set.
+	if ($options->getReportDirectory() === null) {
+		fwrite($stdErr, "<reportdir> argument is missing\n" . $syntax);
+		fclose($stdErr);
+		exit(1);
+	}
+
+	// Read the file list from STDIN if it was not specified.
+	if ($scanFile === null) {
+		$scanFile = 'php://stdin';
+	}
+
+	// Otherwise, make sure the <filelist> exists.
+	elseif (!is_file($scanFile)) {
+		fwrite($stdErr, "The <filelist> '" . $scanFile . "' does not exist or is not a file.\n");
+		fclose($stdErr);
+		exit(1);
+	}
+
+	// Attempt to set the default timezone if it was not set.
+	if ($options->getTimezone() === null)
+		$options->setTimezone(function_exists('date_default_timezone_get') ? @date_default_timezone_get() : 'America/New_York');
+
+	// Set the timezone.
+	if (!(function_exists("date_default_timezone_set") ? @(date_default_timezone_set($options->getTimezone())) : @(putenv("TZ=".$options->getTimezone())))) {
+		fwrite($stdErr, "'timezone' config was set to an invalid identifier.\n");
+		fclose($stdErr);
+		exit(1);
+	}
+
+	$reader = new ScanReader(new Report($options));
+	$reader->read($scanFile);
 }
 catch (Exception $e) {
-	echo "\n" . get_class($e) . ": " . $e->getMessage() . "\n";
-	echo $e->getTraceAsString()."\n";
+	fwrite($stdErr, "\n" . get_class($e) . ": " . $e->getMessage() . "\n");
+	fwrite($stdErr, $e->getTraceAsString()."\n");
+	fclose($stdErr);
+	exit(1);
 }
+
+fclose($stdErr);

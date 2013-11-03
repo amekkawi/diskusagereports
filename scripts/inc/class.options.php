@@ -9,6 +9,24 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
+class OptionException extends Exception {
+
+	protected $param;
+	protected $reason;
+
+	public function __construct($param, $reason) {
+		parent::__construct($this->getReason($param));
+	}
+
+	public function getReason($param = null) {
+		return sprintf($this->reason, $param === null ? $this->param : $param);
+	}
+
+	public function getParam() {
+		return $this->param;
+	}
+}
+
 class Options {
 
 	const MAX_SUPPORTED_SCAN_VERSION = 2;
@@ -20,54 +38,59 @@ class Options {
 	const VERBOSITY_DEBUG = 4;
 
 	/**
+	 * @var null|string The directory path that will contain the report.
+	 */
+	protected $reportDirectory = null;
+
+	/**
 	 * @var int The verbosity level of output.
 	 */
-	public $verbosity = self::VERBOSITY_NORMAL;
+	protected $verbosity = self::VERBOSITY_NORMAL;
 
 	/**
 	 * @var int The version of the file listing.
 	 */
-	public $scanVersion = 1;
+	protected $scanVersion = 1;
 
 	/**
 	 * @var string The character that separates columns.
 	 */
-	public $delim = "\x00";
+	protected $delim = "\x00";
 
 	/**
 	 * @var string The director separator.
 	 */
-	public $ds = DIRECTORY_SEPARATOR;
+	protected $directorySeparator = DIRECTORY_SEPARATOR;
 
 	/**
 	 * @var string The time the files were scanned.
 	 */
-	public $scantime = null;
+	protected $scantime = null;
 
 	/**
 	 * @var string
 	 */
-	public $dirname = '';
+	protected $dirname = '';
 
 	/**
 	 * @var string
 	 */
-	public $basename = null;
+	protected $basename = null;
 
 	/**
 	 * @var string
 	 */
-	public $datetimeformat = 'timestamp';
+	protected $datetimeformat = 'timestamp';
 
 	/**
 	 * @var bool
 	 */
-	public $escaped = false;
+	protected $escaped = false;
 
 	/**
 	 * @var int The maximum length that a line can be in the file list.
 	 */
-	public $maxLineLength = 1024;
+	protected $maxLineLength = 1024;
 
 	// Default to version 1 columns indexes.
 	public $colCount = 6;
@@ -81,47 +104,75 @@ class Options {
 	/**
 	 * @var string RegEx pattern that validates a line.
 	 */
-	public $lineRegEx;
+	protected $lineRegEx;
 
 	/**
 	 * @var bool Whether or not to display the full path of the root directory in the report.
 	 */
-	public $includeFullPath = false;
+	protected $includeFullPath = false;
 
 	/**
 	 * @var null|string The text will display in the header of the report.
 	 */
-	public $reportName = null;
+	protected $reportName = null;
 
 	/**
 	 * @var bool Whether or not to allow the directory tree UI.
 	 */
-	public $disableDirectoryTree = false;
+	protected $disableDirectoryTree = false;
 
 	/**
 	 * @var int The minimum number of seconds that must elapse before another progress message
 	 *          (e.g. 'Processed X lines ...') is outputted. Default is 15 seconds.
 	 */
-	public $progressMessageSeconds = 15;
+	protected $progressMessageSeconds = 15;
 
 	/**
 	 * @var string The suffix of report files.
 	 */
-	public $suffix = '.txt';
+	protected $suffix = '.txt';
 
 	/**
 	 * @var string The timezone for the report.
 	 */
-	public $timezone = null;
+	protected $timezone = null;
 
-	public $fileListDepth = true;
-	public $topListDepth = 3;
-	public $fileSizesDepth = 6;
-	public $fileTypesDepth = 6;
-	public $modifiedDatesDepth = 6;
+	/**
+	 * @var bool|int The maximum sub-directory depth that will contain a file listing.
+	 *               Setting to true is infinite depth, and false disables it entirely.
+	 */
+	protected $fileListDepth = true;
+
+	/**
+	 * @var bool|int The maximum sub-directory depth that will contain a top files listing.
+	 *               Setting to true is infinite depth, and false disables it entirely.
+	 */
+	protected $topListDepth = 3;
+
+	/**
+	 * @var bool|int The maximum sub-directory depth that will contain a file sizes listing.
+	 *               Setting to true is infinite depth, and false disables it entirely.
+	 */
+	protected $fileSizesDepth = 6;
+
+	/**
+	 * @var bool|int The maximum sub-directory depth that will contain a file types listing.
+	 *               Setting to true is infinite depth, and false disables it entirely.
+	 */
+	protected $fileTypesDepth = 6;
+
+	/**
+	 * @var bool|int The maximum sub-directory depth that will contain a modified dates listing.
+	 *               Setting to true is infinite depth, and false disables it entirely.
+	 */
+	protected $modifiedDatesDepth = 6;
 
 	public function __construct() {
 		$this->buildLineRegEx();
+	}
+
+	public function isValidLine($line) {
+		return preg_match($this->lineRegEx, $line);
 	}
 
 	public function processHeader($line) {
@@ -165,7 +216,7 @@ class Options {
 		$this->delim = chr(intval($splitHeader[1]));
 
 		// Set the directory separator.
-		$this->ds = chr(intval($splitHeader[2]));
+		$this->directorySeparator = chr(intval($splitHeader[2]));
 
 		// Set when the file scan was made.
 		$this->scantime = substr($splitHeader[3] . " " . $splitHeader[4], 0, 19);
@@ -241,10 +292,10 @@ class Options {
 		}
 
 		// Override the directory separator.
-		$this->ds = $splitHeader[0];
+		$this->directorySeparator = $splitHeader[0];
 
 		// Make sure the directory separator is a single character.
-		if (strlen($this->ds) != 1)
+		if (strlen($this->directorySeparator) != 1)
 			throw new HeaderException(HeaderException::INVALID_DIR_SEPARATOR);
 
 		$this->dirname = $splitHeader[1];
@@ -284,4 +335,328 @@ class Options {
 				break;
 		}
 	}
+
+	public function buildPath($extension) {
+		return $this->reportDirectory . DIRECTORY_SEPARATOR . $extension;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getBasename() {
+		return $this->basename;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getDirname() {
+		return $this->dirname;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getScanVersion() {
+		return $this->scanVersion;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getScantime() {
+		return $this->scantime;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function getEscaped() {
+		return $this->escaped;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getDatetimeformat() {
+		return $this->datetimeformat;
+	}
+
+	/**
+	 * @param string $delim
+	 */
+	public function setDelim($delim) {
+		$this->delim = $delim;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getDelim() {
+		return $this->delim;
+	}
+
+	/**
+	 * @param boolean $disableDirectoryTree
+	 *
+	 * @throws OptionException
+	 */
+	public function setDisableDirectoryTree($disableDirectoryTree) {
+		if (!is_bool($disableDirectoryTree))
+			throw new OptionException('%s must be a string', '$disableDirectoryTree');
+		$this->disableDirectoryTree = $disableDirectoryTree;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function getDisableDirectoryTree() {
+		return $this->disableDirectoryTree;
+	}
+
+	/**
+	 * @param string $directorySeparator
+	 */
+	public function setDirectorySeparator($directorySeparator) {
+		$this->directorySeparator = $directorySeparator;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getDirectorySeparator() {
+		return $this->directorySeparator;
+	}
+
+	/**
+	 * @param bool|int $fileListDepth
+	 *
+	 * @throws OptionException
+	 */
+	public function setFileListDepth($fileListDepth) {
+		if ((!is_int($fileListDepth) && !is_bool($fileListDepth)) || (is_int($fileListDepth) && $fileListDepth < 0))
+			throw new OptionException('%s must be a boolean or an integer no less than 0', '$fileListDepth');
+		$this->fileListDepth = $fileListDepth;
+	}
+
+	/**
+	 * @return bool|int
+	 */
+	public function getFileListDepth() {
+		return $this->fileListDepth;
+	}
+
+	/**
+	 * @param bool|int $fileSizesDepth
+	 *
+	 * @throws OptionException
+	 */
+	public function setFileSizesDepth($fileSizesDepth) {
+		if ((!is_int($fileSizesDepth) && !is_bool($fileSizesDepth)) || (is_int($fileSizesDepth) && $fileSizesDepth < 0))
+			throw new OptionException('%s must be a boolean or an integer no less than 0', '$fileSizesDepth');
+		$this->fileSizesDepth = $fileSizesDepth;
+	}
+
+	/**
+	 * @return bool|int
+	 */
+	public function getFileSizesDepth() {
+		return $this->fileSizesDepth;
+	}
+
+	/**
+	 * @param bool|int $fileTypesDepth
+	 *
+	 * @throws OptionException
+	 */
+	public function setFileTypesDepth($fileTypesDepth) {
+		if ((!is_int($fileTypesDepth) && !is_bool($fileTypesDepth)) || (is_int($fileTypesDepth) && $fileTypesDepth < 0))
+			throw new OptionException('%s must be a boolean or an integer no less than 0', '$fileTypesDepth');
+		$this->fileTypesDepth = $fileTypesDepth;
+	}
+
+	/**
+	 * @return bool|int
+	 */
+	public function getFileTypesDepth() {
+		return $this->fileTypesDepth;
+	}
+
+	/**
+	 * @param boolean $includeFullPath
+	 */
+	public function setIncludeFullPath($includeFullPath) {
+		$this->includeFullPath = $includeFullPath;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function getIncludeFullPath() {
+		return $this->includeFullPath;
+	}
+
+	/**
+	 * @param int $maxLineLength
+	 *
+	 * @throws OptionException
+	 */
+	public function setMaxLineLength($maxLineLength) {
+		if (!is_int($maxLineLength) || $maxLineLength < 1024)
+			throw new OptionException('%s must be an integer no less than 1024', '$maxLineLength');
+		$this->maxLineLength = $maxLineLength;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getMaxLineLength() {
+		return $this->maxLineLength;
+	}
+
+	/**
+	 * @param bool|int $modifiedDatesDepth
+	 *
+	 * @throws OptionException
+	 */
+	public function setModifiedDatesDepth($modifiedDatesDepth) {
+		if ((!is_int($modifiedDatesDepth) && !is_bool($modifiedDatesDepth)) || (is_int($modifiedDatesDepth) && $modifiedDatesDepth < 0))
+			throw new OptionException('%s must be a boolean or an integer no less than 0', '$modifiedDatesDepth');
+		$this->modifiedDatesDepth = $modifiedDatesDepth;
+	}
+
+	/**
+	 * @return bool|int
+	 */
+	public function getModifiedDatesDepth() {
+		return $this->modifiedDatesDepth;
+	}
+
+	/**
+	 * @param int $progressMessageSeconds
+	 *
+	 * @throws OptionException
+	 */
+	public function setProgressMessageSeconds($progressMessageSeconds) {
+		if (!is_int($progressMessageSeconds) || $progressMessageSeconds < 1)
+			throw new OptionException('%s must be an integer no less than 1', '$progressMessageSeconds');
+		$this->progressMessageSeconds = $progressMessageSeconds;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getProgressMessageSeconds() {
+		return $this->progressMessageSeconds;
+	}
+
+	/**
+	 * @param null|string $reportDirectory
+	 *
+	 * @throws OptionException
+	 */
+	public function setReportDirectory($reportDirectory) {
+		if (!is_string($reportDirectory) || strlen($reportDirectory) < 1)
+			throw new OptionException('%s must be a string no less than 1 characters long', '$reportDirectory');
+		$this->reportDirectory = rtrim(realpath($reportDirectory), DIRECTORY_SEPARATOR);
+	}
+
+	/**
+	 * @return null|string
+	 */
+	public function getReportDirectory() {
+		return $this->reportDirectory;
+	}
+
+	/**
+	 * @param null|string $reportName
+	 *
+	 * @throws OptionException
+	 */
+	public function setReportName($reportName) {
+		if (!is_string($reportName) || strlen($reportName) < 1)
+			throw new OptionException('%s must be a string no less than 1 characters long', '$reportName');
+		$this->reportName = $reportName;
+	}
+
+	/**
+	 * @return null|string
+	 */
+	public function getReportName() {
+		return $this->reportName;
+	}
+
+	/**
+	 * @param string $suffix
+	 *
+	 * @throws OptionException
+	 */
+	public function setSuffix($suffix) {
+		if (!is_string($suffix) || strlen($suffix) < 2)
+			throw new OptionException('%s must be a string no less than 2 characters long', '$suffix');
+		$this->suffix = $suffix;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getSuffix() {
+		return $this->suffix;
+	}
+
+	/**
+	 * @param string $timezone
+	 *
+	 * @throws OptionException
+	 */
+	public function setTimezone($timezone) {
+		if (!is_string($timezone) || strlen($timezone) < 1)
+			throw new OptionException('%s must be a string no less than 1 characters long', '$timezone');
+		$this->timezone = $timezone;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getTimezone() {
+		return $this->timezone;
+	}
+
+	/**
+	 * @param bool|int $topListDepth
+	 *
+	 * @throws OptionException
+	 */
+	public function setTopListDepth($topListDepth) {
+		if ((!is_int($topListDepth) && !is_bool($topListDepth)) || (is_int($topListDepth) && $topListDepth < 0))
+			throw new OptionException('%s must be a boolean or an integer no less than 0', '$topListDepth');
+		$this->topListDepth = $topListDepth;
+	}
+
+	/**
+	 * @return bool|int
+	 */
+	public function getTopListDepth() {
+		return $this->topListDepth;
+	}
+
+	/**
+	 * @param int $verbosity
+	 *
+	 * @throws OptionException
+	 */
+	public function setVerbosity($verbosity) {
+		if (!is_int($verbosity) || $verbosity < self::VERBOSITY_QUIET || $verbosity > self::VERBOSITY_VERY_VERBOSE)
+			throw new OptionException('%s is invalid', '$verbosity');
+		$this->verbosity = $verbosity;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getVerbosity() {
+		return $this->verbosity;
+	}
+
+
 }
