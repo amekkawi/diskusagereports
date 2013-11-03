@@ -9,31 +9,6 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
-interface IMapOutput {
-	/**
-	 * @return integer The maximum size that a single item can be in a map file.
-	 */
-	public function getMaxPerItem();
-
-	/**
-	 * @return integer The maximum size of a single map file.
-	 */
-	public function getMaxPerOut();
-
-	/**
-	 * Open a map file stream.
-	 *
-	 * @param string $prefix The prefix for the map file name.
-	 * @param integer $index The map file index to open.
-	 * @param string $ext
-	 * @param string $mode The fopen() mode.
-	 * @return FileStream The file stream.
-	 */
-	public function openFile($prefix, $index, $ext, $mode);
-
-	public function onSave($index, $size, $path);
-}
-
 class LargeMapOpenOut {
 	public $index;
 	public $stream;
@@ -49,25 +24,37 @@ class LargeMap {
 
 	public $prefix = 'root';
 
+	/**
+	 * @var ICollectionIO
+	 */
 	protected $output;
+
 	protected $outCount = 0;
-	protected $maxPerOut;
 	protected $outSize = 0;
 
+	protected $maxFileSize;
+	protected $maxEntrySize;
+	protected $maxOpenFiles;
+
 	protected $openOuts = array();
-	protected $maxOpenOuts = 50;
 
-	public function __construct(IMapOutput $output) {
+	public function __construct(ICollectionIO $output, $maxFileSize, $maxPerEntry, $maxOpenFiles = 50) {
 		$this->output = $output;
-		$this->maxPerOut = $this->output->getMaxPerOut();
+		$this->maxFileSize = $maxFileSize;
+		$this->maxEntrySize = $maxPerEntry;
+		$this->maxOpenFiles = $maxOpenFiles;
 	}
 
-	public function getMaxPerItem() {
-		return $this->output->getMaxPerItem();
+	public function getMaxEntrySize() {
+		return $this->maxEntrySize;
 	}
 
-	public function getMaxPerOut() {
-		return $this->maxPerOut;
+	public function getMaxFileSize() {
+		return $this->maxFileSize;
+	}
+
+	public function getMaxOpenFiles() {
+		return $this->maxOpenFiles;
 	}
 
 	public function getSegmentCount() {
@@ -82,7 +69,7 @@ class LargeMap {
 		if ($jsonSize === false)
 			return false;
 
-		if (strLen($keyJSON) + $jsonSize + 2 > $this->maxPerOut)
+		if (strLen($keyJSON) + $jsonSize + 2 > $this->maxFileSize)
 			return false;
 
 		return $this->addJSON($key, $item->toJSON());
@@ -91,7 +78,7 @@ class LargeMap {
 	public function addJSON($key, $itemJSON) {
 		$keyJSON = json_encode($key);
 		$addLen = strLen($keyJSON) + strlen($itemJSON) + 2;
-		if ($addLen > $this->maxPerOut)
+		if ($addLen > $this->maxFileSize)
 			return false;
 
 		$out = $this->findOut($addLen);
@@ -117,24 +104,26 @@ class LargeMap {
 			if ($largestOut === null || $largestOut->size > $openOut->size)
 				$largestOut = $openOut;
 
-			if ($openOut->size + $len + 2 < $this->maxPerOut) {
-				//echo "Found open map out #{$openOut->index} with size {$openOut->size} to fit $len.\n"; usleep(50000);
+			if ($openOut->size + $len + 2 < $this->maxFileSize) {
+				//echo "Found open map out #{$openOut->index} with size {$openOut->size} to fit $len.\n"; //usleep(50000);
 				return $openOut;
 			}
 		}
 
-		if (count($this->openOuts) >= $this->maxOpenOuts && $largestOut !== null) {
+		if (count($this->openOuts) >= $this->maxOpenFiles && $largestOut !== null) {
 			$this->closeOut($largestOut);
 			$largestOut->stream = $this->openOutFile();
 			$largestOut->index = $this->outCount;
-			//echo "Replaced with map out #{$largestOut->index}.\n"; usleep(150000);
+			//echo "Replaced with map out #{$largestOut->index}.\n"; //usleep(150000);
 			return $largestOut;
 		}
 
 		$newHandle = $this->openOutFile();
 		$newOut = new LargeMapOpenOut($this->outCount, $newHandle);
-		//echo "Opened new map out #{$newOut->index}.\n"; usleep(150000);
 		$this->openOuts[] = $newOut;
+
+		//echo "Opened new map out #{$newOut->index}.\n"; //usleep(150000);
+
 		return $newOut;
 	}
 
@@ -145,10 +134,10 @@ class LargeMap {
 	protected function closeOut(LargeMapOpenOut $openOut) {
 		$openOut->stream->write('}');
 		$openOut->stream->close();
-		$this->output->onSave($openOut->index, $openOut->size, $openOut->stream->getPath());
+		$this->output->onSave($openOut->index, null, null, $openOut->size, $openOut->stream->getPath());
+		$openOut->size = 0;
 
 		//echo "Closing map out #{$openOut->index} with size {$openOut->size}.\n"; //usleep(50000);
-		$openOut->size = 0;
 	}
 
 }

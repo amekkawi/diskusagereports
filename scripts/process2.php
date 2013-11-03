@@ -542,40 +542,6 @@ class ScanReader {
 	}
 }
 
-class ReportMapOutput implements IMapOutput {
-
-	/**
-	 * @var $report Report
-	 */
-	protected $report;
-
-	protected $maxPerOut;
-	protected $maxPerItem;
-
-	public function __construct($report, $maxPerOut, $maxPerItem) {
-		$this->report = $report;
-		$this->maxPerOut = $maxPerOut;
-		$this->maxPerItem = $maxPerItem;
-	}
-
-	public function openFile($prefix, $index, $ext, $mode) {
-		return new FileStream($this->report->buildPath($prefix . '_' . $index . '.' . $ext), $mode);
-	}
-
-	public function getMaxPerOut() {
-		return $this->maxPerOut;
-	}
-
-	public function getMaxPerItem() {
-		return $this->maxPerItem;
-	}
-
-	public function onSave($index, $size, $path) {
-		$this->report->outFiles++;
-		$this->report->outSize += $size;
-	}
-}
-
 class RangeLookup implements ISaveWatcher {
 
 	public $ranges = array();
@@ -652,7 +618,7 @@ class Report {
 			new MultiSortOutput($this, 3, 'dirs')
 		);
 
-		$this->subDirMap = new LargeMap(new ReportMapOutput($this, 10 * 1024, 5 * 1024));
+		$this->subDirMap = new LargeMap(new CollectionOutput($this), 10 * 1024, 5 * 1024);
 		$this->subDirMap->prefix = 'subdirsmap';
 
 		$this->fileListOutputs = array(
@@ -663,7 +629,7 @@ class Report {
 
 		$this->combinedOutput = new SingleSortOutput($this);
 
-		$this->fileListMap = new LargeMap(new ReportMapOutput($this, 80 * 1024, 40 * 1024));
+		$this->fileListMap = new LargeMap(new CollectionOutput($this), 80 * 1024, 40 * 1024);
 		$this->fileListMap->prefix = 'filesmap';
 	}
 
