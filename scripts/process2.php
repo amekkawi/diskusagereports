@@ -130,8 +130,20 @@ class MultiSortOutput implements ICollectionOutput {
 class DirInfo extends FileInfo {
 
 	protected $report;
+
+	/**
+	 * @var LargeCollection
+	 */
 	protected $dirList;
+
+	/**
+	 * @var LargeCollection
+	 */
 	protected $fileList;
+
+	/**
+	 * @var int
+	 */
 	protected $maxInlineSize;
 
 	/**

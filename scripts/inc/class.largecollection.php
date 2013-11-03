@@ -291,6 +291,8 @@ class LargeCollection implements IKeyedJSON {
 			$outLines = 0;
 			$outHandler = $this->combinedOutput === null ? $output : $this->combinedOutput;
 			$openMode = $this->combinedOutput === null ? 'w' : ($handlerIndex == 0 ? 'w' : 'a');
+
+			/** @var $outFile FileStream */
 			$outFile = $outHandler->openFile($this->prefix, $outIndex, $this->ext, $openMode);
 			$firstItem = null;
 			$lastItem = null;
