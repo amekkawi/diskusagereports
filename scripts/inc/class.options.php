@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) @@CopyYear André Mekkawi <diskusage@andremekkawi.com>
+ * Copyright (c) 2013 André Mekkawi <license@diskusagereports.com>
  * Version: @@SourceVersion
  *
  * LICENSE
