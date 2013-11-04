@@ -11,8 +11,6 @@
 
 class DirInfo extends FileInfo {
 
-	protected $report;
-
 	/**
 	 * @var LargeCollection
 	 */
@@ -22,11 +20,6 @@ class DirInfo extends FileInfo {
 	 * @var LargeCollection
 	 */
 	protected $fileList;
-
-	/**
-	 * @var int
-	 */
-	protected $maxInlineSize;
 
 	/**
 	 * @var $parent DirInfo
@@ -45,33 +38,40 @@ class DirInfo extends FileInfo {
 	public $dirs;
 	public $files;
 
-	function __construct(Report $report) {
-		$this->report = $report;
-		$this->maxInlineSize = 1024;
-		$this->dirList = new LargeCollection($report->subDirOutputs, array(
-			'maxLength' => 200,
-			'combinedOutput' => $report->combinedOutput
-		));
-		$this->fileList = new LargeCollection($report->fileListOutputs, array(
-			'maxLength' => 200,
-			'combinedOutput' => $report->combinedOutput
-		));
-	}
+	function __construct(Report $report, $line = null) {
+		parent::__construct($report);
 
-	public function setFromOptions(Options $options) {
+		$options = $report->options;
+
 		$this->type = 'd';
 		$this->path = '';
 		$this->dirname = '';
-		$this->basename = $options->getBasename() === null || $options->getBasename() == '' ? '.' : $options->getBasename();
 		$this->hash = md5('');
-		$this->dirList->setKey($this->hash);
-		$this->dirList->prefix = 'subdirs_' . $this->hash;
-		$this->fileList->setKey($this->hash);
-		$this->fileList->prefix = 'files_' . $this->hash;
+
+		$basename = $this->options->getBasename();
+		$this->basename = $basename === null || $basename == '' ? '.' : $basename;
+
+		$this->dirList = new LargeCollection($report->subDirOutputs, array(
+			'maxLength' => $options->getMaxSubDirsFilePages() * $options->getMaxPerPage(),
+			'combinedOutput' => $report->combinedOutput,
+			'key' => $this->hash,
+			'prefix' => 'subdirs_' . $this->hash,
+			'maxTempSize' => $options->getMaxTempKB() * 1024
+		));
+		$this->fileList = new LargeCollection($report->fileListOutputs, array(
+			'maxLength' => $options->getMaxFileListFilePages() * $options->getMaxPerPage(),
+			'combinedOutput' => $report->combinedOutput,
+			'key' => $this->hash,
+			'prefix' => 'files_' . $this->hash,
+			'maxTempSize' => $options->getMaxTempKB() * 1024
+		));
+
+		if (is_string($line))
+			$this->setFromLine($line);
 	}
 
-	public function setFromLine(Options $options, $line) {
-		parent::setFromLine($options, $line);
+	public function setFromLine($line) {
+		parent::setFromLine($line);
 		$this->dirList->setKey($this->hash);
 		$this->dirList->prefix = 'subdirs_' . $this->hash;
 		$this->fileList->setKey($this->hash);
@@ -193,6 +193,17 @@ class DirInfo extends FileInfo {
 }
 
 class FileInfo {
+
+	/**
+	 * @var Report
+	 */
+	protected $report;
+
+	/**
+	 * @var Options
+	 */
+	protected $options;
+
 	public $type;
 	public $date;
 	public $time;
@@ -202,7 +213,13 @@ class FileInfo {
 	public $basename;
 	public $hash;
 
-	public function setFromLine(Options $options, $line) {
+	function __construct(Report $report) {
+		$this->report = $report;
+		$this->options = $report->options;
+	}
+
+	public function setFromLine($line) {
+		$options = $this->options;
 
 		if (strlen($line) > $options->getMaxLineLength())
 			throw new LineException(LineException::TOO_LONG, $line);

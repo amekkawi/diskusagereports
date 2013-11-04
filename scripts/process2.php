@@ -43,6 +43,15 @@ try {
 
 	// Process command line arguments.
 	while (($cliarg = $cliargOrig = array_shift($cliargs)) !== null) {
+		// Allow long arguments to use '=' to specify the value.
+		if (strpos($cliarg, '--') === 0) {
+			$splitArg = explode('=', $cliarg, 2);
+			if (count($splitArg) == 2) {
+				$cliarg = $cliargOrig = $splitArg[0];
+				array_unshift($cliargs, $splitArg[1]);
+			}
+		}
+
 		switch ($cliarg) {
 			case '/?':
 			case '-?':
@@ -51,13 +60,15 @@ try {
 				fwrite($stdErr, $syntax_long);
 				fclose($stdErr);
 				exit(1);
-			case '-tz':
+			case '-z':
+			case '--timezone':
 				$options->setTimezone($cliarg = array_shift($cliargs));
 				break;
-			case '-d':
+			case '--delim':
 				$options->setDelim($cliarg = array_shift($cliargs));
 				break;
 			case '-t':
+			case '--totals-depth':
 				if (!preg_match('/^(all|off|[0-9]+)$/', strtolower($cliarg = array_shift($cliargs)))) { fwrite($stdErr, "$cliargOrig must be followed by 'all', 'off' or a number no less than 0.\n".$syntax); fclose($stdErr); exit(1); }
 				if ($cliarg == 'all') $cliarg = true;
 				elseif ($cliarg == 'off') $cliarg = false;
@@ -66,49 +77,75 @@ try {
 				$options->setFileTypesDepth($cliarg);
 				$options->setModifiedDatesDepth($cliarg);
 				break;
-			case '-nt':
+			case '-m':
+			case '--no-tree':
 				$options->setDisableDirectoryTree(true);
 				break;
-			case '-mt':
-				if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
-				//$processor->setMaxTreeSize(intval($cliarg));
-				break;
-			case '-ds':
+			case '-d':
+			case '--dir-separator':
 				$options->setDirectorySeparator($cliarg = array_shift($cliargs));
 				break;
-			case '-td':
+			case '-g':
+			case '--top-depth':
 				if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
 				$options->setTopListDepth(intval($cliarg));
 				break;
 			case '-n':
+			case '--name':
 				$options->setReportName($cliarg = array_shift($cliargs));
 				break;
 			case '-l':
+			case '--max-line-length':
 				if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
 				$options->setMaxLineLength(intval($cliarg));
 				break;
 			case '-q':
+			case '--quiet':
 				$options->setVerbosity(Options::VERBOSITY_QUIET);
 				break;
 			case '-v':
-				$options->setVerbosity(Options::VERBOSITY_VERBOSE);
-				break;
-			case '-vv':
-				$options->setVerbosity(Options::VERBOSITY_VERY_VERBOSE);
+			case '--verbose':
+				$options->setVerbosity($options->getVerbosity() == Options::VERBOSITY_VERBOSE ? Options::VERBOSITY_VERBOSE : Options::VERBOSITY_VERY_VERBOSE);
 				break;
 			case '-fp':
+			case '--full-path':
 				$options->setIncludeFullPath(true);
 				break;
-			case '-su':
+			case '--suffix':
 				$options->setSuffix($cliarg = array_shift($cliargs));
 				break;
-			case '-ss':
+			case '-p':
+			case '--progress-seconds':
 				if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) {
 					fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax);
 					fclose($stdErr);
 					exit(1);
 				}
 				$options->setProgressMessageSeconds(intval($cliarg));
+				break;
+			case '--max-per-page':
+				if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
+				$options->setMaxPerPage(intval($cliarg));
+				break;
+			case '--max-dirmap-kb':
+				if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
+				$options->setMaxDirMapKB(intval($cliarg));
+				break;
+			case '--max-subdir-mapkb':
+				if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
+				$options->setMaxSubDirsMapKB(intval($cliarg));
+				break;
+			case '--max-subdir-filepages':
+				if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
+				$options->setMaxSubDirsFilePages(intval($cliarg));
+				break;
+			case '--max-filelist-mapkb':
+				if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
+				$options->setMaxFileListMapKB(intval($cliarg));
+				break;
+			case '--max-filelist-filepages':
+				if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
+				$options->setMaxFileListFilePages(intval($cliarg));
 				break;
 
 			/** @noinspection PhpMissingBreakStatementInspection */

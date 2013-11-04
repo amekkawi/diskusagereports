@@ -29,6 +29,8 @@ class LargeMap {
 	 */
 	protected $output;
 
+	protected $suffix = '.txt';
+
 	protected $outCount = 0;
 	protected $outSize = 0;
 
@@ -38,11 +40,23 @@ class LargeMap {
 
 	protected $openOuts = array();
 
-	public function __construct(ICollectionIO $output, $maxFileSize, $maxPerEntry, $maxOpenFiles = 50) {
+	public function __construct(ICollectionIO $output, $maxFileSize, $maxPerEntry, array $options = array()) {
 		$this->output = $output;
 		$this->maxFileSize = $maxFileSize;
 		$this->maxEntrySize = $maxPerEntry;
-		$this->maxOpenFiles = $maxOpenFiles;
+
+		if (isset($options['maxOpenFiles'])) {
+			if (!is_int($options['maxOpenFiles']) || $options['maxOpenFiles'] < 4)
+				throw new Exception(get_class($this) . "'s maxOpenFiles option must be an int no less than 4.");
+			$this->maxOpenFiles = $options['maxOpenFiles'];
+		}
+
+		if (isset($options['suffix']) && is_string($options['suffix']))
+			$this->suffix = $options['suffix'];
+	}
+
+	public function getSuffix() {
+		return $this->suffix;
 	}
 
 	public function getMaxEntrySize() {
@@ -128,7 +142,7 @@ class LargeMap {
 	}
 
 	protected function openOutFile() {
-		return $this->output->openFile($this->prefix, ++$this->outCount, 'dat', 'w');
+		return $this->output->openFile($this->prefix, ++$this->outCount, $this->suffix, 'w');
 	}
 
 	protected function closeOut(LargeMapOpenOut $openOut) {

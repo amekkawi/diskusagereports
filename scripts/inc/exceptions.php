@@ -74,7 +74,9 @@ class OptionException extends Exception {
 	protected $param;
 	protected $reason;
 
-	public function __construct($param, $reason) {
+	public function __construct($reason, $param) {
+		$this->reason = $reason;
+		$this->param = $param;
 		parent::__construct($this->getReason($param));
 	}
 

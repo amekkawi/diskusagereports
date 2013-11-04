@@ -15,7 +15,7 @@ class LargeCollection implements IKeyedJSON {
 
 	protected $key = null;
 
-	protected $ext = 'dat';
+	protected $suffix = '.txt';
 
 	protected $totalLength = 0;
 	protected $totalSize = 0;
@@ -46,8 +46,8 @@ class LargeCollection implements IKeyedJSON {
 		if (isset($options['prefix']) && is_string($options['prefix']))
 			$this->prefix = $options['prefix'];
 
-		if (isset($options['ext']) && is_string($options['ext']))
-			$this->ext = $options['ext'];
+		if (isset($options['suffix']) && is_string($options['suffix']))
+			$this->suffix = $options['suffix'];
 
 		if (isset($options['maxSize']))
 			$this->maxSize = is_int($options['maxSize']) && $options['maxSize'] > 0 ? $options['maxSize'] : false;
@@ -90,8 +90,8 @@ class LargeCollection implements IKeyedJSON {
 		$this->startNew();
 	}
 
-	public function getExt() {
-		return $this->ext;
+	public function getSuffix() {
+		return $this->suffix;
 	}
 
 	public function getSize() {
@@ -189,7 +189,7 @@ class LargeCollection implements IKeyedJSON {
 
 		/** @var $output ICollectionOutput */
 		foreach ($this->outputs as $output) {
-			$tempFile = $output->openFile($this->prefix, $this->tempFiles, 'tmp', 'w');
+			$tempFile = $output->openFile($this->prefix, $this->tempFiles, '.tmp', 'w');
 
 			// Sort each output.
 			usort($this->list, array($output, 'compare'));
@@ -234,20 +234,20 @@ class LargeCollection implements IKeyedJSON {
 			$iterators = array();
 			for ($oldSeg = 1 + ($newSeg - 1) * $segmentsPer; $oldSeg <= min($segments, $newSeg * $segmentsPer); $oldSeg++) {
 				$iterators[] = new FileIterator(
-					$output->openFile($this->prefix, $oldSeg, 'tmp', 'r'), array(
+					$output->openFile($this->prefix, $oldSeg, '.tmp', 'r'), array(
 					'unserialize' => true,
 					'unlinkOnEnd' => true
 				));
 			}
 
-			$compactedFile = $output->openFile('compact', $newSeg, 'tmp', 'w');
+			$compactedFile = $output->openFile('compact', $newSeg, '.tmp', 'w');
 			$sorter = new MultiFileSorter($iterators, $output);
 			foreach ($sorter as $item) {
 				$compactedFile->write(serialize($item) . "\n");
 			}
 			$compactedFile->close();
 
-			if ($output->renameTo($compactedFile->getPath(), $this->prefix, $newSeg, 'tmp') === false)
+			if ($output->renameTo($compactedFile->getPath(), $this->prefix, $newSeg, '.tmp') === false)
 				throw new Exception("Failed to rename compacted file.");
 		}
 
@@ -278,7 +278,7 @@ class LargeCollection implements IKeyedJSON {
 			// Add iterators for temp files.
 			for ($i = 1; $i <= $tempFiles; $i++) {
 				$iterators[] = new FileIterator(
-					$output->openFile($this->prefix, $i, 'tmp', 'r'), array(
+					$output->openFile($this->prefix, $i, '.tmp', 'r'), array(
 					'unserialize' => true,
 					'unlinkOnEnd' => true
 				));
@@ -293,7 +293,7 @@ class LargeCollection implements IKeyedJSON {
 			$openMode = $this->combinedOutput === null ? 'w' : ($handlerIndex == 0 ? 'w' : 'a');
 
 			/** @var $outFile FileStream */
-			$outFile = $outHandler->openFile($this->prefix, $outIndex, $this->ext, $openMode);
+			$outFile = $outHandler->openFile($this->prefix, $outIndex, $this->suffix, $openMode);
 			$firstItem = null;
 			$lastItem = null;
 
@@ -317,7 +317,7 @@ class LargeCollection implements IKeyedJSON {
 					$outIndex++;
 					$outSize = 0;
 					$outLines = 0;
-					$outFile = $outHandler->openFile($this->prefix, $outIndex, $this->ext, $openMode);
+					$outFile = $outHandler->openFile($this->prefix, $outIndex, $this->suffix, $openMode);
 				}
 
 				$lastItem = $item;

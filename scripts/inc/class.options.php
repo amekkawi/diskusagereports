@@ -89,6 +89,11 @@ class Options {
 	protected $lineRegEx;
 
 	/**
+	 * @var int The maximum size that a temp file can be.
+	 */
+	protected $maxTempKB = 200;
+
+	/**
 	 * @var bool Whether or not to display the full path of the root directory in the report.
 	 */
 	protected $includeFullPath = false;
@@ -148,6 +153,36 @@ class Options {
 	 *               Setting to true is infinite depth, and false disables it entirely.
 	 */
 	protected $modifiedDatesDepth = 6;
+
+	/**
+	 * @var int The maximum number of items that are displayed per page.
+	 */
+	protected $maxPerPage = 100;
+
+	/**
+	 * @var int The maximum size that a 'dirmap' file can be.
+	 */
+	protected $maxDirMapKB = 40;
+
+	/**
+	 * @var int The maximum size that a 'filesmap' file can be.
+	 */
+	protected $maxFileListMapKB = 80;
+
+	/**
+	 * @var int The maximum number of pages that a 'files' file can contain per sort.
+	 */
+	protected $maxFileListFilePages = 2;
+
+	/**
+	 * @var int The maximum size that a 'subdirsmap' file can be.
+	 */
+	protected $maxSubDirsMapKB = 20;
+
+	/**
+	 * @var int The maximum number of pages that a 'subdirs' file can contain per sort.
+	 */
+	protected $maxSubDirsFilePages = 2;
 
 	public function __construct() {
 		$this->buildLineRegEx();
@@ -465,6 +500,24 @@ class Options {
 	}
 
 	/**
+	 * @param int $maxTempKB
+	 *
+	 * @throws OptionException
+	 */
+	public function setMaxTempKB($maxTempKB) {
+		if (!is_int($maxTempKB) || $maxTempKB < 10)
+			throw new OptionException('%s must be an integer no less than 10', '$maxTempKB');
+		$this->maxTempKB = $maxTempKB;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getMaxTempKB() {
+		return $this->maxTempKB;
+	}
+
+	/**
 	 * @param boolean $includeFullPath
 	 */
 	public function setIncludeFullPath($includeFullPath) {
@@ -638,6 +691,114 @@ class Options {
 	 */
 	public function getVerbosity() {
 		return $this->verbosity;
+	}
+
+	/**
+	 * @param int $maxPerPage
+	 *
+	 * @throws OptionException
+	 */
+	public function setMaxPerPage($maxPerPage) {
+		if (!is_int($maxPerPage) || $maxPerPage <= 0 || $maxPerPage % 100 != 0)
+			throw new OptionException('%s must be a positive integer divisible by 100', '$maxPerPage');
+		$this->maxPerPage = $maxPerPage;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getMaxPerPage() {
+		return $this->maxPerPage;
+	}
+
+	/**
+	 * @param int $maxSubDirsMapKB
+	 *
+	 * @throws OptionException
+	 */
+	public function setMaxSubDirsMapKB($maxSubDirsMapKB) {
+		if (!is_int($maxSubDirsMapKB) || $maxSubDirsMapKB < 1)
+			throw new OptionException('%s must be an integer no less than 1', '$maxSubDirsMapKB');
+		$this->maxSubDirsMapKB = $maxSubDirsMapKB;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getMaxSubDirsMapKB() {
+		return $this->maxSubDirsMapKB;
+	}
+
+	/**
+	 * @param int $maxSubDirsFilePages
+	 *
+	 * @throws OptionException
+	 */
+	public function setMaxSubDirsFilePages($maxSubDirsFilePages) {
+		if (!is_int($maxSubDirsFilePages) || $maxSubDirsFilePages < 1)
+			throw new OptionException('%s must be an integer no less than 1', '$maxSubDirsFilePages');
+		$this->maxSubDirsFilePages = $maxSubDirsFilePages;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getMaxSubDirsFilePages() {
+		return $this->maxSubDirsFilePages;
+	}
+
+	/**
+	 * @param int $maxFileListMapKB
+	 *
+	 * @throws OptionException
+	 */
+	public function setMaxFileListMapKB($maxFileListMapKB) {
+		if (!is_int($maxFileListMapKB) || $maxFileListMapKB < 1)
+			throw new OptionException('%s must be an integer no less than 1', '$maxFileListMapKB');
+		$this->maxFileListMapKB = $maxFileListMapKB;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getMaxFileListMapKB() {
+		return $this->maxFileListMapKB;
+	}
+
+	/**
+	 * @param int $maxFileListFilePages
+	 *
+	 * @throws OptionException
+	 */
+	public function setMaxFileListFilePages($maxFileListFilePages) {
+		if (!is_int($maxFileListFilePages) || $maxFileListFilePages < 1)
+			throw new OptionException('%s must be an integer no less than 1', '$maxFileListFilePages');
+		$this->maxFileListFilePages = $maxFileListFilePages;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getMaxFileListFilePages() {
+		return $this->maxFileListFilePages;
+	}
+
+	/**
+	 * @param int $maxDirMapKB
+	 *
+	 * @throws OptionException
+	 */
+	public function setMaxDirMapKB($maxDirMapKB) {
+		if (!is_int($maxDirMapKB) || $maxDirMapKB < 1)
+			throw new OptionException('%s must be an integer no less than 1', '$maxDirMapKB');
+		$this->maxDirMapKB = $maxDirMapKB;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getMaxDirMapKB() {
+		return $this->maxDirMapKB;
 	}
 
 

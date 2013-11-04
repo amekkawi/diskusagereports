@@ -26,16 +26,16 @@ class CollectionOutput implements ICollectionIO {
 		$this->saveHandler = $saveHandler;
 	}
 
-	public function openFile($prefix, $index, $ext, $mode = 'w') {
-		return new FileStream($this->report->buildPath($prefix . '_' . $index . '.' . $ext), $mode);
+	public function openFile($prefix, $index, $suffix, $mode = 'w') {
+		return new FileStream($this->report->buildPath($prefix . '_' . $index . $suffix), $mode);
 	}
 
-	public function deleteFile($prefix, $index, $ext) {
-		return unlink($this->report->buildPath($prefix . '_' . $index . '.' . $ext));
+	public function deleteFile($prefix, $index, $suffix) {
+		return unlink($this->report->buildPath($prefix . '_' . $index . $suffix));
 	}
 
-	public function renameTo($fromPath, $prefix, $index, $ext) {
-		return rename($fromPath, $this->report->buildPath($prefix . '_' . $index . '.' . $ext));
+	public function renameTo($fromPath, $prefix, $index, $suffix) {
+		return rename($fromPath, $this->report->buildPath($prefix . '_' . $index . $suffix));
 	}
 
 	public function onSave($index, $firstItem, $lastItem, $size, $path) {
@@ -83,16 +83,16 @@ class MultiSortOutput implements ICollectionOutput {
 		$this->reverseSort = $reverseSort;
 	}
 
-	public function openFile($prefix, $index, $ext, $mode) {
-		return new FileStream($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.' . $ext), $mode);
+	public function openFile($prefix, $index, $suffix, $mode) {
+		return new FileStream($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . $suffix), $mode);
 	}
 
-	public function deleteFile($prefix, $index, $ext) {
-		return unlink($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.' . $ext));
+	public function deleteFile($prefix, $index, $suffix) {
+		return unlink($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . $suffix));
 	}
 
-	public function renameTo($fromPath, $prefix, $index, $ext) {
-		return rename($fromPath, $this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . '.' . $ext));
+	public function renameTo($fromPath, $prefix, $index, $suffix) {
+		return rename($fromPath, $this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . $suffix));
 	}
 
 	public function compare($a, $b) {

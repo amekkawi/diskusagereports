@@ -55,12 +55,12 @@ interface ICollectionIO {
 	/**
 	 * @param string $prefix
 	 * @param int    $index
-	 * @param string $ext
+	 * @param string $suffix
 	 * @param string $mode
 	 *
 	 * @return FileStream
 	 */
-	public function openFile($prefix, $index, $ext, $mode);
+	public function openFile($prefix, $index, $suffix, $mode);
 
 	/**
 	 * @param int    $index
@@ -74,21 +74,21 @@ interface ICollectionIO {
 	/**
 	 * @param string $prefix
 	 * @param int    $index
-	 * @param string $ext
+	 * @param string $suffix
 	 *
 	 * @return boolean
 	 */
-	public function deleteFile($prefix, $index, $ext);
+	public function deleteFile($prefix, $index, $suffix);
 
 	/**
 	 * @param string $fromPath
 	 * @param string $prefix
 	 * @param int    $index
-	 * @param string $ext
+	 * @param string $suffix
 	 *
 	 * @return boolean
 	 */
-	public function renameTo($fromPath, $prefix, $index, $ext);
+	public function renameTo($fromPath, $prefix, $index, $suffix);
 }
 
 interface ICollectionOutput extends ICollectionIO, IComparator {
