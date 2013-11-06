@@ -206,8 +206,10 @@ class LargeCollection implements IKeyedJSON {
 			$tempFile->close();
 		}
 
-		//$outSize = round($outSize / max(1, count($this->outputs)));
-		//echo "Saved temp file #{$this->tempFiles} x " . count($this->outputs) . " each with " . count($this->list) . " items at ~$outSize bytes...\n";
+		if (Logger::doLevel(Logger::LEVEL_DEBUG1)) {
+			$outSize = round($outSize / max(1, count($this->outputs)));
+			Logger::log("Saved temp file #{$this->tempFiles} x " . count($this->outputs) . " each with " . count($this->list) . " items at ~$outSize bytes.", Logger::LEVEL_DEBUG1);
+		}
 
 		$this->startNew();
 	}
@@ -226,9 +228,6 @@ class LargeCollection implements IKeyedJSON {
 	protected function compactSegments($segments, $maxSegments, ICollectionOutput $output) {
 		$segmentsPer = ceil($segments / $maxSegments);
 		$newSegments = ceil($segments / $segmentsPer);
-
-		//$start = microtime(true);
-		//echo "Compacting $segments segments into $newSegments with up to $segmentsPer each...\n";
 
 		for ($newSeg = 1; $newSeg <= $newSegments; $newSeg++) {
 			$iterators = array();
@@ -251,8 +250,6 @@ class LargeCollection implements IKeyedJSON {
 				throw new Exception("Failed to rename compacted file.");
 		}
 
-		//echo " Took " . sprintf('%.2f', microtime(true) - $start) . " sec\n";
-
 		return $newSegments;
 	}
 
@@ -272,8 +269,12 @@ class LargeCollection implements IKeyedJSON {
 			$iterators = array($bufferIterator);
 
 			$tempFiles = $this->tempFiles;
-			if ($tempFiles > $this->maxOpenFiles)
+			if ($tempFiles > $this->maxOpenFiles) {
+				$compactStart = microtime(true);
+				$origTempFiles = $tempFiles;
 				$tempFiles = $this->compactSegments($tempFiles, $this->maxOpenFiles, $output);
+				Logger::log("Compacted $origTempFiles temp files into $tempFiles with up to " . ceil($origTempFiles / $tempFiles) . " each in " . sprintf('%.2f', microtime(true) - $compactStart) . " sec", Logger::LEVEL_VERBOSE);
+			}
 
 			// Add iterators for temp files.
 			for ($i = 1; $i <= $tempFiles; $i++) {
@@ -285,6 +286,10 @@ class LargeCollection implements IKeyedJSON {
 			}
 
 			$sorter = new MultiFileSorter($iterators, $output);
+
+			if (($iteratorCount = count($iterators)) > 1) {
+				$sortStart = microtime(true);
+			}
 
 			$outIndex = 1;
 			$outSize = 0;
@@ -338,6 +343,10 @@ class LargeCollection implements IKeyedJSON {
 			}
 
 			$outFile->close();
+
+			if ($iteratorCount > 1) {
+				Logger::log("Sorted $iteratorCount temp files in " . sprintf('%.2f', microtime(true) - $sortStart) . " sec.", Logger::LEVEL_VERBOSE);
+			}
 
 			$ret = $outIndex;
 		}

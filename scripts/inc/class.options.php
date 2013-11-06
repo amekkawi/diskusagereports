@@ -13,21 +13,10 @@ class Options {
 
 	const MAX_SUPPORTED_SCAN_VERSION = 2;
 
-	const VERBOSITY_QUIET = 0;
-	const VERBOSITY_NORMAL = 1;
-	const VERBOSITY_VERBOSE = 2;
-	const VERBOSITY_VERY_VERBOSE = 3;
-	const VERBOSITY_DEBUG = 4;
-
 	/**
 	 * @var null|string The directory path that will contain the report.
 	 */
 	protected $reportDirectory = null;
-
-	/**
-	 * @var int The verbosity level of output.
-	 */
-	protected $verbosity = self::VERBOSITY_NORMAL;
 
 	/**
 	 * @var int The version of the file listing.
@@ -673,24 +662,6 @@ class Options {
 	 */
 	public function getTopListDepth() {
 		return $this->topListDepth;
-	}
-
-	/**
-	 * @param int $verbosity
-	 *
-	 * @throws OptionException
-	 */
-	public function setVerbosity($verbosity) {
-		if (!is_int($verbosity) || $verbosity < self::VERBOSITY_QUIET || $verbosity > self::VERBOSITY_VERY_VERBOSE)
-			throw new OptionException('%s is invalid', '$verbosity');
-		$this->verbosity = $verbosity;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getVerbosity() {
-		return $this->verbosity;
 	}
 
 	/**

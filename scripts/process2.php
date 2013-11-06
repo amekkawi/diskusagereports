@@ -12,6 +12,7 @@
 require("inc/interfaces.php");
 require("inc/exceptions.php");
 require("inc/class.util.php");
+require("inc/class.logger.php");
 require("inc/class.options.php");
 require("inc/class.largemap.php");
 require("inc/class.largecollection.php");
@@ -102,11 +103,27 @@ try {
 					break;
 				case '-q':
 				case '--quiet':
-					$options->setVerbosity(Options::VERBOSITY_QUIET);
+					Logger::setLevel(Logger::LEVEL_QUIET);
 					break;
 				case '-v':
 				case '--verbose':
-					$options->setVerbosity($options->getVerbosity() == Options::VERBOSITY_VERBOSE ? Options::VERBOSITY_VERBOSE : Options::VERBOSITY_VERY_VERBOSE);
+					Logger::setLevel(Logger::getLevel() + 1);
+					break;
+				case '-vv':
+				case '--very-verbose':
+					Logger::setLevel(Logger::LEVEL_VERY_VERBOSE);
+					break;
+				case '-vvv':
+				case '--debug1':
+					Logger::setLevel(Logger::LEVEL_DEBUG1);
+					break;
+				case '-vvvv':
+				case '--debug2':
+					Logger::setLevel(Logger::LEVEL_DEBUG2);
+					break;
+				case '-vvvvv':
+				case '--debug3':
+					Logger::setLevel(Logger::LEVEL_DEBUG3);
 					break;
 				case '-fp':
 				case '--full-path':

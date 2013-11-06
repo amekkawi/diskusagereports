@@ -42,6 +42,9 @@ class CollectionOutput implements ICollectionIO {
 		if ($size !== false) {
 			$this->report->outFiles++;
 			$this->report->outSize += $size;
+
+			if (Logger::doLevel(Logger::LEVEL_VERY_VERBOSE))
+				Logger::log('Saved file ' . basename($path) . " at $size bytes.", Logger::LEVEL_VERY_VERBOSE);
 		}
 		if ($this->saveHandler !== null)
 			$this->saveHandler->onSave($index, null, $firstItem, $lastItem, $path);
@@ -108,6 +111,9 @@ class MultiSortOutput implements ICollectionOutput {
 		if ($size !== false) {
 			$this->report->outFiles++;
 			$this->report->outSize += $size;
+
+			if (Logger::doLevel(Logger::LEVEL_VERY_VERBOSE))
+				Logger::log('Saved file ' . basename($path) . " at $size bytes.", Logger::LEVEL_VERY_VERBOSE);
 		}
 		if ($this->saveHandler !== null)
 			$this->saveHandler->onSave($index, $this->sortIndex, $firstItem, $lastItem, $path);

@@ -150,8 +150,6 @@ class LargeMap {
 		$openOut->stream->close();
 		$this->output->onSave($openOut->index, null, null, $openOut->size, $openOut->stream->getPath());
 		$openOut->size = 0;
-
-		//echo "Closing map out #{$openOut->index} with size {$openOut->size}.\n"; //usleep(50000);
 	}
 
 }

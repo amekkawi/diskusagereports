@@ -130,8 +130,8 @@ class Report {
 			if ($this->currentDirInfo->parent === null)
 				throw new ScanException(ScanException::POPDIR_NOPARENT);
 
-			//if (self::DEBUG)
-			//	echo "Popping dir: {$this->currentDirInfo->path}\n";
+			if (Logger::doLevel(Logger::LEVEL_DEBUG3))
+				Logger::log("Popping dir: {$this->currentDirInfo->path}", Logger::LEVEL_DEBUG3);
 
 			$popDir = $this->currentDirInfo;
 			$this->currentDirInfo = $this->currentDirInfo->parent;
@@ -145,8 +145,8 @@ class Report {
 		$dirInfo->parent = $this->currentDirInfo;
 		$this->currentDirInfo = $dirInfo;
 
-		//if (self::DEBUG)
-		//	echo "Entering dir: {$this->currentDirInfo->path}\n";
+		if (Logger::doLevel(Logger::LEVEL_DEBUG2))
+			Logger::log("Entering dir: {$this->currentDirInfo->path}", Logger::LEVEL_DEBUG2);
 	}
 
 	public function processFileInfo(FileInfo $fileInfo) {
@@ -155,16 +155,16 @@ class Report {
 			$this->headerAllowed = false;
 		}
 
-		//if (self::DEBUG)
-		//	echo "    File: {$fileInfo->path}\n";
+		if (Logger::doLevel(Logger::LEVEL_DEBUG3))
+			Logger::log("File: {$fileInfo->path}", Logger::LEVEL_DEBUG3);
 
 		while ($this->currentDirInfo->path != $fileInfo->dirname) {
 
 			if ($this->currentDirInfo->parent === null)
 				throw new ScanException(ScanException::POPDIR_NOPARENT);
 
-			//if (self::DEBUG)
-			//	echo "Popping dir: {$this->currentDirInfo->path}\n";
+			if (Logger::doLevel(Logger::LEVEL_DEBUG3))
+				Logger::log("Popping dir: {$this->currentDirInfo->path}", Logger::LEVEL_DEBUG3);
 
 			$popDir = $this->currentDirInfo;
 			$this->currentDirInfo = $this->currentDirInfo->parent;
@@ -186,8 +186,8 @@ class Report {
 
 		// Process any remaining directories.
 		do {
-			//if (self::DEBUG)
-			//	echo "Popping dir: {$this->currentDirInfo->path}\n";
+			if (Logger::doLevel(Logger::LEVEL_DEBUG3))
+				Logger::log("Popping dir: {$this->currentDirInfo->path}", Logger::LEVEL_DEBUG3);
 
 			$popDir = $this->currentDirInfo;
 
@@ -204,14 +204,21 @@ class Report {
 		$this->subDirMap->save();
 		$this->fileListMap->save();
 
+		$startDirLists = microtime(true);
+		if (Logger::doLevel(Logger::LEVEL_VERBOSE)) {
+			Logger::log("Saved directory files...", Logger::LEVEL_VERBOSE);
+		}
+
 		// Save the directory list.
-		//$startDirLists = microtime(true);
-		//echo "Saving dir lists...\n";
 		$this->directoryList->save();
-		//echo "Took " . sprintf('%.2f', microtime(true) - $startDirLists) . " sec\n";
+
+		if (Logger::doLevel(Logger::LEVEL_VERBOSE))
+			Logger::log("Saved directory files. Took " . sprintf('%.2f', microtime(true) - $startDirLists) . " sec", Logger::LEVEL_VERBOSE);
+
+		if (Logger::doLevel(Logger::LEVEL_VERBOSE))
+			Logger::log("Saving dir lookup...", Logger::LEVEL_VERBOSE);
 
 		// Save the directory lookup
-		//echo "Saving dir lookup...\n";
 		$lookupSize = file_put_contents($this->buildPath('dirmap_lookup' . $this->options->getSuffix()), json_encode($this->directoryLookup->ranges));
 		if ($lookupSize === false)
 			throw new ScanException('Failed to write dirmap_lookup' . $this->options->getSuffix() . '.');

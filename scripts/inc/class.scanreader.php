@@ -44,18 +44,24 @@ class ScanReader {
 
 		foreach ($iterator as $lineNum => $line) {
 
-			if (time() - $progressLastReport >= 3) {
-				if ($iterator->length() !== null) {
-					$progressPercent = floor($iterator->position() / $iterator->length() * 1000) / 10;
-					echo sprintf('%4.1f', $progressPercent) . "%: ";
-				}
+			if (Logger::doLevel(Logger::LEVEL_NORMAL)) {
+				if (time() - $progressLastReport >= 3) {
+					$message = '';
 
-				echo "Processed " . Util::FormatNumber($lineNum - $progressLastLines) . " lines from " . Util::FormatBytes($iterator->position() - $progressLastBytes) . ". Wrote " . Util::FormatBytes($this->report->outSize - $progressLastOutSize) . " to " . Util::FormatNumber($this->report->outFiles - $progressLastOutFiles) . " files.\n";
-				$progressLastReport = time();
-				$progressLastBytes = $iterator->position();
-				$progressLastOutFiles = $report->outFiles;
-				$progressLastLines = $lineNum;
-				$progressLastOutSize = $report->outSize;
+					if ($iterator->length() !== null) {
+						$progressPercent = floor($iterator->position() / $iterator->length() * 1000) / 10;
+						$message .= sprintf('%4.1f', $progressPercent) . "%: ";
+					}
+
+					$message .= "Processed " . Util::FormatNumber($lineNum - $progressLastLines) . " lines from " . Util::FormatBytes($iterator->position() - $progressLastBytes) . ". Wrote " . Util::FormatBytes($this->report->outSize - $progressLastOutSize) . " to " . Util::FormatNumber($this->report->outFiles - $progressLastOutFiles) . " files.";
+					$progressLastReport = time();
+					$progressLastBytes = $iterator->position();
+					$progressLastOutFiles = $report->outFiles;
+					$progressLastLines = $lineNum;
+					$progressLastOutSize = $report->outSize;
+
+					Logger::log($message, Logger::LEVEL_NORMAL);
+				}
 			}
 
 			// Ignore blank lines
@@ -85,13 +91,15 @@ class ScanReader {
 				}
 			}
 			catch (LineException $e) {
-				echo "LineException on line $lineNum: " . $e->getMessage() . "\n";
+				Logger::error("LineException on line $lineNum: " . $e->getMessage());
 			}
 		}
 
 		$report->save();
 
-		echo "Complete! Processed " . Util::FormatNumber($iterator->key()) . " lines from " . Util::FormatBytes($iterator->position()) . ". Wrote " . Util::FormatBytes($report->outSize) . " in " . Util::FormatNumber($report->outFiles) . " files.\n";
+		if (Logger::doLevel(Logger::LEVEL_NORMAL)) {
+			Logger::log("Complete! Processed " . Util::FormatNumber($iterator->key()) . " lines from " . Util::FormatBytes($iterator->position()) . ". Wrote " . Util::FormatBytes($report->outSize) . " in " . Util::FormatNumber($report->outFiles) . " files.", Logger::LEVEL_NORMAL);
+		}
 
 		$stream->close();
 	}
