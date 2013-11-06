@@ -115,6 +115,7 @@ class Report {
 
 		$this->options->processHeader($line);
 		$this->currentDirInfo = new DirInfo($this);
+		$this->currentDirInfo->init();
 		$this->headerAllowed = false;
 		return true;
 	}
@@ -122,19 +123,21 @@ class Report {
 	public function processDirInfo(DirInfo $dirInfo) {
 		if ($this->headerAllowed) {
 			$this->currentDirInfo = new DirInfo($this);
+			$this->currentDirInfo->init();
 			$this->headerAllowed = false;
 		}
 
+		// Pop off any parent directories.
 		while ($this->currentDirInfo->path != $dirInfo->dirname) {
 
-			if ($this->currentDirInfo->parent === null)
+			if ($this->currentDirInfo->getParent() === null)
 				throw new ScanException(ScanException::POPDIR_NOPARENT);
 
 			if (Logger::doLevel(Logger::LEVEL_DEBUG3))
 				Logger::log("Popping dir: {$this->currentDirInfo->path}", Logger::LEVEL_DEBUG3);
 
 			$popDir = $this->currentDirInfo;
-			$this->currentDirInfo = $this->currentDirInfo->parent;
+			$this->currentDirInfo = $this->currentDirInfo->getParent();
 
 			$popDir->onPop();
 			$this->directoryList->add($popDir->hash, json_encode($popDir->hash) . ":" . $popDir->toJSON());
@@ -142,8 +145,11 @@ class Report {
 			$this->currentDirInfo->onChildPop($popDir);
 		}
 
-		$dirInfo->parent = $this->currentDirInfo;
+		$dirInfo->setParent($this->currentDirInfo);
+		$dirInfo->init();
+
 		$this->currentDirInfo = $dirInfo;
+
 
 		if (Logger::doLevel(Logger::LEVEL_DEBUG2))
 			Logger::log("Entering dir: {$this->currentDirInfo->path}", Logger::LEVEL_DEBUG2);
@@ -152,6 +158,7 @@ class Report {
 	public function processFileInfo(FileInfo $fileInfo) {
 		if ($this->headerAllowed) {
 			$this->currentDirInfo = new DirInfo($this);
+			$this->currentDirInfo->init();
 			$this->headerAllowed = false;
 		}
 
@@ -160,14 +167,14 @@ class Report {
 
 		while ($this->currentDirInfo->path != $fileInfo->dirname) {
 
-			if ($this->currentDirInfo->parent === null)
+			if ($this->currentDirInfo->getParent() === null)
 				throw new ScanException(ScanException::POPDIR_NOPARENT);
 
 			if (Logger::doLevel(Logger::LEVEL_DEBUG3))
 				Logger::log("Popping dir: {$this->currentDirInfo->path}", Logger::LEVEL_DEBUG3);
 
 			$popDir = $this->currentDirInfo;
-			$this->currentDirInfo = $this->currentDirInfo->parent;
+			$this->currentDirInfo = $this->currentDirInfo->getParent();
 
 			$popDir->onPop();
 			$this->directoryList->add($popDir->hash, json_encode($popDir->hash) . ":" . $popDir->toJSON());
@@ -181,6 +188,7 @@ class Report {
 	public function save() {
 		if ($this->headerAllowed) {
 			$this->currentDirInfo = new DirInfo($this);
+			$this->currentDirInfo->init();
 			$this->headerAllowed = false;
 		}
 
@@ -193,12 +201,12 @@ class Report {
 
 			$popDir->onPop();
 
-			if ($this->currentDirInfo->parent !== null) {
-				$this->currentDirInfo = $this->currentDirInfo->parent;
+			if ($this->currentDirInfo->getParent() !== null) {
+				$this->currentDirInfo = $this->currentDirInfo->getParent();
 				$this->currentDirInfo->onChildPop($popDir);
 			}
 
-		} while ($this->currentDirInfo->parent !== null);
+		} while ($this->currentDirInfo->getParent() !== null);
 
 		// Save any open maps.
 		$this->subDirMap->save();

@@ -17,14 +17,24 @@ class DirInfo extends FileInfo {
 	protected $dirList;
 
 	/**
-	 * @var LargeCollection
+	 * @var null|LargeCollection
 	 */
-	protected $fileList;
+	protected $fileList = null;
 
 	/**
 	 * @var $parent DirInfo
 	 */
-	public $parent = null;
+	protected $parent = null;
+
+	/**
+	 * @var array All parent DirInfo.
+	 */
+	protected $parents = array();
+
+	/**
+	 * @var int
+	 */
+	protected $depth = 0;
 
 	public $subDirCount = 0;
 
@@ -33,8 +43,6 @@ class DirInfo extends FileInfo {
 
 	public $directSize = 0;
 	public $subSize = 0;
-
-	public $parents = array();
 	public $dirs;
 	public $files;
 
@@ -48,8 +56,16 @@ class DirInfo extends FileInfo {
 		$this->dirname = '';
 		$this->hash = md5('');
 
-		$basename = $this->options->getBasename();
+		$basename = $options->getBasename();
 		$this->basename = $basename === null || $basename == '' ? '.' : $basename;
+
+		if (is_string($line))
+			$this->setFromLine($line);
+	}
+
+	public function init() {
+		$report = $this->report;
+		$options = $this->options;
 
 		$this->dirList = new LargeCollection($report->subDirOutputs, array(
 			'maxLength' => $options->getMaxSubDirsFilePages() * $options->getMaxPerPage(),
@@ -58,57 +74,43 @@ class DirInfo extends FileInfo {
 			'prefix' => 'subdirs_' . $this->hash,
 			'maxTempSize' => $options->getMaxTempKB() * 1024
 		));
-		$this->fileList = new LargeCollection($report->fileListOutputs, array(
-			'maxLength' => $options->getMaxFileListFilePages() * $options->getMaxPerPage(),
-			'combinedOutput' => $report->combinedOutput,
-			'key' => $this->hash,
-			'prefix' => 'files_' . $this->hash,
-			'maxTempSize' => $options->getMaxTempKB() * 1024
-		));
 
-		if (is_string($line))
-			$this->setFromLine($line);
-	}
-
-	public function setFromLine($line) {
-		parent::setFromLine($line);
-		$this->dirList->setKey($this->hash);
-		$this->dirList->prefix = 'subdirs_' . $this->hash;
-		$this->fileList->setKey($this->hash);
-		$this->fileList->prefix = 'files_' . $this->hash;
+		$fileListDepth = $options->getFileListDepth();
+		if ($fileListDepth === true || (is_int($fileListDepth) && $this->depth <= $fileListDepth)) {
+			$this->fileList = new LargeCollection($report->fileListOutputs, array(
+				'maxLength' => $options->getMaxFileListFilePages() * $options->getMaxPerPage(),
+				'combinedOutput' => $report->combinedOutput,
+				'key' => $this->hash,
+				'prefix' => 'files_' . $this->hash,
+				'maxTempSize' => $options->getMaxTempKB() * 1024
+			));
+		}
 	}
 
 	public function onPop() {
-		$parent = $this->parent;
-		while ($parent !== null) {
-			$this->parents[] = array(
-				$parent->basename,
-				$parent->hash
-			);
-			$parent = $parent->parent;
-		}
+		if ($this->fileList !== null) {
+			$reportListMap = $this->report->fileListMap;
+			$fileList = $this->fileList;
 
-		$reportListMap = $this->report->fileListMap;
-		$fileList = $this->fileList;
+			// Multi-part lists must always be saved.
+			if ($fileList->isMultiPart()) {
+				$this->files = json_encode($fileList->save());
+			}
 
-		// Multi-part lists must always be saved.
-		if ($fileList->isMultiPart()) {
-			$this->files = json_encode($fileList->save());
-		}
+			// If it is small enough, store it with the directory entry.
+			elseif ($fileList->getSize() < 100) {
+				$this->files = $fileList->toJSON();
+			}
 
-		// If it is small enough, store it with the directory entry.
-		elseif ($fileList->getSize() < 100) {
-			$this->files = $fileList->toJSON();
-		}
+			// Attempt to store it in the map.
+			elseif (($this->files = $reportListMap->add($fileList)) !== false) {
+				$this->files = json_encode($this->files);
+			}
 
-		// Attempt to store it in the map.
-		elseif (($this->files = $reportListMap->add($fileList)) !== false) {
-			$this->files = json_encode($this->files);
-		}
-
-		// Otherwise, force it to save.
-		else {
-			$this->files = json_encode($fileList->save());
+			// Otherwise, force it to save.
+			else {
+				$this->files = json_encode($fileList->save());
+			}
 		}
 
 		$subDirsMap = $this->report->subDirMap;
@@ -152,14 +154,26 @@ class DirInfo extends FileInfo {
 		$this->directFileCount++;
 		$this->directSize += $fileInfo->size;
 
-		$this->fileList->add(array(
-			$fileInfo->basename,
-			$fileInfo->size,
-			$fileInfo->date . ' ' . $fileInfo->time
-		), $fileInfo->toJSON());
+		if ($this->fileList !== null) {
+			$this->fileList->add(array(
+				$fileInfo->basename,
+				$fileInfo->size,
+				$fileInfo->date . ' ' . $fileInfo->time
+			), $fileInfo->toJSON());
+		}
 	}
 
 	public function toJSON() {
+		$parents = array();
+		foreach ($this->parents as $parent) {
+			if ($parent->parent !== null) {
+				$parents[] = array(
+					$parent->basename,
+					$parent->hash
+				);
+			}
+		}
+
 		return '{'
 		. '"n":' . $this->getEncodedBasename()
 		. ',"d":' . json_encode($this->subDirCount)
@@ -168,8 +182,8 @@ class DirInfo extends FileInfo {
 		. ',"S":' . json_encode($this->directSize)
 		. ',"s":' . json_encode($this->subSize)
 		. ',"L":' . $this->dirs
-		. ',"l":' . $this->files
-		. ',"p":' . json_encode($this->parents)
+		. ($this->fileList === null ? '' : ',"l":' . $this->files)
+		. ',"p":' . json_encode($parents)
 		. '}';
 	}
 
@@ -190,6 +204,32 @@ class DirInfo extends FileInfo {
 		. ']';
 	}
 
+	/**
+	 * @return DirInfo|null
+	 */
+	public function getParent() {
+		return $this->parent;
+	}
+
+	public function setParent(DirInfo $parent) {
+		$this->parent = $parent;
+		if ($parent !== null) {
+			$this->parents = $parent->parents;
+			$this->parents[] = $parent;
+			$this->depth = count($this->parents);
+		}
+		else {
+			$this->parents = array();
+			$this->depth = 0;
+		}
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getParents() {
+		return $this->parents;
+	}
 }
 
 class FileInfo {
