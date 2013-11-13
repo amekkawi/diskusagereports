@@ -22,6 +22,16 @@ class DirInfo extends FileInfo {
 	protected $fileList = null;
 
 	/**
+	 * @var null|TopList
+	 */
+	protected $topList = null;
+
+	/**
+	 * @var bool
+	 */
+	protected $isOwnTopList = false;
+
+	/**
 	 * @var $parent DirInfo
 	 */
 	protected $parent = null;
@@ -84,6 +94,16 @@ class DirInfo extends FileInfo {
 				'prefix' => 'files_' . $this->hash,
 				'maxTempSize' => $options->getMaxTempKB() * 1024
 			));
+		}
+
+		$topListDepth = $options->getTopListDepth();
+		if ($topListDepth === true || (is_int($topListDepth) && $this->depth <= $topListDepth)) {
+			$this->topList = new TopList();
+			$this->isOwnTopList = true;
+		}
+		elseif (is_int($topListDepth)) {
+			$this->topList = $this->parents[$topListDepth]->topList;
+			$this->isOwnTopList = false;
 		}
 	}
 
@@ -148,6 +168,10 @@ class DirInfo extends FileInfo {
 			$dirInfo->directFileCount + $dirInfo->subFileCount,
 			$dirInfo->subDirCount
 		), $dirInfo->toSubdirJSON());
+
+		if ($this->isOwnTopList && $dirInfo->isOwnTopList) {
+			$this->topList->merge($dirInfo->topList);
+		}
 	}
 
 	public function processFileInfo(FileInfo $fileInfo) {
@@ -160,6 +184,10 @@ class DirInfo extends FileInfo {
 				$fileInfo->size,
 				$fileInfo->date . ' ' . $fileInfo->time
 			), $fileInfo->toJSON());
+		}
+
+		if ($this->topList !== null) {
+			$this->topList->add($fileInfo);
 		}
 	}
 

@@ -16,6 +16,7 @@ require("inc/class.logger.php");
 require("inc/class.options.php");
 require("inc/class.largemap.php");
 require("inc/class.largecollection.php");
+require("inc/class.toplist.php");
 require("inc/class.filestream.php");
 require("inc/class.fileiterator.php");
 require("inc/class.multifilesorter.php");
