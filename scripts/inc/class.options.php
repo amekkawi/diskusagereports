@@ -123,7 +123,7 @@ class Options {
 	 * @var bool|int The maximum sub-directory depth that will contain a top files listing.
 	 *               Setting to true is infinite depth, and false disables it entirely.
 	 */
-	protected $topListDepth = 3;
+	protected $topListDepth = 6;
 
 	/**
 	 * @var bool|int The maximum sub-directory depth that will contain a file sizes listing.
