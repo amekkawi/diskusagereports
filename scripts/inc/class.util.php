@@ -13,6 +13,21 @@ define('UTIL_IS_LARGE_INT', defined('PHP_INT_MAX') && strlen(PHP_INT_MAX.'') > 1
 
 class Util {
 
+	public static function Base64Number($number) {
+		$str = base_convert($number, 10, 16);
+		$packed = pack('H*', (strlen($str) % 4 !== 0 ? '0' : '') . $str);
+		$base64 = rtrim(base64_encode($packed), '=');
+		return strlen($base64) + 2 < strlen($number) ? $base64 : $number;
+	}
+
+	public static function Base64MD5($md5) {
+		$bin = '';
+		foreach (str_split($md5, 8) as $part) {
+			$bin .= pack('H*', $part);
+		}
+		return rtrim(base64_encode($bin), '=');
+	}
+
 	public static function ExplodeEscaped($delim, $str, $limit = 0, $escape = "\\") {
 		$arr = array();
 		$index = -1;
