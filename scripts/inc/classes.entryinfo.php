@@ -32,11 +32,6 @@ class DirInfo extends FileInfo {
 	protected $isOwnTopList = false;
 
 	/**
-	 * @var $parent DirInfo
-	 */
-	protected $parent = null;
-
-	/**
 	 * @var array All parent DirInfo.
 	 */
 	protected $parents = array();
@@ -232,15 +227,9 @@ class DirInfo extends FileInfo {
 		. ']';
 	}
 
-	/**
-	 * @return DirInfo|null
-	 */
-	public function getParent() {
-		return $this->parent;
-	}
-
 	public function setParent(DirInfo $parent) {
-		$this->parent = $parent;
+		parent::setParent($parent);
+
 		if ($parent !== null) {
 			$this->parents = $parent->parents;
 			$this->parents[] = $parent;
@@ -271,6 +260,11 @@ class FileInfo {
 	 * @var Options
 	 */
 	protected $options;
+
+	/**
+	 * @var $parent DirInfo
+	 */
+	protected $parent = null;
 
 	public $type;
 	public $date;
@@ -319,6 +313,10 @@ class FileInfo {
 		$this->basename = basename($this->path);
 	}
 
+	public function init() {
+
+	}
+
 	protected function getEncodedBasename() {
 		$basename = @json_encode($this->basename);
 
@@ -332,6 +330,17 @@ class FileInfo {
 		}
 
 		return $basename;
+	}
+
+	/**
+	 * @return DirInfo|null
+	 */
+	public function getParent() {
+		return $this->parent;
+	}
+
+	public function setParent(DirInfo $parent) {
+		$this->parent = $parent;
 	}
 
 	public function toJSON() {

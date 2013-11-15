@@ -150,6 +150,8 @@ class Report {
 
 		$this->popParents($fileInfo);
 
+		$fileInfo->setParent($this->currentDirInfo);
+		$fileInfo->init();
 
 		$this->currentDirInfo->processFileInfo($fileInfo);
 	}
