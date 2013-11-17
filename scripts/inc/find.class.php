@@ -159,12 +159,16 @@ class Find {
 		if ($this->_ds != DIRECTORY_SEPARATOR) {
 			$pathext = str_replace(DIRECTORY_SEPARATOR, $this->_ds, $pathext);
 		}
+
+		$size = $stat['size'];
+		if ($size < 0)
+			$size = (PHP_INT_MAX + (PHP_INT_MAX - (~$size) + 1));
 		
 		fwrite($out, implode($this->_delim, array(
 			$type, 
 			date('Y-m-d', intval($stat['mtime'])), 
 			date('H:i:s', intval($stat['mtime'])), 
-			$stat['size'],
+			$size,
 			//$depth,
 			$this->escapePath(($pathext == '' ? '' : $pathext . $this->_ds) . $entry)
 		)) . "\n");

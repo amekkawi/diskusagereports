@@ -129,7 +129,7 @@ if (is_null($directory)) {
 }
 
 if (!is_int( 9223372036854775807 ) && !$force32Bit) {
-	fwrite($STDERR, "You are running a 32-bit version of PHP.\nThis may lead to incorrect totals if find.php encounters files over 2 GB.\nUse --force32bit to override.");
+	fwrite($STDERR, "You are running a 32-bit version of PHP.\nThis may lead to incorrect totals if find.php encounters files over 4 GB.\nUse --force32bit to override.");
 	exit(1);
 }
 
