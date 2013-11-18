@@ -1,10 +1,12 @@
 <?php
 
-class TopList {
+class TopList implements IKeyedJSON {
 
 	protected $max = 100;
 	protected $lower = 0;
 	protected $list = array();
+	protected $size = null;
+	protected $key = null;
 
 	public function add(FileInfo $info) {
 		if ($info->size > $this->lower || count($this->list) < $this->max) {
@@ -12,7 +14,6 @@ class TopList {
 			// Add the new item and sort the list.
 			$json = array(
 				$info->basename,
-				$info->size,
 				$info->size,
 				$info->dirname,
 				$info->getParent()->hash
@@ -29,6 +30,7 @@ class TopList {
 
 			// Determine the new lower.
 			$this->lower = $this->list[$count - 1][0];
+			$this->size = null;
 		}
 	}
 
@@ -51,7 +53,21 @@ class TopList {
 
 			if ($count > 0)
 				$this->lower = $this->list[$count - 1][0];
+
+			$this->size = null;
 		}
+	}
+
+	public function getSize() {
+		if ($this->size === null) {
+			$size = 1;
+			foreach ($this->list as $item) {
+				$size += strlen($item[1]) + 1;
+			}
+			$this->size = max(2, $size);
+		}
+
+		return $this->size;
 	}
 
 	public function getUpper() {
@@ -72,4 +88,27 @@ class TopList {
 	public function getList() {
 		return $this->list;
 	}
+
+	public function getKey() {
+		return $this->key;
+	}
+
+	public function setKey($key) {
+		$this->key = $key;
+	}
+
+	public function toJSON() {
+		$ret = '';
+		foreach ($this->list as $item) {
+			$ret .= ',' . $item[1];
+		}
+
+		return '[' . substr($ret, 1) . ']';
+	}
+
+	public function getJSONSize() {
+		return $this->getSize();
+	}
+
+
 }

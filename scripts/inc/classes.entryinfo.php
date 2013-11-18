@@ -50,6 +50,7 @@ class DirInfo extends FileInfo {
 	public $subSize = 0;
 	public $dirs;
 	public $files;
+	public $top;
 
 	function __construct(Report $report, $line = null) {
 		parent::__construct($report);
@@ -94,6 +95,7 @@ class DirInfo extends FileInfo {
 		$topListDepth = $options->getTopListDepth();
 		if ($topListDepth === true || (is_int($topListDepth) && $this->depth <= $topListDepth)) {
 			$this->topList = new TopList();
+			$this->topList->setKey($this->hash);
 			$this->isOwnTopList = true;
 		}
 		elseif (is_int($topListDepth)) {
@@ -124,7 +126,31 @@ class DirInfo extends FileInfo {
 
 			// Otherwise, force it to save.
 			else {
+				// TODO: This will throw an error.
 				$this->files = json_encode($fileList->save());
+			}
+		}
+
+		if ($this->isOwnTopList && $this->topList !== null) {
+			$topListMap = $this->report->topListMap;
+			$topList = $this->topList;
+
+			// If it is small enough, store it with the directory entry.
+			if ($topList->getSize() < 100) {
+				//echo "Storing top list (" . $topList->getSize() . ") with dir..\n";
+				$this->top = $topList->toJSON();
+			}
+
+			// Attempt to store it in the map.
+			elseif (($this->top = $topListMap->add($topList)) !== false) {
+				//echo "Saving top list to map..\n";
+				$this->top = json_encode($this->top);
+			}
+
+			// Otherwise, force it to save.
+			else {
+				echo "Saving top list to file..\n";
+				$this->top = json_encode($topList->save());
 			}
 		}
 
