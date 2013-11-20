@@ -30,6 +30,15 @@ abstract class GroupByList implements IKeyedJSON {
 		$this->size = null;
 	}
 
+	public function merge(GroupByList $other) {
+		$count = $this->getGroupCount();
+		for ($i = 0; $i < $count; $i++) {
+			$this->groupCounts[$i] += $other->groupCounts[$i];
+			$this->groupSizes[$i] += $other->groupSizes[$i];
+		}
+		$this->size = null;
+	}
+
 	public function getSize() {
 		if ($this->size === null) {
 			$size = 4;
@@ -67,5 +76,28 @@ abstract class GroupByList implements IKeyedJSON {
 
 	public function getJSONSize() {
 		return $this->getSize();
+	}
+}
+
+class GroupBySizeList extends GroupByList {
+
+	protected $groups;
+
+	function __construct($groups) {
+		$this->groups = $groups;
+		parent::__construct();
+	}
+
+	public function getGroupCount() {
+		return count($this->groups);
+	}
+
+	public function getGroupIndex(FileInfo $fileInfo) {
+		foreach ($this->groups as $i => $group) {
+			if ($fileInfo->size >= $group['size'])
+				return $i;
+		}
+
+		return false;
 	}
 }

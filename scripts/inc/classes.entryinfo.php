@@ -32,6 +32,16 @@ class DirInfo extends FileInfo {
 	protected $isOwnTopList = false;
 
 	/**
+	 * @var null|GroupBySizeList
+	 */
+	protected $fileSizesList = null;
+
+	/**
+	 * @var bool
+	 */
+	protected $isOwnFileSizesList = false;
+
+	/**
 	 * @var array All parent DirInfo.
 	 */
 	protected $parents = array();
@@ -51,6 +61,7 @@ class DirInfo extends FileInfo {
 	public $dirs;
 	public $files;
 	public $top;
+	public $fileSizes;
 
 	function __construct(Report $report, $line = null) {
 		parent::__construct($report);
@@ -102,6 +113,17 @@ class DirInfo extends FileInfo {
 			$this->topList = $this->parents[$topListDepth]->topList;
 			$this->isOwnTopList = false;
 		}
+
+		$fileSizesDepth = $options->getFileSizesDepth();
+		if ($fileSizesDepth === true || (is_int($fileSizesDepth) && $this->depth <= $fileSizesDepth)) {
+			$this->fileSizesList = new GroupBySizeList($this->options->sizeGroups);
+			$this->fileSizesList->setKey($this->hash);
+			$this->isOwnFileSizesList = true;
+		}
+		elseif (is_int($fileSizesDepth)) {
+			$this->fileSizesList = $this->parents[$fileSizesDepth]->fileSizesList;
+			$this->isOwnFileSizesList = false;
+		}
 	}
 
 	public function onPop() {
@@ -133,6 +155,7 @@ class DirInfo extends FileInfo {
 
 		if ($this->isOwnTopList && $this->topList !== null) {
 			$topListMap = $this->report->topListMap;
+			/** @var $topList TopList */
 			$topList = $this->topList;
 
 			// If it is small enough, store it with the directory entry.
@@ -151,6 +174,30 @@ class DirInfo extends FileInfo {
 			else {
 				echo "Saving top list to file..\n";
 				$this->top = json_encode($topList->save());
+			}
+		}
+
+		if ($this->isOwnFileSizesList && $this->fileSizesList !== null) {
+			$fileSizesMap = $this->report->fileSizesMap;
+			/** @var $fileSizesList GroupBySizeList */
+			$fileSizesList = $this->fileSizesList;
+
+			// If it is small enough, store it with the directory entry.
+			if ($fileSizesList->getSize() < 100) {
+				//echo "A $this->path\n";
+				$this->fileSizes = $fileSizesList->toJSON();
+			}
+
+			// Attempt to store it in the map.
+			elseif (($this->fileSizes = $fileSizesMap->add($fileSizesList)) !== false) {
+				//echo "B $this->path\n";
+				$this->fileSizes = json_encode($this->fileSizes);
+			}
+
+			// Otherwise, force it to save.
+			else {
+				//echo "C $this->path\n";
+				$this->fileSizes = json_encode($fileSizesList->save());
 			}
 		}
 
@@ -193,6 +240,10 @@ class DirInfo extends FileInfo {
 		if ($this->isOwnTopList && $dirInfo->isOwnTopList) {
 			$this->topList->merge($dirInfo->topList);
 		}
+
+		if ($this->isOwnFileSizesList && $dirInfo->isOwnFileSizesList) {
+			$this->fileSizesList->merge($dirInfo->fileSizesList);
+		}
 	}
 
 	public function processFileInfo(FileInfo $fileInfo) {
@@ -209,6 +260,10 @@ class DirInfo extends FileInfo {
 
 		if ($this->topList !== null) {
 			$this->topList->add($fileInfo);
+		}
+
+		if ($this->fileSizesList !== null) {
+			$this->fileSizesList->add($fileInfo);
 		}
 	}
 
@@ -233,6 +288,7 @@ class DirInfo extends FileInfo {
 		. ',"L":' . $this->dirs
 		. ($this->fileList === null ? '' : ',"l":' . $this->files)
 		. ($this->top === null ? '' : ',"t":' . $this->top)
+		. ($this->fileSizes === null ? '' : ',"h":' . $this->fileSizes)
 		. ',"p":' . json_encode($parents)
 		. '}';
 	}

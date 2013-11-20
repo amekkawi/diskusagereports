@@ -173,8 +173,31 @@ class Options {
 	 */
 	protected $maxSubDirsFilePages = 2;
 
+	public $sizeGroups;
+
 	public function __construct() {
 		$this->buildLineRegEx();
+
+		$this->sizeGroups = array(
+			array('label' => '1 GB or More', 'size' => 1024 * 1024 * 1024),
+			array('label' => '500 MB - 1 GB', 'size' => 1024 * 1024 * 500),
+			array('label' => '250 MB - 500 MB', 'size' => 1024 * 1024 * 250),
+			array('label' => '125 MB - 250 MB', 'size' => 1024 * 1024 * 125),
+			array('label' => '75 MB - 125 MB', 'size' => 1024 * 1024 * 75),
+			array('label' => '25 MB - 75 MB', 'size' => 1024 * 1024 * 25),
+			array('label' => '10 MB - 25 MB', 'size' => 1024 * 1024 * 10),
+			array('label' => '5 MB - 10 MB', 'size' => 1024 * 1024 * 5),
+			array('label' => '1 MB - 5 MB', 'size' => 1024 * 1024 * 1),
+			array('label' => '500 KB - 1 MB', 'size' => 1024 * 500),
+			array('label' => '250 KB - 500 KB', 'size' => 1024 * 250),
+			array('label' => '100 KB - 250 KB', 'size' => 1024 * 100),
+			array('label' => '50 KB - 100 KB', 'size' => 1024 * 50),
+			array('label' => '25 KB - 50 KB', 'size' => 1024 * 25),
+			array('label' => '10 KB - 25 KB', 'size' => 1024 * 10),
+			array('label' => '5 KB - 10 KB', 'size' => 1024 * 5),
+			array('label' => '1 KB - 5 KB', 'size' => 1024 * 1),
+			array('label' => 'Less than 1 KB', 'size' => 0)
+		);
 	}
 
 	public function isValidLine($line) {

@@ -63,6 +63,11 @@ class Report {
 	 */
 	public $topListMap;
 
+	/**
+	 * @var LargeMap
+	 */
+	public $fileSizesMap;
+
 	public $outFiles = 0;
 	public $outSize = 0;
 
@@ -111,6 +116,9 @@ class Report {
 
 		$this->topListMap = new LargeMap(new CollectionOutput($this), $this->options->getMaxFileListMapKB() * 1024, intval(floor($this->options->getMaxFileListMapKB() / 2)) * 1024);
 		$this->topListMap->prefix = 'topmap';
+
+		$this->fileSizesMap = new LargeMap(new CollectionOutput($this), $this->options->getMaxFileListMapKB() * 1024, intval(floor($this->options->getMaxFileListMapKB() / 2)) * 1024);
+		$this->fileSizesMap->prefix = 'filesizes';
 	}
 
 	public function buildPath($extension) {
@@ -190,6 +198,7 @@ class Report {
 		$this->subDirMap->save();
 		$this->fileListMap->save();
 		$this->topListMap->save();
+		$this->fileSizesMap->save();
 
 		$startDirLists = microtime(true);
 		if (Logger::doLevel(Logger::LEVEL_VERBOSE)) {
