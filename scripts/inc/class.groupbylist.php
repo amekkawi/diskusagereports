@@ -36,7 +36,7 @@ abstract class GroupByList implements IKeyedJSON {
 			foreach ($this->groupCounts as $groupCount) {
 				$size += strlen($groupCount.'') + 1;
 			}
-			foreach ($this->$groupSize as $groupSize) {
+			foreach ($this->groupSizes as $groupSize) {
 				$size += strlen($groupSize.'') + 1;
 			}
 			$this->size = max(4, $size);
