@@ -232,6 +232,7 @@ class DirInfo extends FileInfo {
 		. ',"s":' . json_encode($this->subSize)
 		. ',"L":' . $this->dirs
 		. ($this->fileList === null ? '' : ',"l":' . $this->files)
+		. ($this->top === null ? '' : ',"t":' . $this->top)
 		. ',"p":' . json_encode($parents)
 		. '}';
 	}
