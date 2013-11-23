@@ -148,7 +148,7 @@ class LargeMap {
 	protected function closeOut(LargeMapOpenOut $openOut) {
 		$openOut->stream->write('}');
 		$openOut->stream->close();
-		$this->output->onSave($openOut->index, null, null, $openOut->size, $openOut->stream->getPath());
+		$this->output->onSave($openOut->index, null, null, $openOut->size + 1, $openOut->stream->getPath());
 		$openOut->size = 0;
 	}
 

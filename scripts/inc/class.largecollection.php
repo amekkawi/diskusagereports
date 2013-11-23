@@ -314,10 +314,13 @@ class LargeCollection implements IKeyedJSON {
 
 					if ($handlerIndex == $lastHandlerIndex && $this->combinedOutput !== null) {
 						$outFile->write(']');
-						$this->combinedOutput->onSave($outIndex, null, null, $outFile->tell(), $outFile->getPath());
+						$outFile->close();
+						$this->combinedOutput->onSave($outIndex, null, null, filesize($outFile->getPath()), $outFile->getPath());
+					}
+					else {
+						$outFile->close();
 					}
 
-					$outFile->close();
 					$output->onSave($outIndex, $firstItem, $lastItem, $this->combinedOutput !== null ? false : $outSize + 1, $outFile->getPath());
 					$outIndex++;
 					$outSize = 0;
@@ -339,10 +342,12 @@ class LargeCollection implements IKeyedJSON {
 
 			if ($handlerIndex == $lastHandlerIndex && $this->combinedOutput !== null) {
 				$outFile->write(']');
-				$this->combinedOutput->onSave($outIndex, null, null, $outFile->tell(), $outFile->getPath());
+				$outFile->close();
+				$this->combinedOutput->onSave($outIndex, null, null, filesize($outFile->getPath()), $outFile->getPath());
 			}
-
-			$outFile->close();
+			else {
+				$outFile->close();
+			}
 
 			if ($iteratorCount > 1) {
 				Logger::log("Sorted $iteratorCount temp files in " . sprintf('%.2f', microtime(true) - $sortStart) . " sec.", Logger::LEVEL_VERBOSE);
