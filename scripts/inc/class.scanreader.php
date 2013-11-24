@@ -32,6 +32,7 @@ class ScanReader {
 			throw new ScanException(ScanException::FOPEN_FAIL);
 		}
 
+		$start = microtime(true);
 		$report = $this->report;
 		$iterator = new FileIterator($stream);
 		$fileInfo = new FileInfo($report);
@@ -98,7 +99,7 @@ class ScanReader {
 		$report->save();
 
 		if (Logger::doLevel(Logger::LEVEL_NORMAL)) {
-			Logger::log("Complete! Processed " . Util::FormatNumber($iterator->key()) . " lines from " . Util::FormatBytes($iterator->position()) . ". Wrote " . Util::FormatBytes($report->outSize) . " in " . Util::FormatNumber($report->outFiles) . " files.", Logger::LEVEL_NORMAL);
+			Logger::log("Complete! Processed " . Util::FormatNumber($iterator->key()) . " lines from " . Util::FormatBytes($iterator->position()) . ". Wrote " . Util::FormatBytes($report->outSize) . " in " . Util::FormatNumber($report->outFiles) . " files. Took " . sprintf('%.1f', microtime(true) - $start) . " sec.", Logger::LEVEL_NORMAL);
 		}
 
 		$stream->close();
