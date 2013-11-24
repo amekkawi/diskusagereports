@@ -13,7 +13,7 @@ class TopList implements IKeyedJSON {
 
 			// Add the new item and sort the list.
 			$json = array(
-				$info->basename,
+				$info->getEncodedBasename(),
 				$info->size,
 				$info->dirname,
 				$info->getParent()->hash
