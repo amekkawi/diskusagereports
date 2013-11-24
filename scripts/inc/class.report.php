@@ -284,7 +284,7 @@ class Report {
 			Logger::log("Saving dir lookup...", Logger::LEVEL_VERBOSE);
 
 		// Save the directory lookup
-		$lookupSize = file_put_contents($this->buildPath('dirmap_lookup' . $this->options->getSuffix()), json_encode($this->directoryLookup->ranges));
+		$lookupSize = file_put_contents($this->buildPath('dirmap_lookup' . $this->options->getSuffix()), json_encode($this->directoryLookup->getReduced()));
 		if ($lookupSize === false)
 			throw new ScanException('Failed to write dirmap_lookup' . $this->options->getSuffix() . '.');
 
