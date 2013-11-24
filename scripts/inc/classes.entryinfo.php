@@ -323,12 +323,10 @@ class DirInfo extends FileInfo {
 
 	public function toJSON() {
 		$parents = array();
+		/** @var $parent DirInfo */
 		foreach ($this->parents as $parent) {
 			if ($parent->parent !== null) {
-				$parents[] = array(
-					$parent->basename,
-					$parent->hash
-				);
+				$parents[] = $parent->toMinimalJSON();
 			}
 		}
 
@@ -344,7 +342,7 @@ class DirInfo extends FileInfo {
 		. ($this->top === null ? '' : ',"t":' . $this->top)
 		. ($this->fileSizes === null ? '' : ',"u":' . $this->fileSizes)
 		. ($this->modifiedDates === null ? '' : ',"m":' . $this->modifiedDates)
-		. ',"p":' . json_encode($parents)
+		. ',"p":' . '[' . implode(',', $parents) . ']'
 		. '}';
 	}
 
@@ -451,13 +449,14 @@ class FileInfo {
 		// Break up the path into dirname/basename.
 		if (($this->dirname = dirname($this->path)) == '.') $this->dirname = '';
 		$this->basename = basename($this->path);
+		$this->encodedBasename = null;
 	}
 
 	public function init() {
 
 	}
 
-	protected function getEncodedBasename() {
+	public function getEncodedBasename() {
 		if ($this->encodedBasename !== null)
 			return $this->encodedBasename;
 
