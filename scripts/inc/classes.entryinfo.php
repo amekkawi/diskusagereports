@@ -61,6 +61,11 @@ class DirInfo extends FileInfo {
 	 */
 	protected $depth = 0;
 
+	/**
+	 * @var RangeLookup
+	 */
+	protected $subDirLookup;
+
 	public $subDirCount = 0;
 
 	public $directFileCount = 0;
@@ -95,12 +100,14 @@ class DirInfo extends FileInfo {
 		$report = $this->report;
 		$options = $this->options;
 
+		$this->subDirLookup = new RangeLookup(4);
 		$this->dirList = new LargeCollection($report->subDirOutputs, array(
 			'maxLength' => $options->getMaxSubDirsFilePages() * $options->getMaxPerPage(),
 			'combinedOutput' => $report->combinedOutput,
 			'key' => $this->hash,
 			'prefix' => 'subdirs_' . $this->hash,
-			'maxTempSize' => $options->getMaxTempKB() * 1024
+			'maxTempSize' => $options->getMaxTempKB() * 1024,
+			'saveWatcher' => $this->subDirLookup
 		));
 
 		$fileListDepth = $options->getFileListDepth();
@@ -253,7 +260,8 @@ class DirInfo extends FileInfo {
 
 		// Multi-part lists must always be saved.
 		if ($dirsList->isMultiPart()) {
-			$this->dirs = json_encode($dirsList->save());
+			$dirsList->save();
+			$this->dirs = json_encode($this->subDirLookup->getReduced());
 		}
 
 		// If it is small enough, store it with the directory entry.
@@ -268,7 +276,8 @@ class DirInfo extends FileInfo {
 
 		// Otherwise, force it to save.
 		else {
-			$this->dirs = json_encode($dirsList->save());
+			$dirsList->save();
+			$this->dirs = json_encode($this->subDirLookup->getReduced());
 		}
 	}
 
