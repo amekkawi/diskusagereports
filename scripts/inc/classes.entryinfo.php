@@ -404,6 +404,8 @@ class FileInfo {
 	 */
 	protected $parent = null;
 
+	protected $encodedBasename = null;
+
 	public $type;
 	public $date;
 	public $time;
@@ -456,6 +458,9 @@ class FileInfo {
 	}
 
 	protected function getEncodedBasename() {
+		if ($this->encodedBasename !== null)
+			return $this->encodedBasename;
+
 		$basename = @json_encode($this->basename);
 
 		// Attempt to convert it from Windows-1252 to UTF, if the json_encode failed.
@@ -467,7 +472,7 @@ class FileInfo {
 				$basename = array_values(unpack('C*', $this->basename));
 		}
 
-		return $basename;
+		return $this->encodedBasename = $basename;
 	}
 
 	/**
