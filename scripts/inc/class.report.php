@@ -68,6 +68,11 @@ class Report {
 	 */
 	public $fileSizesMap;
 
+	/**
+	 * @var LargeMap
+	 */
+	public $modifiedDatesMap;
+
 	public $outFiles = 0;
 	public $outSize = 0;
 
@@ -119,6 +124,9 @@ class Report {
 
 		$this->fileSizesMap = new LargeMap(new CollectionOutput($this), $this->options->getMaxFileListMapKB() * 1024, intval(floor($this->options->getMaxFileListMapKB() / 2)) * 1024);
 		$this->fileSizesMap->prefix = 'filesizes';
+
+		$this->modifiedDatesMap = new LargeMap(new CollectionOutput($this), $this->options->getMaxFileListMapKB() * 1024, intval(floor($this->options->getMaxFileListMapKB() / 2)) * 1024);
+		$this->modifiedDatesMap->prefix = 'modifieddates';
 	}
 
 	public function buildPath($extension) {
@@ -199,6 +207,7 @@ class Report {
 		$this->fileListMap->save();
 		$this->topListMap->save();
 		$this->fileSizesMap->save();
+		$this->modifiedDatesMap->save();
 
 		$startDirLists = microtime(true);
 		if (Logger::doLevel(Logger::LEVEL_VERBOSE)) {

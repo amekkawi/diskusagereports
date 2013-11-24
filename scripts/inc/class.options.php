@@ -175,6 +175,8 @@ class Options {
 
 	public $sizeGroups;
 
+	public $modifiedDateGroups;
+
 	public function __construct() {
 		$this->buildLineRegEx();
 
@@ -198,6 +200,31 @@ class Options {
 			array('label' => '1 KB - 5 KB', 'size' => 1024 * 1),
 			array('label' => 'Less than 1 KB', 'size' => 0)
 		);
+
+		// Labels for age ranges.
+		$this->modifiedGroups = array(
+			array('label' => '10 Years or More', 'date' => '-10 year'),
+			array('label' => '5 - 10 Years', 'date' => '-5 year'),
+			array('label' => '2 - 5 Years', 'date' => '-2 year'),
+			array('label' => '1 - 2 Years', 'date' => '-1 year'),
+			array('label' => '270 - 365 Days', 'date' => '-270 day'),
+			array('label' => '180 - 270 Days', 'date' => '-180 day'),
+			array('label' => '90 - 180 Days', 'date' => '-90 day'),
+			array('label' => '60 - 90 Days', 'date' => '-60 day'),
+			array('label' => '30 - 60 Days', 'date' => '-30 day'),
+			array('label' => '15 - 30 Days', 'date' => '-15 day'),
+			array('label' => '7 - 15 Days', 'date' => '-7 day'),
+			array('label' => '1 - 7 Days', 'date' => '-1 day'),
+			array('label' => 'Today', 'date' => 'today'),
+			array('label' => 'Future', 'date' => '9999-99-99')
+		);
+	}
+
+	public function init() {
+		// Format the dates in $modifiedGroups.
+		for ($i = 0; $i < count($this->modifiedGroups); $i++) {
+			$this->modifiedGroups[$i]['date'] = Util::FormatDate($this->modifiedGroups[$i]['date'], 'Y-m-d');
+		}
 	}
 
 	public function isValidLine($line) {

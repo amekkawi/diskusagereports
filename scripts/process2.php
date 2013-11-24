@@ -237,6 +237,9 @@ try {
 		exit(1);
 	}
 
+	// Do any final processing of the options.
+	$options->init();
+
 	$reader = new ScanReader(new Report($options));
 	$reader->read($scanFile);
 }

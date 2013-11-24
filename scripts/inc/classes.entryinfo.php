@@ -42,6 +42,16 @@ class DirInfo extends FileInfo {
 	protected $isOwnFileSizesList = false;
 
 	/**
+	 * @var null|GroupBySizeList
+	 */
+	protected $modifiedDatesList = null;
+
+	/**
+	 * @var bool
+	 */
+	protected $isOwnModifiedDatesList = false;
+
+	/**
 	 * @var array All parent DirInfo.
 	 */
 	protected $parents = array();
@@ -62,6 +72,7 @@ class DirInfo extends FileInfo {
 	public $files;
 	public $top;
 	public $fileSizes;
+	public $modifiedDates;
 
 	function __construct(Report $report, $line = null) {
 		parent::__construct($report);
@@ -123,6 +134,17 @@ class DirInfo extends FileInfo {
 		elseif (is_int($fileSizesDepth)) {
 			$this->fileSizesList = $this->parents[$fileSizesDepth]->fileSizesList;
 			$this->isOwnFileSizesList = false;
+		}
+
+		$modifiedDatesDepth = $options->getModifiedDatesDepth();
+		if ($modifiedDatesDepth === true || (is_int($modifiedDatesDepth) && $this->depth <= $modifiedDatesDepth)) {
+			$this->modifiedDatesList = new GroupBySizeList($this->options->sizeGroups);
+			$this->modifiedDatesList->setKey($this->hash);
+			$this->isOwnModifiedDatesList = true;
+		}
+		elseif (is_int($modifiedDatesDepth)) {
+			$this->modifiedDatesList = $this->parents[$modifiedDatesDepth]->modifiedDatesList;
+			$this->isOwnModifiedDatesList = false;
 		}
 	}
 
@@ -201,6 +223,30 @@ class DirInfo extends FileInfo {
 			}
 		}
 
+		if ($this->isOwnModifiedDatesList && $this->modifiedDatesList !== null) {
+			$modifiedDatesMap = $this->report->modifiedDatesMap;
+			/** @var $modifiedDatesList GroupByModifiedDates */
+			$modifiedDatesList = $this->modifiedDatesList;
+
+			// If it is small enough, store it with the directory entry.
+			if ($modifiedDatesList->getSize() < 100) {
+				//echo "A $this->path\n";
+				$this->modifiedDates = $modifiedDatesList->toJSON();
+			}
+
+			// Attempt to store it in the map.
+			elseif (($this->modifiedDates = $modifiedDatesMap->add($modifiedDatesList)) !== false) {
+				//echo "B $this->path\n";
+				$this->modifiedDates = json_encode($this->modifiedDates);
+			}
+
+			// Otherwise, force it to save.
+			else {
+				//echo "C $this->path\n";
+				$this->modifiedDates = json_encode($modifiedDatesList->save());
+			}
+		}
+
 		$subDirsMap = $this->report->subDirMap;
 		$dirsList = $this->dirList;
 
@@ -244,6 +290,10 @@ class DirInfo extends FileInfo {
 		if ($this->isOwnFileSizesList && $dirInfo->isOwnFileSizesList) {
 			$this->fileSizesList->merge($dirInfo->fileSizesList);
 		}
+
+		if ($this->isOwnModifiedDatesList && $dirInfo->isOwnModifiedDatesList) {
+			$this->modifiedDatesList->merge($dirInfo->modifiedDatesList);
+		}
 	}
 
 	public function processFileInfo(FileInfo $fileInfo) {
@@ -264,6 +314,10 @@ class DirInfo extends FileInfo {
 
 		if ($this->fileSizesList !== null) {
 			$this->fileSizesList->add($fileInfo);
+		}
+
+		if ($this->modifiedDatesList !== null) {
+			$this->modifiedDatesList->add($fileInfo);
 		}
 	}
 
@@ -288,7 +342,8 @@ class DirInfo extends FileInfo {
 		. ',"L":' . $this->dirs
 		. ($this->fileList === null ? '' : ',"l":' . $this->files)
 		. ($this->top === null ? '' : ',"t":' . $this->top)
-		. ($this->fileSizes === null ? '' : ',"h":' . $this->fileSizes)
+		. ($this->fileSizes === null ? '' : ',"u":' . $this->fileSizes)
+		. ($this->modifiedDates === null ? '' : ',"m":' . $this->modifiedDates)
 		. ',"p":' . json_encode($parents)
 		. '}';
 	}

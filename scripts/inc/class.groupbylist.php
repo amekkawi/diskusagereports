@@ -101,3 +101,26 @@ class GroupBySizeList extends GroupByList {
 		return false;
 	}
 }
+
+class GroupByModifiedDates extends GroupByList {
+
+	protected $groups;
+
+	function __construct($groups) {
+		$this->groups = $groups;
+		parent::__construct();
+	}
+
+	public function getGroupCount() {
+		return count($this->groups);
+	}
+
+	public function getGroupIndex(FileInfo $fileInfo) {
+		foreach ($this->groups as $i => $group) {
+			if ($fileInfo->size >= $group['size'])
+				return $i;
+		}
+
+		return false;
+	}
+}
