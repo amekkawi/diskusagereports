@@ -12,6 +12,13 @@
 class RangeLookup implements ISaveWatcher {
 
 	public $ranges = array();
+	protected $subRanges;
+
+	function __construct($subRanges = 0) {
+		$this->subRanges = $subRanges;
+		if ($subRanges > 0)
+			$this->ranges = array_fill(0, $subRanges, array());
+	}
 
 	public function onSave($index, $sortIndex, $firstItem, $lastItem, $path) {
 		$range = array(
@@ -20,10 +27,63 @@ class RangeLookup implements ISaveWatcher {
 			$index
 		);
 
-		if ($sortIndex !== null)
+		if ($sortIndex !== null) {
 			$this->ranges[$sortIndex][] = $range;
+		}
 		else
 			$this->ranges[] = $range;
+	}
+
+	public function getReduced() {
+		if ($this->subRanges <= 0)
+			return $this->reduce($this->ranges);
+
+		$ret = array();
+		foreach ($this->ranges as $ranges) {
+			$ret[] = $this->reduce($ranges);
+		}
+
+		return $ret;
+	}
+
+	protected function reduce($ranges) {
+		$ret = array();
+		for ($ri = 0, $rl = count($ranges); $ri < $rl; $ri++) {
+			if (!is_string($ranges[$ri][0]) || !is_string($ranges[$ri][1]))
+				return $ranges;
+
+			$range = $ranges[$ri];
+			$prevEnd = $ri == 0 ? '' : $ranges[$ri-1][1];
+			$nextStart = $ri + 1 < $rl ? $ranges[$ri+1][0] : '';
+
+			$jl = max(strlen($prevEnd), strlen($range[0]), strlen($range[1]));
+			for ($j = 1; $j <= $jl; $j++) {
+				$lastSubstr = substr($prevEnd, 0, $j);
+				$startSubstr = substr($range[0], 0, $j);
+				$endSubstr = substr($range[1], 0, $j);
+
+				if ($startSubstr !== $lastSubstr && $startSubstr !== $endSubstr)
+					break;
+			}
+
+			$kl = max(strlen($nextStart), strlen($range[1]));
+			for ($k = $j; $k <= $kl; $k++) {
+				$nextSubstr = substr($nextStart, 0, $k);
+				$endSubstr = substr($range[1], 0, $k);
+
+				if ($endSubstr !== $nextSubstr)
+					break;
+			}
+
+			if ($this->subRanges > 0) {
+			//echo "\n" . $range[0] . ' -> ' . $startSubstr . "\n";
+			//echo $range[1] . ' -> ' . $endSubstr . "\n";
+			}
+
+			$ret[] = array($startSubstr, $endSubstr, $range[2]);
+		}
+
+		return $ret;
 	}
 }
 
