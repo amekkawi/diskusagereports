@@ -170,7 +170,6 @@ class DirInfo extends FileInfo {
 
 			// Otherwise, force it to save.
 			else {
-				// TODO: This will throw an error.
 				$this->files = json_encode($fileList->save());
 			}
 		}
@@ -195,6 +194,7 @@ class DirInfo extends FileInfo {
 			// Otherwise, force it to save.
 			else {
 				echo "Saving top list to file..\n";
+				// TODO: This will throw an error.
 				$this->top = json_encode($topList->save());
 			}
 		}
@@ -243,6 +243,7 @@ class DirInfo extends FileInfo {
 			// Otherwise, force it to save.
 			else {
 				//echo "C $this->path\n";
+				// TODO: This will throw an error.
 				$this->modifiedDates = json_encode($modifiedDatesList->save());
 			}
 		}
