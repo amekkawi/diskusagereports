@@ -36,6 +36,7 @@ class LargeCollection implements IKeyedJSON {
 	protected $list;
 	protected $outputs;
 	protected $combinedOutput = null;
+	protected $saveWatcher = null;
 
 	public function __construct(array $outputs = null, array $options = array()) {
 		$this->outputs = $outputs;
@@ -82,6 +83,13 @@ class LargeCollection implements IKeyedJSON {
 				throw new Exception(get_class($this) . "'s combinedOutput option must an instanceof CollectionOutputAdapter.");
 
 			$this->combinedOutput = $options['combinedOutput'];
+		}
+
+		if (isset($options['saveWatcher'])) {
+			if (!is_object($options['saveWatcher']) || !($options['saveWatcher'] instanceof ISaveWatcher))
+				throw new Exception(get_class($this) . "'s saveWatcher option must be an instance of ISaveWatcher.");
+
+			$this->saveWatcher = $options['saveWatcher'];
 		}
 
 		if (isset($options['key']) && is_string($options['key']))
@@ -322,6 +330,9 @@ class LargeCollection implements IKeyedJSON {
 					}
 
 					$output->onSave($outIndex, $firstItem, $lastItem, $this->combinedOutput !== null ? false : $outSize + 1, $outFile->getPath());
+					if ($this->saveWatcher !== null)
+						$this->saveWatcher->onSave($outIndex, $handlerIndex, $firstItem, $lastItem, $outFile->getPath());
+
 					$outIndex++;
 					$outSize = 0;
 					$outLines = 0;
@@ -339,6 +350,9 @@ class LargeCollection implements IKeyedJSON {
 
 			$outFile->write($this->asObject ? '}' : ']');
 			$output->onSave($outIndex, $firstItem, $lastItem, $this->combinedOutput !== null ? false : $outSize + 1, $outFile->getPath());
+
+			if ($this->saveWatcher !== null)
+				$this->saveWatcher->onSave($outIndex, $handlerIndex, $firstItem, $lastItem, $outFile->getPath());
 
 			if ($handlerIndex == $lastHandlerIndex && $this->combinedOutput !== null) {
 				$outFile->write(']');
