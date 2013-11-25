@@ -172,7 +172,7 @@ class DirInfo extends FileInfo {
 
 			// Attempt to store it in the map.
 			elseif (($this->files = $reportListMap->add($fileList)) !== false) {
-				$this->files = json_encode($this->files);
+				$this->files = json_encode($this->files.'');
 			}
 
 			// Otherwise, force it to save.
