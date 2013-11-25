@@ -290,6 +290,13 @@ class Report {
 
 		$this->outFiles++;
 		$this->outSize += $lookupSize;
+
+		$settingsSize = file_put_contents($this->buildPath('settings' . $this->options->getSuffix()), $this->options->toJSON());
+		if ($lookupSize === false)
+			throw new ScanException('Failed to write settings' . $this->options->getSuffix() . '.');
+
+		$this->outFiles++;
+		$this->outSize += $settingsSize;
 	}
 
 	protected function popParents(FileInfo $fileInfo) {

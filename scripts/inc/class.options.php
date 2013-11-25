@@ -822,5 +822,25 @@ class Options {
 		return $this->maxDirMapKB;
 	}
 
+	public function toJSON() {
+		$settings = array(
+			'version' => '2.0',
+			'listversion' => $this->scanVersion,
+			'name' => $this->reportName,
+			'created' => date('M j, Y g:i:s A T'),
+			'utcCreated' => gmdate('Y-m-d H:i:s'),
+			'root' => md5(''), // The root path is always an empty string.
+			'sizes' => $this->sizeGroups,
+			'modified' => $this->modifiedGroups,
+			'ds' => $this->directorySeparator,
+			//'errors' => $this->errors, // TODO: Collect these.
+			'escaped' => $this->escaped,
+			'directoryTree' => !$this->disableDirectoryTree,
+		);
 
+		if ($this->includeFullPath && isset($this->dirname))
+			$settings['path'] = $this->dirname;
+
+		return json_encode($settings);
+	}
 }
