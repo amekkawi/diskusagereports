@@ -71,7 +71,15 @@ abstract class GroupByList implements IKeyedJSON {
 	}
 
 	public function toJSON() {
-		return json_encode(array($this->groupCounts, $this->groupSizes));
+		$indexList = array();
+		$valuesList = array();
+		for ($i = 0, $count = $this->getGroupCount(); $i < $count; $i++) {
+			if ($this->groupCounts[$i] > 0) {
+				$indexList[] = $i;
+				$valuesList[] = array($this->groupSizes[$i], $this->groupCounts[$i]);
+			}
+		}
+		return json_encode(array($indexList, $valuesList));
 	}
 
 	public function getJSONSize() {
