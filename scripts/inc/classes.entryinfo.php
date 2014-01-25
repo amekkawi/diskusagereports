@@ -357,13 +357,13 @@ class DirInfo extends FileInfo {
 	}
 
 	public function toSubdirJSON() {
-		return '{'
-		. '"h":' . json_encode($this->hash)
-		. ',"n":' . $this->getEncodedBasename()
-		. ',"d":' . json_encode($this->subDirCount)
-		. ',"f":' . json_encode($this->directFileCount + $this->subFileCount)
-		. ',"s":' . json_encode($this->directSize + $this->subSize)
-		. '}';
+		return '['
+		. json_encode($this->hash)
+		. ',' . $this->getEncodedBasename()
+		. ',' . json_encode($this->subDirCount)
+		. ',' . json_encode($this->directFileCount + $this->subFileCount)
+		. ',' . json_encode($this->directSize + $this->subSize)
+		. ']';
 	}
 
 	public function toMinimalJSON() {
