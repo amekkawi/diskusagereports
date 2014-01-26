@@ -24,8 +24,8 @@ The license is also available at http://diskusagereports.com/license.html
 	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 	<link rel="shortcut icon" href="images/favicon.png" type="image/png">
 
-	<!-- build:less app/css/styles.css -->
-	<link rel="stylesheet/less" type="text/css" href="app/css/styles.less">
+	<!-- build:less app/css/styles-dev.css -->
+	<link rel="stylesheet/less" type="text/css" href="app/css/styles-dev.less">
 	<!-- endbuild -->
 
 	<!-- build:clear dev CSS -->
@@ -34,12 +34,12 @@ The license is also available at http://diskusagereports.com/license.html
 
 	<!-- build:js app/libs-head.js -->
 	<script src="vendor/bower/modernizr/modernizr.js"></script>
-	<!--<script src="vendor/bower/requirejs/require.js"></script>-->
+	<script src="vendor/bower/requirejs/require.js"></script>
 	<!-- endbuild -->
 </head>
 <body>
 
-<!--[if lt IE 7]>
+<!--[if lt IE 8]>
 <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please
 	<a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
 <![endif]-->
@@ -51,7 +51,11 @@ The license is also available at http://diskusagereports.com/license.html
 	<div class="du-body"></div>
 </div>
 
-<script data-main="app/main" src="vendor/bower/requirejs/require.js"></script>
+<!-- build:requirejs app/main /-->
+
+<!-- build:clear dev main.js -->
+<script src="app/main.js"></script>
+<!-- endbuild -->
 
 </body>
 </html>

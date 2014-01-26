@@ -1,11 +1,15 @@
 requirejs.config({
+	baseUrl: './app',
 	paths: {
 		i18n: '../vendor/bower/requirejs-i18n/i18n',
 		text: '../vendor/bower/requirejs-text/text',
 		jquery: '../vendor/bower/jquery/jquery',
 		lodash: '../vendor/bower/lodash/dist/lodash',
 		backbone: '../vendor/bower/backbone/backbone',
-		marionette: '../vendor/bower/backbone.marionette/lib/backbone.marionette',
+		marionette: '../vendor/bower/backbone.marionette/lib/core/amd/backbone.marionette',
+		'backbone.babysitter': '../vendor/bower/backbone.babysitter/lib/amd/backbone.babysitter',
+		'backbone.eventbinder': '../vendor/bower/backbone.eventbinder/lib/amd/backbone.eventbinder',
+		'backbone.wreqr': '../vendor/bower/backbone.wreqr/lib/amd/backbone.wreqr',
 		bootstrap: '../vendor/bower/bootstrap/js'
 	},
 	shim: {
