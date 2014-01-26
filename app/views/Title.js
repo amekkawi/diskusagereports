@@ -1,7 +1,7 @@
 define([
 	'underscore',
 	'marionette',
-	'text!templates/Title'
+	'text!templates/Title.html'
 ], function(_, Marionette, Template) {
 	return Marionette.ItemView.extend({
 		tagName: 'h1',

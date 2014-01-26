@@ -1,7 +1,9 @@
 define([
-	'views/Error'
-], function(ViewError) {
+	'underscore',
+	'views/Error',
+	'text!templates/AjaxError.html'
+], function(_, ViewError, Template) {
 	return ViewError.extend({
-		template: '#AjaxErrorTemplate'
+		template: _.template(Template)
 	});
 });

@@ -1,10 +1,11 @@
 define([
 	'underscore',
-	'marionette'
-], function(_, Marionette) {
+	'marionette',
+	'text!templates/Loader.html'
+], function(_, Marionette, Template) {
 	return Marionette.ItemView.extend({
 		className: 'loader hide alert',
-		template: '#LoaderTemplate',
+		template: _.template(Template),
 		serializeData: function() {
 			var error = this._error;
 			this.$el
