@@ -1,0 +1,9 @@
+<% if (!error) { %>
+Loading report...
+<% } else if (error.status === 200) { %>
+<strong>Invalid Report File</strong><br>
+The main report file at <a href="<%-url%>"><%-url%></a> is invalid.
+<% } else { %>
+<strong><%-error.status%>: <%-error.statusText%></strong><br>
+Failed to load the main report file from <a href="<%-url%>"><%-url%></a>.
+<% } %>

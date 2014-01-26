@@ -8,96 +8,50 @@ Copyright (c) @@CopyYear André Mekkawi <diskusage@andremekkawi.com>
 This source file is subject to the MIT license in the file LICENSE.txt.
 The license is also available at http://diskusagereports.com/license.html
 -->
-<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-		<title>Disk Usage Report</title>
-		<meta name="viewport" content="width=device-width">
-		<link rel="shortcut icon" href="images/favicon.png" type="image/png">
+<!--[if lt IE 7]>
+<html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>
+<html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>
+<html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>Disk Usage Report</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+	<link rel="shortcut icon" href="images/favicon.png" type="image/png">
 
-		<!-- build:less app/css/styles.css -->
-		<link rel="stylesheet" type="text/css" href="vendor/bower/html5-boilerplate/css/normalize.css">
-		<link rel="stylesheet" type="text/css" href="vendor/bower/html5-boilerplate/css/main.css">
-		<link rel="stylesheet/less" type="text/css" href="app/css/styles.less">
-		<!-- endbuild -->
+	<!-- build:less app/css/styles.css -->
+	<link rel="stylesheet/less" type="text/css" href="app/css/styles.less">
+	<!-- endbuild -->
 
-		<!-- build:clear dev CSS -->
-		<link rel="stylesheet" type="text/css" href="app/css/styles.css">
-		<!-- endbuild -->
+	<!-- build:clear dev CSS -->
+	<link rel="stylesheet" type="text/css" href="app/css/styles-dev.css">
+	<!-- endbuild -->
 
-		<!-- build:js app/libs.js -->
-		<script src="vendor/bower/modernizr/modernizr.js"></script>
-		<script src="vendor/bower/requirejs/require.js"></script>
-		<!-- endbuild -->
+	<!-- build:js app/libs-head.js -->
+	<script src="vendor/bower/modernizr/modernizr.js"></script>
+	<!--<script src="vendor/bower/requirejs/require.js"></script>-->
+	<!-- endbuild -->
+</head>
+<body>
 
-		<!-- Custom Configuration -->
-		<script>
-			var reportConfig = window.reportConfig = {};
+<!--[if lt IE 7]>
+<p class="browsehappy">You are using an <strong>outdated</strong> browser. Please
+	<a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+<![endif]-->
 
-			// Optional setting examples
-			// =============================================================
+<div class="container" id="AppContainer">
+	<div class="du-title navbar-fixed-top">
+		<div class="container"></div>
+	</div>
+	<div class="du-body"></div>
+</div>
 
-			// Path to the directory that contains the reports.
-			//reportConfig.reportsBaseURL = '/path/to/report/data/';
+<script data-main="app/main" src="vendor/bower/requirejs/require.js"></script>
 
-			// Override the bar colors for the 'total size' and 'total count' columns.
-			// The first array index represents the color for 0%. The last array item is for 100%.
-			//reportConfig.gradient = [ 'green', 'yellow', 'orange', 'red' ];
-
-			// Override the normal way the report name is determined.
-			//reportConfig.report = '<?php //echo $_GET['reportid']; ?>';
-
-			// Change the maximum number of rows displayed at once in a table.
-			//reportConfig.pageMax = 100;
-
-			// Change the suffix that report files will have.
-			// Can either be set to a string or an array of suffixes that will be checked in order.
-			//reportConfig.suffix = '.json';
-			//reportConfig.suffix = [ '.txt', '' ];
-
-			// Add additional languages. You must include the respective language files (e.g. de.txt) in the 'lang' directory.
-			//reportConfig.addLanguage('de', 'Deutsch');
-
-			// Change the default language that is used if the language passed via setLanguage() is not supported.
-			//reportConfig.defaultLanguage = 'en-us';
-
-			// Pass the browser's Accept-Language header to determine their preferred language.
-			//reportConfig.setLanguage('<?php echo $_SERVER['HTTP_ACCEPT_LANGUAGE']; ?>');
-
-		</script>
-	</head>
-
-	<body>
-		<div id="NoJS">You must enable JavaScript in your browser in order to view this report.</div>
-
-		<script>/*
-		TODO: Appear over the report until closed.
-		<!--[if lt IE 7]>
-		<p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
-		<![endif]-->
-		*/</script>
-
-		<div id="Contents"></div>
-
-		<!-- build:clear -->
-
-		<!-- build:requirejs app/config app/app.js -->
-		<script src="app/config.js"></script>
-		<!-- endbuild -->
-
-		<!-- build:requirejs app/config app/app-zepto.js app-zepto { "pragmas": { "usezepto": true }, "map": { "*": { "jquery": "zepto" } } } /-->
-
-		<!-- endbuild -->
-
-		<!-- build:uncomment --><!--
-		<script>
-		document.write('<script src="app/app' +
-		//('__proto__' in {} ? '-zepto' : '') +
-		'.js"><\/script>')
-		</script>
-		--><!-- endbuild -->
-	</body>
+</body>
 </html>

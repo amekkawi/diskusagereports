@@ -1,0 +1,7 @@
+<% if (xhr.status === 200) { %>
+<strong>Invalid Report File</strong><br>
+The <%-name%> at <a href="<%-url%>"><%-url%></a> is invalid.
+<% } else { %>
+<strong><%-xhr.status%>: <%-xhr.statusText%></strong><br>
+Failed to load the <%-name%> from <a href="<%-url%>"><%-url%></a>.
+<% } %>
