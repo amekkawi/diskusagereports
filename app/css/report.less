@@ -1,0 +1,233 @@
+@import "../../vendor/bower/bootstrap/less/variables";
+@import "../../vendor/bower/bootstrap/less/mixins";
+
+@report-white: #f7f6f0;
+
+.du-report {
+	padding: 0 10px;
+	position: relative;
+	height: 100%;
+
+	background-color: #343434;
+	background-image: url(../images/background.gif);
+	background-repeat: repeat-x;
+
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+
+	a {
+		color: #00F;
+	}
+}
+
+.du-title {
+	position: relative;
+
+	font-size: 25px;
+	color: #FFF;
+	line-height: 1.2em;
+
+	padding: 8px;
+	padding-left: 42px;
+	margin-left: 10px;
+
+	background-image: url(../images/title-icon2.png);
+	background-repeat: no-repeat;
+	background-position: 0 6px;
+	text-shadow: rgba(0,0,0,0.5) 2px 2px 4px;
+
+	b {
+		color: #dfcd90;
+		font-weight: normal;
+	}
+
+	.du-title-created {
+		color: #CCCCCC;
+		font-size: 13px;
+		position: absolute;
+		bottom: 8px;
+		right: -70px;
+		text-align: right;
+	}
+}
+
+.du-report-body {
+	position: relative;
+	padding: 10px;
+	overflow: hidden;
+	background-color: #3980ac;
+
+	html.no-cssgradients & {
+		background-image: url(../images/contents-background.png);
+		background-repeat: repeat-y;
+		background-position: center center;
+	}
+
+	html.cssgradients & {
+		#gradient > .horizontal-three-colors(#3980ac, #5cafcd, 50%, #3980ac);
+	}
+}
+
+.du-directory, .du-tree, .du-tree-resizer {
+	position: relative;
+	overflow: hidden;
+	height: 100%;
+}
+
+.du-tree-resizer {
+	float: left;
+	margin: 0 2px;
+	width: 8px;
+	cursor: move;
+	cursor: ew-resize;
+	background-image: url(../images/resizer.png);
+	background-position: center center;
+	background-repeat: no-repeat;
+
+	.du-loading &, .du-notree & {
+		display: none;
+	}
+}
+
+.du-tree {
+	float: left;
+	background-color: @report-white;
+	width: 200px;
+
+	.du-loading &, .du-notree & {
+		display: none;
+	}
+
+	&.du-loading {
+		background-image: url(../images/ajax-loader.gif);
+		background-repeat: no-repeat;
+		background-position: center center;
+	}
+}
+
+.du-directory {
+	&.du-loading, .du-loading &, .du-showmessage & {
+		display: none;
+	}
+
+	.du-summary {
+		padding: 4px 4px 14px 40px;
+		margin-left: 6px;
+		background-image: url(../images/folder-large.png);
+		background-repeat: no-repeat;
+		background-position: 0 7px;
+		color: #FFF;
+
+		a {
+			color: #FFF;
+		}
+
+		.du-path {
+			font-size: 24px;
+			padding-bottom: 2px;
+
+			span {
+				padding-left: 7px;
+			}
+
+			.root {
+				margin-right: 6px;
+			}
+		}
+	}
+
+	.du-tabs {
+		ul, li {
+			padding: 0;
+			margin: 0;
+			list-style: none;
+		}
+
+		a {
+			cursor: pointer;
+			float: left;
+			display: block;
+			padding: 6px 8px;
+			margin-left: 10px;
+			color: #5A5842;
+			font-weight: bold;
+			text-decoration: none;
+
+			background-color: darken(#dfdccd, 8%);
+
+			html.no-cssgradients & {
+				background-image: url(../images/tab-background2.gif);
+				background-position: center bottom;
+				background-repeat: repeat-x;
+			}
+
+			html.cssgradients & {
+				#gradient > .vertical-three-colors(lighten(#dfdccd, 5%), darken(#cdcaba, 5%), 89%, #a3a192);
+			}
+
+			html.borderradius & {
+				.border-top-radius(5px);
+			}
+
+			&:hover {
+				text-decoration: underline;
+			}
+
+			html.no-cssgradients &.selected,
+			html.cssgradients &.selected,
+			&.selected {
+				.reset-filter();
+				text-decoration: none;
+				background-color: @report-white;
+				background-image: none;
+				color: #000;
+			}
+		}
+	}
+
+	.du-directory-body {
+		clear: both;
+		overflow: auto;
+		padding: 8px;
+		background-color: @report-white;
+	}
+}
+
+.du-footer {
+	background-color: #343434;
+	width: 100%;
+	position: absolute;
+	bottom: 0;
+	left: 0;
+
+	font-size: 14px;
+	padding-top: 4px;
+	padding-bottom: 6px;
+	color: #AAA;
+	text-align: center;
+
+	a {
+		color: #AAA;
+	}
+}
+
+.du-message {
+	display: none;
+	font-size: 20px;
+	padding: 12px 22px;
+	background-color: @report-white;
+	overflow: hidden;
+
+	.du-showmessage & {
+		display: block;
+	}
+
+	.border-radius(15px);
+
+	&.du-error {
+		padding-left: 60px;
+		background-image: url(../images/error32x32.png);
+		background-repeat: no-repeat;
+		background-position: 18px .5em;
+	}
+}

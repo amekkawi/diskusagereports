@@ -1,0 +1,103 @@
+// Core variables and mixins
+
+@import "../../vendor/bower/bootstrap/less/variables";
+@import "../../vendor/bower/bootstrap/less/mixins";
+
+// Reset
+@import "../../vendor/bower/bootstrap/less/normalize";
+@import "../../vendor/bower/bootstrap/less/print";
+
+// Core CSS
+@import "../../vendor/bower/bootstrap/less/scaffolding";
+@import "../../vendor/bower/bootstrap/less/type";
+@import "../../vendor/bower/bootstrap/less/code";
+@import "../../vendor/bower/bootstrap/less/grid";
+@import "../../vendor/bower/bootstrap/less/tables";
+@import "../../vendor/bower/bootstrap/less/forms";
+@import "../../vendor/bower/bootstrap/less/buttons";
+
+// Components
+@import "../../vendor/bower/bootstrap/less/component-animations";
+@import "../../vendor/bower/bootstrap/less/glyphicons";
+@import "../../vendor/bower/bootstrap/less/dropdowns";
+@import "../../vendor/bower/bootstrap/less/button-groups";
+@import "../../vendor/bower/bootstrap/less/input-groups";
+@import "../../vendor/bower/bootstrap/less/navs";
+@import "../../vendor/bower/bootstrap/less/navbar";
+@import "../../vendor/bower/bootstrap/less/breadcrumbs";
+@import "../../vendor/bower/bootstrap/less/pagination";
+@import "../../vendor/bower/bootstrap/less/pager";
+@import "../../vendor/bower/bootstrap/less/labels";
+@import "../../vendor/bower/bootstrap/less/badges";
+@import "../../vendor/bower/bootstrap/less/jumbotron";
+@import "../../vendor/bower/bootstrap/less/thumbnails";
+@import "../../vendor/bower/bootstrap/less/alerts";
+@import "../../vendor/bower/bootstrap/less/progress-bars";
+@import "../../vendor/bower/bootstrap/less/media";
+@import "../../vendor/bower/bootstrap/less/list-group";
+@import "../../vendor/bower/bootstrap/less/panels";
+@import "../../vendor/bower/bootstrap/less/wells";
+@import "../../vendor/bower/bootstrap/less/close";
+
+// Components w/ JavaScript
+@import "../../vendor/bower/bootstrap/less/modals";
+@import "../../vendor/bower/bootstrap/less/tooltip";
+@import "../../vendor/bower/bootstrap/less/popovers";
+@import "../../vendor/bower/bootstrap/less/carousel";
+
+// Utility classes
+@import "../../vendor/bower/bootstrap/less/utilities";
+@import "../../vendor/bower/bootstrap/less/responsive-utilities";
+
+@import "../../vendor/bower/bootstrap/less/theme";
+
+@grid-gutter-width: 20px;
+
+@progress-bg:                 darken(#f5f5f5, 3%);
+@progress-bar-color:          #000;
+
+@progress-bar-bg:             @brand-primary;
+@progress-bar-success-bg:     mix(@brand-success, @progress-bg, 75%);
+@progress-bar-warning-bg:     @brand-warning;
+@progress-bar-danger-bg:      @brand-danger;
+@progress-bar-info-bg:        @brand-info;
+
+.progress {
+	position: relative;
+
+	span {
+		line-height: 20px;
+		text-shadow: 0 0 2px #FFF, 0 0 2px #FFF, 0 0 2px #FFF;
+
+		&.left {
+			position: absolute;
+			display: none;
+			top: 0;
+			left: 6px;
+		}
+
+		&.right {
+			position: absolute;
+			display: block;
+			top: 0;
+			right: 6px;
+		}
+
+		@media (min-width: (@screen-sm - 150px)) {
+			font-weight: bold;
+			font-size: 14px;
+		}
+
+		@media (min-width: (@screen-sm - 100px)) and (max-width: @screen-md) {
+			&.left {
+				display: block;
+			}
+		}
+
+		@media (min-width: @screen-lg) {
+			&.left {
+				display: block;
+			}
+		}
+	}
+}
