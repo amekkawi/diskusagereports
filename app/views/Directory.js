@@ -1,3 +1,4 @@
+"use strict";
 define([
 	'marionette',
 	'text!templates/Directory.html',
