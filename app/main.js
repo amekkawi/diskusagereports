@@ -11,7 +11,7 @@ requirejs.config({
 		'backbone.babysitter': '../vendor/bower/backbone.babysitter/lib/amd/backbone.babysitter',
 		'backbone.eventbinder': '../vendor/bower/backbone.eventbinder/lib/amd/backbone.eventbinder',
 		'backbone.wreqr': '../vendor/bower/backbone.wreqr/lib/amd/backbone.wreqr',
-		bootstrap: '../vendor/bower/bootstrap/js'
+		'bootstrap.dropdown': '../vendor/bower/bootstrap/js/dropdown'
 	},
 	shim: {
 		jquery: {
@@ -28,7 +28,7 @@ requirejs.config({
 			deps: ['jquery', 'underscore', 'backbone'],
 			exports: 'Marionette'
 		},
-		boostrap: {
+		'bootstrap.dropdown': {
 			deps: ['jquery']
 		}
 	},
