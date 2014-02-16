@@ -1,1 +1,1 @@
-Disk Usage Report<% if (reportName) { %> for: <span><%-reportName%></span><% } %>
+<%=name ? _.template(Lang.title_long, { name: name }) : Lang.title %>

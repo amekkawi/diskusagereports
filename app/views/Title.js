@@ -2,8 +2,9 @@
 define([
 	'underscore',
 	'marionette',
-	'text!templates/Title.html'
-], function(_, Marionette, Template) {
+	'text!templates/Title.html',
+	'i18n!nls/report'
+], function(_, Marionette, Template, Lang) {
 	return Marionette.ItemView.extend({
 		tagName: 'h1',
 		template: _.template(Template),
@@ -12,7 +13,8 @@ define([
 		},
 		serializeData: function() {
 			return {
-				reportName: this.model.get('name')
+				name: this.model.get('name'),
+				Lang: Lang
 			};
 		}
 	});
