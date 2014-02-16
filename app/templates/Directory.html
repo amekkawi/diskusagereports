@@ -1,27 +1,5 @@
-<div class="du-dir-header">
-	<h2><%-name%><%-_.uniqueId()%></h2>
-	<div class="du-breadcrumb">
-		<ol class="breadcrumb">
-			<% _.forEachRight(parents, function(parent, i) {
-			if (i === parents.length - 1) {
-			%><li class="active">
-			<span style="cursor: pointer;" data-toggle="dropdown"><span class="caret"></span> <%-parent.name%></span>
-			<ul class="dropdown-menu" style="max-width: 100%; overflow: hidden;" role="menu" aria-labelledby="dropdownMenu1">
-				<li role="presentation" class="dropdown-header">Parent Directories:</li>
-				<% _.each(parents, function(parent, i) {
-				if (i > 0) {
-				%><li role="presentation"><a role="menuitem" tabindex="-1" href="#"><%-parent.name%></a></li><%
-				}
-				}); %>
-			</ul>
-		</li><%
-			}
-			else {
-			%> <li><a href="#"><%-parent.name%></a></li> <%
-			}
-			}); %>
-		</ol>
-		<div class="du-breadcrumb-fade"></div>
-	</div>
+<div class="du-pane-left"></div>
+<div class="du-pane-right">
+	<div class="du-header"></div>
+	<div class="du-summary"></div>
 </div>
-<div class="du-dir-body"></div>
