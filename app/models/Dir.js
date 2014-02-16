@@ -9,12 +9,12 @@ define([
 				this.urlRoot = this.settings.urlRoot;
 			return Model.prototype.url.apply(this, arguments) + this.settings.suffix;
 		},
-		parse: function(response, options) {
+		parse: function(response) {
 			switch (this.settings.get('version')) {
 				case '2.0':
-					return this._parse2_0(response, options);
+					return this._parse2_0(response);
 				default:
-					return this._parse1_0(response, options);
+					return this._parse1_0(response);
 			}
 		},
 		_parse2_0: function(response) {
@@ -113,7 +113,6 @@ define([
 				sizes: 'fileSizes',
 				subdirs: 'dirs',
 				top100: 'top',
-				sizes: 'fileSizes',
 				modified: 'modifiedDates',
 				types: 'fileTypes'
 			}
