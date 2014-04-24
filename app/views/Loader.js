@@ -1,9 +1,10 @@
-"use strict";
 define([
 	'underscore',
 	'marionette',
 	'text!templates/Loader.html'
 ], function(_, Marionette, Template) {
+	"use strict";
+
 	return Marionette.ItemView.extend({
 		className: 'loader hide alert',
 		template: _.template(Template),

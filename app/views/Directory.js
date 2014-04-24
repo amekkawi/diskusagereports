@@ -1,4 +1,3 @@
-"use strict";
 define([
 	'marionette',
 	'marionette.region.multi',
@@ -9,6 +8,7 @@ define([
 
 	'bootstrap.dropdown'
 ], function(Marionette, RegionMulti, Template, Lang, BasenameTemplate, BreadcrumbTemplate) {
+	"use strict";
 
 	var Basename = Marionette.ItemView.extend({
 		className: 'du-basename',

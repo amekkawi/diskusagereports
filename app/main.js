@@ -43,6 +43,8 @@ require([
 	'marionette',
 	'ReportApp'
 ], function(Marionette, ReportApp) {
+	"use strict";
+
 	console.log('loaded');
 
 	var reportsBaseURL = '/git/diskusage-data/',

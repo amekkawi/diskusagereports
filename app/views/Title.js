@@ -1,10 +1,11 @@
-"use strict";
 define([
 	'underscore',
 	'marionette',
 	'text!templates/Title.html',
 	'i18n!nls/report'
 ], function(_, Marionette, Template, Lang) {
+	"use strict";
+
 	return Marionette.ItemView.extend({
 		tagName: 'h1',
 		template: _.template(Template),

@@ -1,8 +1,9 @@
-"use strict";
 define([
 	'underscore',
 	'models/Model'
 ], function(_, Model) {
+	"use strict";
+
 	var ModelDir = Model.extend({
 		url: function() {
 			if (!this.urlRoot)

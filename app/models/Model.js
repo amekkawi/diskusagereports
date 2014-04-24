@@ -1,8 +1,9 @@
-"use strict";
 define([
 	'underscore',
 	'backbone'
 ], function(_, Backbone) {
+	"use strict";
+
 	return Backbone.Model.extend({
 		initialize: function(attributes, options) {
 			Backbone.Model.prototype.initialize.apply(this, arguments);

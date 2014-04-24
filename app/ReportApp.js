@@ -1,4 +1,3 @@
-"use strict";
 define([
 	'underscore',
 	'jquery',
@@ -12,6 +11,8 @@ define([
 	'views/AjaxError',
 	'views/Directory'
 ], function(_, $, Marionette, ModelSettings, ModelDirLookup, ModelDir, ViewLoader, ViewTitle, ViewError, ViewAjaxError, ViewDirectory) {
+	"use strict";
+
 	return Marionette.Application.extend({
 		constructor: function(options) {
 			Backbone.Marionette.Application.apply(this, arguments);
