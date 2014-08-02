@@ -1,7 +1,7 @@
 define([
 	'jquery',
 	'models/Dir'
-], function($, DirModel) {
+], function($, ModelDir) {
 
 	var responseCache = {};
 	var responseCacheKeys = [];
@@ -19,6 +19,7 @@ define([
 
 	return function(hash) {
 		var app = this;
+		var settings = app.settings;
 		var deferred = $.Deferred();
 		var xhr;
 
@@ -26,20 +27,24 @@ define([
 			xhr && xhr.abort();
 		};
 
-		if (!app.settings) {
+		function resolveWith(dir) {
+			deferred.resolveWith(app, [ new ModelDir(dir, { id: hash, settings: settings, parse: true }) ]);
+		}
+
+		if (!settings) {
 			deferred.rejectWith(app, [ 'SETTINGS_NOT_LOADED' ]);
 		}
 		else if (responseCache[hash]) {
-			deferred.resolveWith(app, [ new DirModel(responseCache[hash], { id: hash, settings: app.settings, parse: true }) ]);
+			resolveWith(responseCache[hash]);
 		}
-		else if (!app.settings.has('version') || app.settings.get('version') === '1.0') {
+		else if (!settings.has('version') || settings.get('version') === '1.0') {
 			xhr = $.ajax({
 				dataType: 'json',
 				url: app.urlRoot + '/' + hash + app.suffix
 			})
 				.done(function(resp) {
 					pushToCache(hash, resp);
-					deferred.resolveWith(app, [ new DirModel(resp, { id: hash, settings: app.settings, parse: true }) ]);
+					resolveWith(resp);
 				})
 				.fail(function(xhr, status, error) {
 					deferred.rejectWith(app, [ 'DIR_NOT_FOUND', 'FETCH_FAIL', xhr, status, error ]);
@@ -62,7 +67,7 @@ define([
 								var dir = resp[hash];
 								if (dir) {
 									pushToCache(hash, dir);
-									deferred.resolveWith(app, [ new DirModel(dir, { id: hash, settings: app.settings, parse: true }) ]);
+									resolveWith(dir);
 									app.vent.trigger('dirmapLookup:loaded', dirmapLookup);
 								}
 								else {
