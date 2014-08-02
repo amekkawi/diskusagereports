@@ -68,6 +68,70 @@ define([
 				});
 			}
 
+			// Normalize the sub-dirs list.
+			if (_.has(dir, 'dirs')) {
+				var subDirs = dir.dirs;
+
+				// Subdirs are in a subdirsmap_* file.
+				if (typeof subDirs === 'number' || typeof subDirs === 'string') {
+					dir.dirsMap = '' + subDirs;
+					delete dir.dirs;
+				}
+				else if (subDirs.length) {
+
+					// Contains the full list.
+					if (typeof subDirs[0][0] === 'string') {
+						dir.dirs = _.map(subDirs, function(subDir) {
+							return {
+								hash: subDir[0],
+								name: subDir[1],
+								dirCount: subDir[2],
+								fileCount: subDir[3],
+								size: subDir[4]
+							};
+						});
+					}
+
+					// Is a lookup mapping.
+					else {
+						dir.dirsLookup = subDirs;
+						delete dir.dirs;
+					}
+				}
+			}
+
+			// Normalize the files list.
+			if (_.has(dir, 'files')) {
+				var files = dir.files;
+
+				// Files are in a filesmap_* file.
+				if (typeof files === 'number' || typeof files === 'string') {
+					dir.filesMap = '' + files;
+					delete dir.files;
+				}
+				else if (files.length) {
+
+					// Contains the full list.
+					if (typeof files[0][0] === 'string') {
+						dir.files = _.map(files, function(file) {
+							return {
+								type: file[0],
+								name: file[1],
+								size: file[2],
+								date: file[3],
+								time: file[4]
+							};
+						});
+					}
+
+					// Is a lookup mapping.
+					else {
+						dir.filesLookup = files;
+						delete dir.files;
+					}
+				}
+			}
+
 			/*
 			 // Normalize subdir list.
 			 if (_.has(dir, 'parents')) {
