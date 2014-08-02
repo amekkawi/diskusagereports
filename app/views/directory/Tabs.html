@@ -1,6 +1,6 @@
 <ul class="nav nav-tabs hidden-xs">
 	<% _.each(args.tabs, function(tab) {
-		%><li <%= args.route.tab === tab.route || (tab.isDefault && !args.route.tab) ? 'class="active"' : ''%>><a href="#<%-args.hash%>/<%-tab.route%>"><%=args.Lang[tab.lang]%></a></li><%
+		%><li <%= args.route.tab === tab.route || (tab.isDefault && !args.route.tab) ? 'class="active"' : ''%>><a href="#<%-args.app.buildRouteUrl({ hash: args.hash, tab: tab.route, page: 1 })%>"><%=args.Lang[tab.lang]%></a></li><%
 	}); %>
 </ul>
 <ul class="nav nav-tabs visible-xs">
@@ -8,11 +8,11 @@
 		<% var activeTab = _.find(args.tabs, function(tab) {
 			return args.route.tab === tab.route || (tab.isDefault && !args.route.tab);
 		}); %>
-		<a href="#" style="cursor: pointer;" data-toggle="dropdown"><%=args.Lang[activeTab.lang]%> <span class="caret"></span></a>
+		<a href="javascript:;" style="cursor: pointer;" data-toggle="dropdown"><%=args.Lang[activeTab.lang]%> <span class="caret"></span></a>
 		<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
 			<% _.each(args.tabs, function(tab) {
 				var isActive = args.route.tab === tab.route || (tab.isDefault && !args.route.tab);
-					%><li role="presentation"><a role="menuitem" tabindex="-1" href="#<%-args.hash%>/<%-tab.route%>"><%=args.Lang[tab.lang]%> <% if (isActive) { %><span class="glyphicon glyphicon-ok" style="font-size: 75%; line-height: 18px;"></span><% } %></a></li><%
+					%><li role="presentation"><a role="menuitem" tabindex="-1" href="#<%-args.app.buildRouteUrl({ hash: args.hash, tab: tab.route, page: 1 })%>"><%=args.Lang[tab.lang]%> <% if (isActive) { %><span class="glyphicon glyphicon-ok" style="font-size: 75%; line-height: 18px;"></span><% } %></a></li><%
 			}); %>
 		</ul>
 	</li>

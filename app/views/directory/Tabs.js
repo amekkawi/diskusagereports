@@ -32,6 +32,7 @@ define([
 
 			return _.extend({
 				tabs: tabs,
+				app: this.app,
 				hash: model.id,
 				route: this.app.getRoute(),
 				settings: settings.attributes,
