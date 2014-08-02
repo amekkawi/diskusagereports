@@ -13,8 +13,9 @@ define([
 			'change:name': 'render'
 		},
 		serializeData: function() {
+			var settings = this.model;
 			return {
-				name: this.model.get('name'),
+				name: settings && settings.get('name'),
 				Lang: Lang
 			};
 		}

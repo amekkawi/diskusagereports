@@ -4,13 +4,14 @@ requirejs.config({
 	paths: {
 		i18n: '../vendor/bower/requirejs-i18n/i18n',
 		text: '../vendor/bower/requirejs-text/text',
+		tpl: 'tpl',
 		jquery: '../vendor/bower/jquery/jquery',
 		lodash: '../vendor/bower/lodash/dist/lodash',
 		backbone: '../vendor/bower/backbone/backbone',
 		marionette: '../vendor/bower/backbone.marionette/lib/core/amd/backbone.marionette',
 		'backbone.babysitter': '../vendor/bower/backbone.babysitter/lib/amd/backbone.babysitter',
 		'backbone.eventbinder': '../vendor/bower/backbone.eventbinder/lib/amd/backbone.eventbinder',
-		'backbone.wreqr': '../vendor/bower/backbone.wreqr/lib/amd/backbone.wreqr',
+		'backbone.wreqr': '../vendor/bower/backbone.wreqr/lib/backbone.wreqr',
 		'bootstrap.dropdown': '../vendor/bower/bootstrap/js/dropdown'
 	},
 	shim: {
@@ -40,9 +41,10 @@ requirejs.config({
 });
 
 require([
+	'app',
 	'marionette',
-	'ReportApp'
-], function(Marionette, ReportApp) {
+	'views/Title'
+], function(app, Marionette, TitleView) {
 	"use strict";
 
 	console.log('loaded');
@@ -51,8 +53,23 @@ require([
 		report = window.location.search.substring(1),
 		suffix = [ '.txt', '' ];
 
-	var app = new ReportApp();
+	var titleView = new TitleView();
+	titleView.$el.appendTo('#AppContainer > .du-title > .container');
+	titleView.render();
+
+	// Re-render the title view to display new information from the settings.
+	app.vent.on('settings:loaded', function(evt) {
+		titleView.model = evt.settings;
+		titleView.render();
+	});
+
+	// Re-render the title view to display new information from the settings.
+	app.vent.on('route', function(route) {
+		console.log('route', route);
+	});
+
 	app.start({
+		container: '#Report',
 		url: reportsBaseURL + report,
 		suffix: suffix
 	});
@@ -70,12 +87,13 @@ require([
 	new Router({
 		controller: {
 			loadDirectory: function (hash, tab, sort, page) {
-				if (this._hash != hash)
-					app.vent.trigger('route:directory', hash || '', tab, sort, page);
+				app.setRoute({ hash: hash, tab: tab, sort: sort, page: page });
 			}
 		}
 	});
 
-}, function() {
+	Backbone.history.start();
+
+}/*, function() {
 	console.log('err', arguments);
-});
+}*/);

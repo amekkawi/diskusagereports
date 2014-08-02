@@ -118,6 +118,10 @@ body {
 	//background-repeat: no-repeat;
 	//padding-left: 44px;
 	margin: 10px 0;
+}
+
+.du-basename {
+	position: relative;
 
 	h2 {
 		margin: 0 0 3px 0;
@@ -126,10 +130,15 @@ body {
 		overflow: hidden;
 		overflow-x: auto;
 	}
-}
 
-.du-basename {
-	position: relative;
+	&.is-root {
+		h2 {
+			cursor: auto;
+		}
+		.caret {
+			border-top-color: transparent;
+		}
+	}
 }
 
 .du-breadcrumb {

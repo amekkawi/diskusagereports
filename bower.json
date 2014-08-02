@@ -10,10 +10,10 @@
     "requirejs-i18n": "~2.0.4",
     "requirejs-text": "~2.0.10",
     "modernizr": "~2.7.1",
-    "bootstrap": "~3.0.3",
-    "backbone.marionette": "~1.5.1",
+    "bootstrap": "~3.1.1",
+    "backbone.marionette": "~1.8.3",
     "backbone.eventbinder": "~1.0.2",
-    "backbone.babysitter": "~0.0.6",
-    "backbone.wreqr": "~0.2.0"
+    "backbone.babysitter": "~0.1.1",
+    "backbone.wreqr": "~1.2.1"
   }
 }
