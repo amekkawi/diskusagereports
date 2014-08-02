@@ -3,8 +3,8 @@
 <ul class="dropdown-menu" style="max-width: 100%; overflow: hidden;" role="menu" aria-labelledby="du-parentDirs">
 	<li role="presentation" class="dropdown-header"><%=args.Lang.basename_dropdown_header%></li>
 	<% _.forEachRight(args.parents, function(parent, i) {
-	%><li role="presentation"><a role="menuitem" tabindex="-1" href="#<%-args.app.buildRouteUrl({ hash: parent.hash })%>"><%-parent.name%></a></li><%
+	%><li role="presentation"><a role="menuitem" tabindex="-1" href="#<%-args.app.buildRouteUrl({ hash: parent.hash, page: 1 })%>"><%-parent.name%></a></li><%
 	}); %>
-	<li role="presentation"><a role="menuitem" tabindex="-1" href="#<%-args.app.buildRouteUrl({ hash: args.settings.root })%>"><%-args.settings.rootName || '/'%></a></li>
+	<li role="presentation"><a role="menuitem" tabindex="-1" href="#<%-args.app.buildRouteUrl({ hash: args.settings.root, page: 1 })%>"><%-args.settings.rootName || '/'%></a></li>
 </ul>
 <% } %>
