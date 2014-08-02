@@ -25,6 +25,8 @@ define([
 			var app = this;
 			Backbone.Marionette.Application.apply(app, arguments);
 
+			this.setRoute();
+
 			// Handlers for lookup and directory data requests.
 			app.reqres.setHandler('GetLookup', _.once(GetLookup), app);
 			app.reqres.setHandler('GetDirectory', GetDirectory, app);
@@ -49,13 +51,54 @@ define([
 		},
 
 		setRoute: function(route) {
-			this._route = route;
-			this.vent.trigger('route', route);
+			route = _.extend({}, route);
 
-			if (this.settings)
-				this._loadDirectory();
+			// Validate the tab.
+			if (!this.isValidTab(route.tab))
+				route.tab = 'dirs';
+
+			// Validate the sort.
+			if (!_.isString(route.sort) || route.sort.match(/^[nsc][ntsm][asc][rsc][asc][esc][ntsmp]$/))
+				route.sort = 'ssssss';
+
+			// Clean the page.
+			route.page = Math.max(1, parseInt(route.page, 10) || 1);
+
+			var oldRoute = this._route;
+			this._route = route;
+
+			if (oldRoute) {
+				// Trigger route event.
+				this.vent.trigger('route', route);
+
+				// Load directory if settings are loaded.
+				if (this.settings)
+					this._loadDirectory();
+			}
 
 			return this;
+		},
+
+		buildRouteUrl: function(route) {
+			route = _.defaults({}, route, this.getRoute());
+
+			return [
+				route.hash,
+				route.tab,
+				route.sort,
+				route.page
+			].join('/');
+		},
+
+		isValidTab: function(tab) {
+			return !!tab && (
+				tab === 'dirs'
+				|| tab === 'files'
+				|| tab === 'modified'
+				|| tab === 'sizes'
+				|| tab === 'ext'
+				|| tab === 'top'
+			);
 		},
 
 		_loadDirectory: function() {
@@ -65,7 +108,7 @@ define([
 
 			app.request('GetDirectory', routeHash)
 				.done(function(dir) {
-					console.log('_loadDirectory success', routeHash, dir);
+					//console.log('_loadDirectory success', routeHash, dir);
 					app.container.show(
 						new ViewDirectory({
 							model: dir,
@@ -109,7 +152,7 @@ define([
 					var settings = app.settings = new ModelSettings(resp);
 					app.suffix = suffix;
 
-					console.log('settings:loaded', settings, urlRoot, suffix);
+					//console.log('settings:loaded', settings, urlRoot, suffix);
 					app.vent.trigger('settings:loaded', { settings: settings, app: app, urlRoot: urlRoot, suffix: suffix });
 					app.vent.trigger('settings:afterload', { urlRoot: urlRoot });
 				});
