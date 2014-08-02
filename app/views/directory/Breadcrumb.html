@@ -1,8 +1,8 @@
 <ol class="breadcrumb">
-	<li><a href="#<%-args.settings.root%>"><span class="glyphicon glyphicon-folder-open"></span><%-args.settings.rootName || '/'%></a></li>
-	<% console.log(args); if (args.settings.root != args.hash) { %>
+	<li><a href="#<%-args.app.buildRouteUrl({ hash: args.settings.root })%>"><span class="glyphicon glyphicon-folder-open"></span><%-args.settings.rootName || '/'%></a></li>
+	<% if (args.settings.root != args.hash) { %>
 		<% _.forEach(args.parents, function(parent, i) {
-		%> <li><a href="#<%-parent.hash%>"><%-parent.name%></a></li> <%
+		%> <li><a href="#<%-args.app.buildRouteUrl({ hash: parent.hash })%>"><%-parent.name%></a></li> <%
 		}); %>
 		<li class="active"><span><%-args.name%></a></li>
 	<% } %>

@@ -11,11 +11,19 @@ define([
 		className: 'du-basename',
 		template: Template,
 
+		constructor: function(options) {
+			if (options)
+				_.extend(this, _.pick(options, [ 'app' ]));
+
+			Marionette.ItemView.apply(this, arguments);
+		},
+
 		serializeData: function() {
 			var model = this.model;
 			var settings = model.settings;
 
 			return _.extend({
+				app: this.app,
 				isRoot: model.id === settings.get('root'),
 				settings: settings.attributes,
 				Lang: Lang

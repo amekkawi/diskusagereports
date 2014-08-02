@@ -9,8 +9,16 @@ define([
 		className: 'du-breadcrumb',
 		template: Template,
 
+		constructor: function(options) {
+			if (options)
+				_.extend(this, _.pick(options, [ 'app' ]));
+
+			Marionette.ItemView.apply(this, arguments);
+		},
+
 		serializeData: function() {
 			return _.extend({
+				app: this.app,
 				hash: this.model.id,
 				settings: this.model.settings.attributes,
 				Lang: Lang
