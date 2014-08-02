@@ -5,8 +5,6 @@ define([
 	'components/wreqr.GetLookup',
 	'components/wreqr.GetDirectory',
 	'models/Settings',
-	'models/DirLookup',
-	'models/Dir',
 	'views/Loader',
 	'views/Title',
 	'views/Error',
@@ -15,7 +13,7 @@ define([
 ], function(
 	_, $, Marionette,
 	GetLookup, GetDirectory,
-	ModelSettings, ModelDirLookup, ModelDir,
+	ModelSettings,
 	ViewLoader, ViewTitle, ViewError, ViewAjaxError, ViewDirectory
 ) {
 	'use strict';
