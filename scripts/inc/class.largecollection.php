@@ -20,6 +20,10 @@ class LargeCollection implements IKeyedJSON {
 	protected $totalLength = 0;
 	protected $totalSize = 0;
 
+	/**
+	 * Number of temp files saved to disk.
+	 * @var int
+	 */
 	protected $tempFiles = 0;
 
 	protected $bufferSize = 0;
@@ -233,11 +237,27 @@ class LargeCollection implements IKeyedJSON {
 			|| ($this->maxLength !== false && $this->maxLength < $length));
 	}
 
+	/**
+	 * Compact temp files so there are no more than the specified max.
+	 * This is to prevent iterating over too many files, causing PHP issues when opening too many files.
+	 *
+	 * @param int               $segments The number of temp files.
+	 * @param int               $maxSegments The maximum number of temp files allowed.
+	 * @param ICollectionOutput $output ICollectionOutput used to determine sorting.
+	 *
+	 * @return int The new number of temp files.
+	 * @throws Exception
+	 */
 	protected function compactSegments($segments, $maxSegments, ICollectionOutput $output) {
+		// The number of existing temp files that will need to be combined into a single new temp file.
 		$segmentsPer = ceil($segments / $maxSegments);
+
+		// The number of new temp files after being compacted.
 		$newSegments = ceil($segments / $segmentsPer);
 
 		for ($newSeg = 1; $newSeg <= $newSegments; $newSeg++) {
+
+			// Open the temp files that will be compacted into this new temp file.
 			$iterators = array();
 			for ($oldSeg = 1 + ($newSeg - 1) * $segmentsPer; $oldSeg <= min($segments, $newSeg * $segmentsPer); $oldSeg++) {
 				$iterators[] = new FileIterator(
@@ -247,6 +267,7 @@ class LargeCollection implements IKeyedJSON {
 				));
 			}
 
+			// Compact the temp files into the new file (at a temporary path).
 			$compactedFile = $output->openFile('compact', $newSeg, '.tmp', 'w');
 			$sorter = new MultiFileSorter($iterators, $output);
 			foreach ($sorter as $item) {
@@ -254,6 +275,7 @@ class LargeCollection implements IKeyedJSON {
 			}
 			$compactedFile->close();
 
+			// Move the new temp file to its final path.
 			if ($output->renameTo($compactedFile->getPath(), $this->prefix, $newSeg, '.tmp') === false)
 				throw new Exception("Failed to rename compacted file.");
 		}
@@ -266,16 +288,18 @@ class LargeCollection implements IKeyedJSON {
 		$ret = 0;
 		$lastHandlerIndex = count($this->outputs) - 1;
 
+		// Process each output handler.
 		/** @var $output ICollectionOutput */
 		foreach ($this->outputs as $handlerIndex => $output) {
-			// Sort the buffer.
+			// Sort the in-memory buffer.
 			usort($this->list, array($output, 'compare'));
 
+			// Create a list of iterators with the in-memory buffer as one of them.
 			$bufferIterator = new ArrayIterator($this->list);
-
-			// Create a list of iterators with the buffer as one of them.
 			$iterators = array($bufferIterator);
 
+			// Compact the temp files so there are no more than the specified max,
+			// preventing PHP issues when opening too many files.
 			$tempFiles = $this->tempFiles;
 			if ($tempFiles > $this->maxOpenFiles) {
 				$compactStart = microtime(true);
@@ -284,7 +308,7 @@ class LargeCollection implements IKeyedJSON {
 				Logger::log("Compacted $origTempFiles temp files into $tempFiles with up to " . ceil($origTempFiles / $tempFiles) . " each in " . sprintf('%.2f', microtime(true) - $compactStart) . " sec", Logger::LEVEL_VERBOSE);
 			}
 
-			// Add iterators for temp files.
+			// Add iterators for the temp files.
 			for ($i = 1; $i <= $tempFiles; $i++) {
 				$iterators[] = new FileIterator(
 					$output->openFile($this->prefix, $i, '.tmp', 'r'), array(
@@ -314,6 +338,7 @@ class LargeCollection implements IKeyedJSON {
 			if ($this->combinedOutput !== null)
 				$outFile->write($handlerIndex == 0 ? '[' : ',');
 
+			// Read all lines via the multi-sorter.
 			foreach ($sorter as $item) {
 				$itemSize = strlen($item[1]) + 1;
 
@@ -321,6 +346,8 @@ class LargeCollection implements IKeyedJSON {
 				if ($outSize > 0 && $this->isOverMax($outSize + $itemSize + 2, $outLines + 1)) {
 					$outFile->write($this->asObject ? '}' : ']');
 
+					// Combined output files need a trailing array delimiter,
+					// and only close after the last handler.
 					if ($handlerIndex == $lastHandlerIndex && $this->combinedOutput !== null) {
 						$outFile->write(']');
 						$outFile->close();
@@ -359,6 +386,8 @@ class LargeCollection implements IKeyedJSON {
 			if ($this->saveWatcher !== null)
 				$this->saveWatcher->onSave($outIndex, $handlerIndex, $firstItem, $lastItem, $outFile->getPath());
 
+			// Combined output files need a trailing array delimiter,
+			// and only close after the last handler.
 			if ($handlerIndex == $lastHandlerIndex && $this->combinedOutput !== null) {
 				$outFile->write(']');
 				$outFile->close();
