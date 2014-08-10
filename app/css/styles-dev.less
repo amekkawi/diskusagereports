@@ -18,8 +18,10 @@
 
 .percentLoopMix(@percent, @percentStart, @perEnd, @colorStart, @colorEnd) when (@percentStart + @percent =< @perEnd) {
 	@perCSS: @percent + @percentStart;
+	@color: lighten(mix(@colorEnd, @colorStart, @percent / (@perEnd - @percentStart) * 100), 12%);
 	.progress-bar-percent-@{perCSS} {
-		background-color: mix(@colorEnd, @colorStart, @percent / (@perEnd - @percentStart) * 100);
+		background-color: @color;
+		#gradient > .vertical(@start-color: @color; @end-color: darken(@color, 10%));
 		//border-left: 16px solid mix(@colorEnd, @colorStart, @percent / (@perEnd - @percentStart) * 100);
 	}
 	.percentLoopMix(@percent + 1, @percentStart, @perEnd, @colorStart, @colorEnd);
