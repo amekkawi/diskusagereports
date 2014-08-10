@@ -836,6 +836,9 @@ class Options {
 			//'errors' => $this->errors, // TODO: Collect these.
 			'escaped' => $this->escaped,
 			'directoryTree' => !$this->disableDirectoryTree,
+			'perPage' => $this->maxPerPage,
+			'pagesPerFiles' => $this->maxFileListFilePages,
+			'pagesPerSubdirs' => $this->maxSubDirsFilePages,
 		);
 
 		if ($this->includeFullPath && isset($this->dirname))
