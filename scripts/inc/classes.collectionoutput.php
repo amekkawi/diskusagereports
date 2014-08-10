@@ -78,12 +78,19 @@ class MultiSortOutput implements ICollectionOutput {
 	protected $sortName;
 	protected $reverseSort;
 
-	public function __construct($report, $sortIndex, $sortName, ISaveWatcher $saveHandler = null, $reverseSort = false) {
+	protected $secondarySortIndexes;
+	protected $reverseSecondarySortIndexes;
+
+	public function __construct($report, $sortIndex, $sortName, array $options = array(), ISaveWatcher $saveHandler = null) {
 		$this->report = $report;
 		$this->sortIndex = $sortIndex;
 		$this->sortName = $sortName;
+		$this->reverseSort = !empty($options['reverseSort']);
+
+		$this->secondarySortIndexes = isset($options['secondarySortIndexes']) ? $options['secondarySortIndexes'] : null;
+		$this->reverseSecondarySortIndexes = isset($options['reverseSecondarySortIndexes']) ? $options['reverseSecondarySortIndexes'] : $this->reverseSort;
+
 		$this->saveHandler = $saveHandler;
-		$this->reverseSort = $reverseSort;
 	}
 
 	public function openFile($prefix, $index, $suffix, $mode) {
@@ -104,6 +111,16 @@ class MultiSortOutput implements ICollectionOutput {
 			return $this->reverseSort ? 1 : -1;
 		if ($a[0][$sortIndex] > $b[0][$sortIndex])
 			return $this->reverseSort ? -1 : 1;
+
+		if (isset($this->secondarySortIndexes)) {
+			foreach ($this->secondarySortIndexes as $secondarySortIndex) {
+				if ($a[0][$secondarySortIndex] < $b[0][$secondarySortIndex])
+					return $this->reverseSecondarySortIndexes ? 1 : -1;
+				if ($a[0][$secondarySortIndex] > $b[0][$secondarySortIndex])
+					return $this->reverseSecondarySortIndexes ? -1 : 1;
+			}
+		}
+
 		return 0;
 	}
 

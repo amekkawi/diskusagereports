@@ -160,9 +160,9 @@ class Report {
 
 		$this->subDirOutputs = array(
 			new MultiSortOutput($this, 0, 'name'),
-			new MultiSortOutput($this, 1, 'size'),
-			new MultiSortOutput($this, 2, 'count'),
-			new MultiSortOutput($this, 3, 'dirs')
+			new MultiSortOutput($this, 1, 'size', array('reverseSort' => true, 'secondarySortIndexes' => array(0), 'reverseSecondarySortIndexes' => false)),
+			new MultiSortOutput($this, 2, 'count', array('reverseSort' => true, 'secondarySortIndexes' => array(0), 'reverseSecondarySortIndexes' => false)),
+			new MultiSortOutput($this, 3, 'dirs', array('reverseSort' => true, 'secondarySortIndexes' => array(0), 'reverseSecondarySortIndexes' => false))
 		);
 
 		$this->subDirMap = new LargeMap(new CollectionOutput($this), $this->options->getMaxSubDirsMapKB() * 1024, intval(floor($this->options->getMaxSubDirsMapKB() / 2)) * 1024);
@@ -170,8 +170,8 @@ class Report {
 
 		$this->fileListOutputs = array(
 			new MultiSortOutput($this, 0, 'name'),
-			new MultiSortOutput($this, 1, 'size'),
-			new MultiSortOutput($this, 2, 'date')
+			new MultiSortOutput($this, 1, 'size', array('reverseSort' => true, 'secondarySortIndexes' => array(0), 'reverseSecondarySortIndexes' => false)),
+			new MultiSortOutput($this, 2, 'date', array('reverseSort' => true, 'secondarySortIndexes' => array(0), 'reverseSecondarySortIndexes' => false))
 		);
 
 		$this->combinedOutput = new SingleSortOutput($this);
