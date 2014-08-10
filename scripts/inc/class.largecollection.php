@@ -310,6 +310,7 @@ class LargeCollection implements IKeyedJSON {
 			$firstItem = null;
 			$lastItem = null;
 
+			// Combined output files need extra delimiters.
 			if ($this->combinedOutput !== null)
 				$outFile->write($handlerIndex == 0 ? '[' : ',');
 
@@ -337,6 +338,10 @@ class LargeCollection implements IKeyedJSON {
 					$outSize = 0;
 					$outLines = 0;
 					$outFile = $outHandler->openFile($this->prefix, $outIndex, $this->suffix, $openMode);
+
+					// Combined output files need extra delimiters.
+					if ($this->combinedOutput !== null)
+						$outFile->write($handlerIndex == 0 ? '[' : ',');
 				}
 
 				$lastItem = $item;
