@@ -1,0 +1,7 @@
+<%
+var url = { sort: {}, page: 1 };
+var sorted = 'sorted ' + (args.invert ? 'sorted-rev' : '');
+var sortedRev = 'sorted ' + (args.invert ? '' : 'sorted-rev');
+url.sort[args.key] = args.sort === args.asc ? args.desc : args.asc;
+	console.log(url.sort);
+%><a style="<%-args.style || ''%>" href="#<%-args.app.buildRouteUrl(url)%>" class="du-sortlink <%=args.sort === args.asc ? sorted : (args.sort === args.desc ? sortedRev : '')%>"><span><%-args.label%><b><i></i></b></span></a>

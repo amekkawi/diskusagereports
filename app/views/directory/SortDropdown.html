@@ -1,0 +1,13 @@
+<%
+var ariaId;
+var url = { sort: {}, page: 1 };
+var sortedColumn = args.columns[args.sort.toLowerCase()];
+var isRev = sortedColumn && args.sort.toUpperCase() === args.sort;
+var sortedCSS = sortedColumn ? 'sorted ' + (isRev && !sortedColumn.invert || !isRev && sortedColumn.invert ? ' sorted-rev' : '') : '';
+%><a id="<%-ariaId = _.uniqueId('du-aria-')%>" data-toggle="dropdown" class="dropdown-link du-sortlink <%-sortedCSS%>" href="javascript:;"><%-(sortedColumn || args.columns[args.defaultSort]).short%><b><i></i></b></a>
+<ul class="dropdown-menu" role="menu" aria-labelledby="<%-ariaId%>">
+	<% _.each(args.columns, function(column, columnSort) {
+		url.sort[args.key] = args.sort === columnSort ? columnSort.toUpperCase() : columnSort;
+		%><li role="presentation"><a role="menuitem" tabindex="-1" href="#<%-args.app.buildRouteUrl(url)%>"><%-column.long%><% if (args.sort.toLowerCase() === columnSort) { %> <span class="glyphicon glyphicon-ok" style="font-size: 75%; line-height: 18px;"></span><% } %></a></li><%
+	}); %>
+</ul>
