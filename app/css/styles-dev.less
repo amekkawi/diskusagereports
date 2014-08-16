@@ -12,8 +12,56 @@
 	}
 }
 
-.table-rigid {
-	table-layout: fixed;
+body {
+	margin-top: 50px;
+}
+
+.du-detail {
+	.table-rigid {
+		table-layout: fixed;
+	}
+
+	.progress {
+		margin: 0;
+	}
+
+	thead th a {
+		display: inline-block;
+
+		span {
+			display: inline-block;
+			position: relative;
+		}
+
+		b {
+			display: none;
+			position: relative;
+			width: 50%;
+
+			i {
+				display: block;
+				position: absolute;
+				top: -1px;
+				right: -3px;
+				border-left: 4px solid transparent;
+				border-right: 4px solid transparent;
+				border-bottom: 6px solid #666;
+			}
+		}
+
+		&.sorted {
+			b {
+				display: block;
+			}
+		}
+
+		&.sorted-rev {
+			i {
+				border-bottom-width: 0;
+				border-top: 6px solid #666;
+			}
+		}
+	}
 }
 
 .percentLoopMix(@percent, @percentStart, @perEnd, @colorStart, @colorEnd) when (@percentStart + @percent =< @perEnd) {
@@ -36,26 +84,6 @@
 .percentLoopMix(1, 22, 50, @progress-bar-bg-b, @progress-bar-bg-c);
 .percentLoopMix(1, 50, 80, @progress-bar-bg-c, @progress-bar-bg-d);
 .percentLoopMix(1, 80, 100, @progress-bar-bg-d, @progress-bar-bg-e);
-
-thead th a {
-	display: inline-block;
-
-	b {
-		display: block;
-		position: relative;
-		width: 50%;
-
-		i {
-			display: block;
-			position: absolute;
-			top: -1px;
-			right: -3px;
-			border-left: 4px solid transparent;
-			border-right: 4px solid transparent;
-			border-top: 6px solid #666;
-		}
-	}
-}
 
 .du-tab-dirs-col1, .du-tab-dirs-col2, .du-tab-dirs-col3 {
 	width: 13.5%;
