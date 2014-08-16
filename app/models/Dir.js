@@ -7,6 +7,7 @@ define([
 	var dirAttributeMapping = {
 		'2.0': {
 			n: 'name',
+			D: 'directSubDirCount',
 			d: 'subDirCount',
 			F: 'directFileCount',
 			f: 'subFileCount',
