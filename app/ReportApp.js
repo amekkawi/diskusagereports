@@ -56,6 +56,7 @@ define([
 		},
 
 		setRoute: function(route) {
+			var oldRoute = this._route;
 			route = _.extend({}, route);
 
 			// Validate the tab.
@@ -63,13 +64,15 @@ define([
 				route.tab = 'dirs';
 
 			// Validate the sort.
-			if (!_.isString(route.sort) || route.sort.match(/^[nsc][ntsm][asc][rsc][asc][esc][ntsmp]$/))
+			if (!_.isString(route.sort) || route.sort.match(/^[nscd][ntsm][asc][rsc][asc][esc][ntsmp]$/i))
 				route.sort = 'ssssss';
+
+			// Split the sort into parts.
+			route.sort = _.defaults(_.zipObject(['dirs','files','modified','ext','top'], route.sort.split('')), oldRoute && oldRoute.sort);
 
 			// Clean the page.
 			route.page = Math.max(1, parseInt(route.page, 10) || 1);
 
-			var oldRoute = this._route;
 			this._route = route;
 
 			if (oldRoute) {
