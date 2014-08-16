@@ -88,12 +88,19 @@ define([
 		},
 
 		buildRouteUrl: function(route) {
-			route = _.defaults({}, route, this.getRoute());
+			var baseRoute = this.getRoute() || {};
+			route = _.defaults({}, route, baseRoute);
+
+			var sort = route.sort;
+			if (!_.isString(sort)) {
+				sort = _.defaults(sort, baseRoute.sort);
+				sort = [ sort.dirs, sort.files, sort.modified, sort.ext, sort.top ].join('');
+			}
 
 			return [
-				route.hash,
+				route.hash || this.settings && this.settings.get('root'),
 				route.tab,
-				route.sort,
+				sort,
 				route.page
 			].join('/');
 		},
