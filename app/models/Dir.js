@@ -95,7 +95,16 @@ define([
 
 					// Is a lookup mapping.
 					else {
-						dir.dirsLookup = subDirs;
+						dir.dirsLookup = _.reduce(['name','size','count','dirs'], function(ret, key, i){
+							ret[key] = _.map(subDirs[i], function(file) {
+								return {
+									lower: file[0],
+									upper: file[1],
+									id: file[2]
+								};
+							});
+							return ret;
+						}, {});
 						delete dir.dirs;
 					}
 				}
@@ -170,11 +179,13 @@ define([
 	};
 
 	return Model.extend({
+
 		url: function() {
 			if (!this.urlRoot)
 				this.urlRoot = this.settings.urlRoot;
 			return Model.prototype.url.apply(this, arguments) + this.settings.suffix;
 		},
+
 		parse: function(response, options) {
 			var settings = this.settings || options.settings;
 			switch (settings.get('version')) {
