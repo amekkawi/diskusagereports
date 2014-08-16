@@ -2,8 +2,10 @@ define([
 	'underscore',
 	'jquery',
 	'marionette',
+	'components/wreqr.GetFile',
 	'components/wreqr.GetLookup',
 	'components/wreqr.GetDirectory',
+	'components/wreqr.GetSubDirs',
 	'models/Settings',
 	'views/Loader',
 	'views/Title',
@@ -12,7 +14,7 @@ define([
 	'views/directory/Directory'
 ], function(
 	_, $, Marionette,
-	GetLookup, GetDirectory,
+	GetFile, GetLookup, GetDirectory, GetSubDirs,
 	ModelSettings,
 	ViewLoader, ViewTitle, ViewError, ViewAjaxError, ViewDirectory
 ) {
@@ -25,9 +27,14 @@ define([
 
 			this.setRoute();
 
-			// Handlers for lookup and directory data requests.
-			app.reqres.setHandler('GetLookup', _.once(GetLookup), app);
+			app.reqres.setHandler('GetLookup', GetFile({
+				defaultFileName: 'dirmap_lookup',
+				errorNotFound: 'DIRMAP_NOT_FOUND'
+			}), app);
+
 			app.reqres.setHandler('GetDirectory', GetDirectory, app);
+			app.reqres.setHandler('GetSubDirs', GetSubDirs, app);
+			app.reqres.setHandler('GetFile', GetFile(), app);
 
 			// Main initialization of the application.
 			app.addInitializer(function(options) {
