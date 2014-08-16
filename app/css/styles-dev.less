@@ -29,42 +29,42 @@ body {
 	.progress {
 		margin: 0;
 	}
+}
 
-	thead th a {
+.du-tab-dirs > thead > th > a {
+	display: inline-block;
+
+	span {
 		display: inline-block;
+		position: relative;
+	}
 
-		span {
-			display: inline-block;
-			position: relative;
+	b {
+		display: none;
+		position: relative;
+		width: 50%;
+
+		i {
+			display: block;
+			position: absolute;
+			top: -1px;
+			right: -3px;
+			border-left: 4px solid transparent;
+			border-right: 4px solid transparent;
+			border-bottom: 6px solid #666;
 		}
+	}
 
+	&.sorted {
 		b {
-			display: none;
-			position: relative;
-			width: 50%;
-
-			i {
-				display: block;
-				position: absolute;
-				top: -1px;
-				right: -3px;
-				border-left: 4px solid transparent;
-				border-right: 4px solid transparent;
-				border-bottom: 6px solid #666;
-			}
+			display: block;
 		}
+	}
 
-		&.sorted {
-			b {
-				display: block;
-			}
-		}
-
-		&.sorted-rev {
-			i {
-				border-bottom-width: 0;
-				border-top: 6px solid #666;
-			}
+	&.sorted-rev {
+		i {
+			border-bottom-width: 0;
+			border-top: 6px solid #666;
 		}
 	}
 }
