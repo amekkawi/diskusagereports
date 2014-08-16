@@ -1,0 +1,75 @@
+<% var sort = args.route.sort.dirs; %>
+<table border="0" class="table table-rigid">
+	<thead>
+		<tr>
+			<th class="contents-col1">
+				<div class="visible-xs dropdown">
+					<a data-toggle="dropdown" class="dropdown-link" href="javascript:;">Size<b><i></i></b></a>
+					<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+						<li role="presentation" class="dropdown-header">Show:</li>
+						<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Disk Size <span class="glyphicon glyphicon-ok" style="font-size: 75%; line-height: 18px;"></span></a></li>
+						<li role="presentation"><a role="menuitem" tabindex="-1" href="#">File Count</a></li>
+						<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Sub-Dirs Count</a></li>
+						<li role="presentation" class="divider"></li>
+						<li role="presentation" class="dropdown-header">Sort Order:</li>
+						<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Largest to Smallest <span class="glyphicon glyphicon-ok" style="font-size: 75%; line-height: 18px;"></span></a></li>
+						<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Smallest to Largest</a></li>
+					</ul>
+				</div>
+				<div class="hidden-sm hidden-xs">
+					<a style="width: 100%;" href="#<%-args.app.buildRouteUrl({ sort: { dirs: sort === 's' ? 'S' : 's' }, page: 1 })%>" class="<%=sort === 's' ? 'sorted sorted-rev' : (sort === 'S' ? 'sorted' : '')%>">Size<b><i></i></b></a>
+				</div>
+				<div class="visible-sm">
+					<a href="#<%-args.app.buildRouteUrl({ sort: { dirs: sort === 's' ? 'S' : 's' }, page: 1 })%>" class="<%=sort === 's' ? 'sorted sorted-rev' : (sort === 'S' ? 'sorted' : '')%>">Size<b><i></i></b></a>
+					/
+					<a href="#<%-args.app.buildRouteUrl({ sort: { dirs: sort === 'c' ? 'C' : 'c' }, page: 1 })%>" class="<%=sort === 'c' ? 'sorted sorted-rev' : (sort === 'C' ? 'sorted' : '')%>">Files<b><i></i></b></a>
+					/
+					<a href="#<%-args.app.buildRouteUrl({ sort: { dirs: sort === 'd' ? 'D' : 'd' }, page: 1 })%>" class="<%=sort === 'd' ? 'sorted sorted-rev' : (sort === 'D' ? 'sorted' : '')%>">Dirs<b><i></i></b></a>
+				</div>
+			</th>
+			<th class="contents-col2 hidden-sm hidden-xs">
+				<a style="width: 100%;" href="#<%-args.app.buildRouteUrl({ sort: { dirs: sort === 'c' ? 'C' : 'c' }, page: 1 })%>" class="<%=sort === 'c' ? 'sorted sorted-rev' : (sort === 'C' ? 'sorted' : '')%>">Files<b><i></i></b></a>
+			</th>
+			<th class="contents-col3 hidden-sm hidden-xs">
+				<a style="width: 100%;" href="#<%-args.app.buildRouteUrl({ sort: { dirs: sort === 'd' ? 'D' : 'd' }, page: 1 })%>" class="<%=sort === 'd' ? 'sorted sorted-rev' : (sort === 'D' ? 'sorted' : '')%>">Sub Dirs<b><i></i></b></a>
+			</th>
+			<th class="contents-col4">
+				<a style="width: 100%;" href="#<%-args.app.buildRouteUrl({ sort: { dirs: sort === 'n' ? 'N' : 'n' }, page: 1 })%>" class="<%=sort === 'n' ? 'sorted' : (sort === 'N' ? 'sorted sorted-rev' : '')%>"><span>Name<b><i></i></b></span></a>
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		<% _.each(args.dirs, function(dir) {
+			var sizePer = args.fileSize && (dir.size / args.fileSize) || 0;
+			var countPer = args.fileCount && (dir.fileCount / args.fileCount) || 0;
+			var dirsPer = args.subDirCount && (dir.dirCount / args.subDirCount) || 0;
+			%><tr>
+				<td>
+					<div class="progress">
+						<div class="progress-bar progress-bar-percent-<%-Math.round(sizePer * 100)%>" role="progressbar" aria-valuenow="<%-Math.round(sizePer * 100)%>" aria-valuemin="0" aria-valuemax="100" style="width: <%-Math.round(sizePer * 100000) / 1000%>%;">
+							<span class="left"><%-Math.round(sizePer * 1000) / 10%>%</span>
+							<span class="right"><%-args.Lang.formatBytes(dir.size)%></span>
+						</div>
+					</div>
+				</td>
+				<td class="hidden-sm hidden-xs">
+					<div class="progress">
+						<div class="progress-bar progress-bar-percent-<%-Math.round(countPer * 100)%>" role="progressbar" aria-valuenow="<%-Math.round(countPer * 100)%>" aria-valuemin="0" aria-valuemax="100" style="width: <%-Math.round(countPer * 100000) / 1000%>%;">
+							<span class="left"><%-Math.round(countPer * 1000) / 10%>%</span>
+							<span class="right"><%-args.Lang.formatNumber(dir.fileCount)%></span>
+						</div>
+					</div>
+				</td>
+				<td class="hidden-sm hidden-xs">
+					<div class="progress">
+						<div class="progress-bar progress-bar-percent-<%-Math.round(dirsPer * 100)%>" role="progressbar" aria-valuenow="<%-Math.round(dirsPer * 100)%>" aria-valuemin="0" aria-valuemax="100" style="width: <%-Math.round(dirsPer * 100000) / 1000%>%;">
+							<span class="left"><%-Math.round(dirsPer * 1000) / 10%>%</span>
+							<span class="right"><%-args.Lang.formatNumber(dir.dirCount)%></span>
+						</div>
+					</div>
+				</td>
+				<td style="overflow: hidden"><a href="#<%-args.app.buildRouteUrl({ hash: dir.hash, page: 1 })%>" class="icon-link"><span class="glyphicon glyphicon-folder-open"></span><%-dir.name%></a></td>
+			</tr><%
+		}); %>
+	</tbody>
+</table>
