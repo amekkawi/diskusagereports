@@ -16,7 +16,10 @@ define(function(){
 			formatBytes: function(bytes){
 				bytes = parseInt(bytes);
 
-				if (bytes >= 1000 * 1024 * 1024 * 1024) {
+				if (bytes >= 1000 * 1024 * 1024 * 1024 * 1024) {
+					return this.formatNumber(Math.round(bytes * 100 / 1024 / 1024 / 1024 / 1024 / 1024) / 100) + ' ' + (this.byte_petabyte || 'PB');
+				}
+				else if (bytes >= 1000 * 1024 * 1024 * 1024) {
 					return this.formatNumber(Math.round(bytes * 100 / 1024 / 1024 / 1024 / 1024) / 100) + ' ' + (this.byte_terabyte || 'TB');
 				}
 				else if (bytes >= 1000 * 1024 * 1024) {
@@ -42,6 +45,7 @@ define(function(){
 			byte_megabyte: 'MB',
 			byte_gigabyte: 'GB',
 			byte_terabyte: 'TB',
+			byte_petabyte: 'PB',
 
 			footer: 'Report generated using ${link}.',
 			footer_long: 'Report generated on ${created} using ${link}.',
