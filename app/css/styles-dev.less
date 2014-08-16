@@ -1,6 +1,11 @@
 @import "bootstrap";
 
 @font-family-sans-serif: Arial, Helvetica, sans-serif;
+@pagination-border: #fff;
+@pagination-disabled-border: #fff;
+@pagination-hover-border: @pagination-hover-bg;
+@nav-tabs-border-color: #aaa;
+@nav-tabs-active-link-hover-border-color: @nav-tabs-border-color;
 
 html {
 	overflow: -moz-scrollbars-vertical;
@@ -28,6 +33,14 @@ body {
 
 	.progress {
 		margin: 0;
+	}
+}
+
+.du-tab-dirs .pagination {
+	margin-top: 0;
+
+	.glyphicon {
+		line-height: 0;
 	}
 }
 

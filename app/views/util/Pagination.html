@@ -1,0 +1,7 @@
+<ul class="pagination">
+	<li class="<%-args.page === 1 ? 'disabled' : ''%>"><a href="#<%-args.app.buildRouteUrl({ page: Math.max(1, args.page - 1) })%>"><span class="glyphicon glyphicon-chevron-left"></span></a></li>
+	<% for (var i = 1; i <= args.maxPage; i++) { %>
+	<li class="<%-args.page === i ? 'active' : ''%>"><a href="#<%-args.app.buildRouteUrl({ page: i })%>"><%-i%></a></li>
+	<% } %>
+	<li class="<%-args.page === args.maxPage ? 'disabled' : ''%>"><a href="#<%-args.app.buildRouteUrl({ page: Math.min(args.maxPage, args.page + 1) })%>"><span class="glyphicon glyphicon-chevron-right"></span></a></li>
+</ul>
