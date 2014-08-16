@@ -64,9 +64,13 @@ define([
 		page = Math.max(1, Math.min(maxPage, page));
 
 		var dirs, dirsMapId, dirsLookup;
+
+		// Get the sub dirs directly from the dir model, which will contain it if the subdirs list is small enough.
 		if ((dirs = dir.get('dirs')) != null) {
 			deferred.resolveWith(app, [ sortAndSlice(dir.parse({ dirs: dirs }).dirs, sort, perPage, page) ]);
 		}
+
+		// Get the sub dirs from a subdirs map (e.g. "subdirsmap_1.txt")
 		else if ((dirsMapId = dir.get('dirsMap')) != null) {
 			app.request('GetFile', 'subdirsmap_' + dirsMapId)
 				.done(function(subDirsMap) {
@@ -80,6 +84,8 @@ define([
 					deferred.rejectWith(app, Array.prototype.slice.call(arguments, 0));
 				});
 		}
+
+		// Get the sub dirs via the multi-part files (e.g. "subdirs_2140d2c2dc425c0aaab8a8443e8880ca_1.txt")
 		else if ((dirsLookup = dir.get('dirsLookup')) != null) {
 
 			// Determine the sort column and order.
@@ -115,12 +121,25 @@ define([
 				page = maxPage - page + 1;
 
 			var pagesPerSubdirs = settings.get('pagesPerSubdirs');
+
+			// The main segment file for retreiving the list items.
 			var segmentId = Math.ceil(page / pagesPerSubdirs);
+
+			// The page within the segment file (see Options->maxSubDirsFilePages) where the last list item is found.
 			var segmentPage = page - ((segmentId - 1) * 2);
+
+			// The remainder tell us how many segment files are on the last page,
+			// which will cause problems when the sort order is reversed.
 			var remainder = reversed ? subDirCount % perPage : 0;
 
+			// The segment files needed to display the list.
 			var files = [];
+
+			// If the sort is reversed and there is a per-page remainder,
+			// we may need more than one file to display the per-page amount.
 			if (reversed && remainder !== 0) {
+
+				// Get the previous segment file if we need to pull the remainder from the end of it.
 				if (segmentPage === 1 && segmentId > 1) {
 					files.push({
 						segmentId: segmentId - 1,
@@ -128,12 +147,15 @@ define([
 					});
 				}
 
+				// Specify the list items we need from the main segment file, offset by the remainder.
 				files.push({
 					segmentId: segmentId,
 					start: Math.max(0, (segmentPage-1) * perPage - (perPage - remainder)),
 					end: (segmentPage) * perPage - (perPage - remainder)
 				});
 			}
+
+			// Otherwise, we only need the main segment file to display the per-page amount.
 			else {
 				files.push({
 					segmentId: segmentId,
@@ -142,6 +164,7 @@ define([
 				});
 			}
 
+			// Get all the required segment files, and collect their promises.
 			var innerDeferreds = _.map(files, function(file){
 				return app.request('GetFile', 'subdirs_' + dir.id + '_' + file.segmentId)
 					.done(function(subDirsFile) {
@@ -149,6 +172,7 @@ define([
 					});
 			});
 
+			// Wait for the promises to be resolved or rejected.
 			$.when.apply($, innerDeferreds)
 				.done(function(){
 					var subDirs = _.reduce(files, function(ret, file) {
