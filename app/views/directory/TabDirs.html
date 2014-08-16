@@ -1,40 +1,59 @@
-<% var sort = args.route.sort.dirs; %>
+<%
+var ariaId;
+var defaultSort = 's';
+var sort = args.route.sort.dirs;
+var sortColumns = {
+	s: {
+		long: 'Disk Size',
+		short: 'Size',
+		invert: true
+	},
+	c: {
+		long: 'File Count',
+		short: 'Files',
+		invert: true
+	},
+	d: {
+		long: 'Sub Dirs',
+		short: 'Dirs',
+		invert: true
+	}
+};
+%>
 <table border="0" class="table table-rigid">
 	<thead>
 		<tr>
-			<th class="du-tab-dirs-col1">
-				<div class="visible-xs dropdown">
-					<a data-toggle="dropdown" class="dropdown-link" href="javascript:;">Size<b><i></i></b></a>
-					<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
-						<li role="presentation" class="dropdown-header">Show:</li>
-						<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Disk Size <span class="glyphicon glyphicon-ok" style="font-size: 75%; line-height: 18px;"></span></a></li>
-						<li role="presentation"><a role="menuitem" tabindex="-1" href="#">File Count</a></li>
-						<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Sub-Dirs Count</a></li>
-						<li role="presentation" class="divider"></li>
-						<li role="presentation" class="dropdown-header">Sort Order:</li>
-						<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Largest to Smallest <span class="glyphicon glyphicon-ok" style="font-size: 75%; line-height: 18px;"></span></a></li>
-						<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Smallest to Largest</a></li>
-					</ul>
-				</div>
-				<div class="hidden-sm hidden-xs">
-					<a style="width: 100%;" href="#<%-args.app.buildRouteUrl({ sort: { dirs: sort === 's' ? 'S' : 's' }, page: 1 })%>" class="<%=sort === 's' ? 'sorted sorted-rev' : (sort === 'S' ? 'sorted' : '')%>">Size<b><i></i></b></a>
-				</div>
-				<div class="visible-sm">
-					<a href="#<%-args.app.buildRouteUrl({ sort: { dirs: sort === 's' ? 'S' : 's' }, page: 1 })%>" class="<%=sort === 's' ? 'sorted sorted-rev' : (sort === 'S' ? 'sorted' : '')%>">Size<b><i></i></b></a>
-					/
-					<a href="#<%-args.app.buildRouteUrl({ sort: { dirs: sort === 'c' ? 'C' : 'c' }, page: 1 })%>" class="<%=sort === 'c' ? 'sorted sorted-rev' : (sort === 'C' ? 'sorted' : '')%>">Files<b><i></i></b></a>
-					/
-					<a href="#<%-args.app.buildRouteUrl({ sort: { dirs: sort === 'd' ? 'D' : 'd' }, page: 1 })%>" class="<%=sort === 'd' ? 'sorted sorted-rev' : (sort === 'D' ? 'sorted' : '')%>">Dirs<b><i></i></b></a>
+			<th class="du-tab-dirs-col1 visible-xs">
+				<div class="dropdown">
+					<%=
+					args.sortDropdown({
+						sort: sort,
+						key: 'dirs',
+						defaultSort: defaultSort,
+						columns: sortColumns,
+						app: args.app
+					})
+					%>
 				</div>
 			</th>
-			<th class="du-tab-dirs-col2 hidden-sm hidden-xs">
-				<a style="width: 100%;" href="#<%-args.app.buildRouteUrl({ sort: { dirs: sort === 'c' ? 'C' : 'c' }, page: 1 })%>" class="<%=sort === 'c' ? 'sorted sorted-rev' : (sort === 'C' ? 'sorted' : '')%>">Files<b><i></i></b></a>
+			<th class="du-tab-dirs-col1 visible-sm">
+				<%= _.reduce(sortColumns, function(ret, column, columnKey) {
+					ret.push(args.sortLink({ sort: sort, invert: column.invert, label: column.short, asc: columnKey, desc: columnKey.toUpperCase(), key: 'dirs', app: args.app }));
+					return ret;
+				}, []).join(' / ') %>
 			</th>
-			<th class="du-tab-dirs-col3 hidden-sm hidden-xs">
-				<a style="width: 100%;" href="#<%-args.app.buildRouteUrl({ sort: { dirs: sort === 'd' ? 'D' : 'd' }, page: 1 })%>" class="<%=sort === 'd' ? 'sorted sorted-rev' : (sort === 'D' ? 'sorted' : '')%>">Sub Dirs<b><i></i></b></a>
-			</th>
+
+			<%
+			var iCol = 1;
+			_.each(sortColumns, function(column, columnKey) {
+				%><th class="du-tab-dirs-col<%-iCol++%> hidden-sm hidden-xs">
+					<%=args.sortLink({ sort: sort, invert: column.invert, label: column.long, asc: columnKey, desc: columnKey.toUpperCase(), key: 'dirs', style: 'width: 100%;', app: args.app })%>
+				</th><%
+			});
+			%>
+
 			<th class="du-tab-dirs-col4">
-				<a style="width: 100%;" href="#<%-args.app.buildRouteUrl({ sort: { dirs: sort === 'n' ? 'N' : 'n' }, page: 1 })%>" class="<%=sort === 'n' ? 'sorted' : (sort === 'N' ? 'sorted sorted-rev' : '')%>"><span>Name<b><i></i></b></span></a>
+				<%=args.sortLink({ sort: sort, label: 'Name', asc: 'n', desc: 'N', key: 'dirs', style: 'width: 100%;', app: args.app })%>
 			</th>
 		</tr>
 	</thead>
@@ -44,21 +63,21 @@
 			var countPer = args.fileCount && (dir.fileCount / args.fileCount) || 0;
 			var dirsPer = args.subDirCount && (dir.dirCount / args.subDirCount) || 0;
 			%><tr>
-				<td>
+				<td class="<%- sort.toLowerCase() === 's' || sort.toLowerCase() === 'n' ? '' : 'hidden-sm hidden-xs' %>">
 					<%= args.progressBar({
 						percent: sizePer,
 						leftText: Math.round(sizePer * 1000) / 10 + '%',
 						rightText: args.Lang.formatBytes(dir.size)
 					}) %>
 				</td>
-				<td class="hidden-sm hidden-xs">
+				<td class="<%- sort.toLowerCase() === 'c' ? '' : 'hidden-sm hidden-xs' %>">
 					<%= args.progressBar({
 						percent: countPer,
 						leftText: Math.round(countPer * 1000) / 10 + '%',
 						rightText: args.Lang.formatNumber(dir.fileCount)
 					}) %>
 				</td>
-				<td class="hidden-sm hidden-xs">
+				<td class="<%- sort.toLowerCase() === 'd' ? '' : 'hidden-sm hidden-xs' %>">
 					<%= args.progressBar({
 						percent: dirsPer,
 						leftText: Math.round(dirsPer * 1000) / 10 + '%',

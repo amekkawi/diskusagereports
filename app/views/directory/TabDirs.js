@@ -3,8 +3,10 @@ define([
 	'marionette',
 	'i18n!nls/report',
 	'tpl!views/directory/TabDirs.html',
-	'tpl!views/directory/ProgressBar.html'
-], function(_, Marionette, Lang, Template, TemplateProgressBar) {
+	'tpl!views/directory/ProgressBar.html',
+	'tpl!views/directory/SortLink.html',
+	'tpl!views/directory/SortDropdown.html'
+], function(_, Marionette, Lang, Template, TemplateProgressBar, TemplateSortLink, TemplateSortDropdown) {
 	'use strict';
 
 	return Marionette.ItemView.extend({
@@ -29,21 +31,18 @@ define([
 			var route = this.route || app.getRoute();
 			app.request('GetSubDirs', model, route.sort.dirs, route.page)
 				.done(function(subDirs, isPage) {
-					console.log('GetSubDirs', model.id);
-
 					_this.dirs = subDirs;
 
 					if (_this._isRendered)
 						_this.render();
 				})
 				.fail(function() {
+					// TODO: Show error message.
 					console.log('GetFile subdirsmap fail', arguments);
 				});
 		},
 
 		serializeData: function() {
-			console.log('serialize', this.model.id);
-
 			var app = this.app;
 			var model = this.model;
 			var settings = model.settings;
@@ -55,7 +54,9 @@ define([
 				route: app.getRoute(),
 				settings: settings.attributes,
 				Lang: Lang,
-				progressBar: TemplateProgressBar
+				progressBar: TemplateProgressBar,
+				sortLink: TemplateSortLink,
+				sortDropdown: TemplateSortDropdown
 			}, Marionette.ItemView.prototype.serializeData.apply(this, arguments));
 		}
 	});
