@@ -9,7 +9,7 @@ define([
 
 	return Marionette.ItemView.extend({
 
-		className: 'du-tab-contents',
+		className: 'du-tab-dirs',
 		template: Template,
 
 		constructor: function(options) {

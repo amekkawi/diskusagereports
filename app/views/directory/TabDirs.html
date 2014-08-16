@@ -2,7 +2,7 @@
 <table border="0" class="table table-rigid">
 	<thead>
 		<tr>
-			<th class="contents-col1">
+			<th class="du-tab-dirs-col1">
 				<div class="visible-xs dropdown">
 					<a data-toggle="dropdown" class="dropdown-link" href="javascript:;">Size<b><i></i></b></a>
 					<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
@@ -27,13 +27,13 @@
 					<a href="#<%-args.app.buildRouteUrl({ sort: { dirs: sort === 'd' ? 'D' : 'd' }, page: 1 })%>" class="<%=sort === 'd' ? 'sorted sorted-rev' : (sort === 'D' ? 'sorted' : '')%>">Dirs<b><i></i></b></a>
 				</div>
 			</th>
-			<th class="contents-col2 hidden-sm hidden-xs">
+			<th class="du-tab-dirs-col2 hidden-sm hidden-xs">
 				<a style="width: 100%;" href="#<%-args.app.buildRouteUrl({ sort: { dirs: sort === 'c' ? 'C' : 'c' }, page: 1 })%>" class="<%=sort === 'c' ? 'sorted sorted-rev' : (sort === 'C' ? 'sorted' : '')%>">Files<b><i></i></b></a>
 			</th>
-			<th class="contents-col3 hidden-sm hidden-xs">
+			<th class="du-tab-dirs-col3 hidden-sm hidden-xs">
 				<a style="width: 100%;" href="#<%-args.app.buildRouteUrl({ sort: { dirs: sort === 'd' ? 'D' : 'd' }, page: 1 })%>" class="<%=sort === 'd' ? 'sorted sorted-rev' : (sort === 'D' ? 'sorted' : '')%>">Sub Dirs<b><i></i></b></a>
 			</th>
-			<th class="contents-col4">
+			<th class="du-tab-dirs-col4">
 				<a style="width: 100%;" href="#<%-args.app.buildRouteUrl({ sort: { dirs: sort === 'n' ? 'N' : 'n' }, page: 1 })%>" class="<%=sort === 'n' ? 'sorted' : (sort === 'N' ? 'sorted sorted-rev' : '')%>"><span>Name<b><i></i></b></span></a>
 			</th>
 		</tr>
