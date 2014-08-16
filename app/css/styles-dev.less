@@ -19,16 +19,15 @@
 .percentLoopMix(@percent, @percentStart, @perEnd, @colorStart, @colorEnd) when (@percentStart + @percent =< @perEnd) {
 	@perCSS: @percent + @percentStart;
 	@color: lighten(mix(@colorEnd, @colorStart, @percent / (@perEnd - @percentStart) * 100), 12%);
-	.progress-bar-percent-@{perCSS} {
+	.du-progress-@{perCSS} {
 		background-color: @color;
 		#gradient > .vertical(@start-color: @color; @end-color: darken(@color, 10%));
-		//border-left: 16px solid mix(@colorEnd, @colorStart, @percent / (@perEnd - @percentStart) * 100);
 	}
 	.percentLoopMix(@percent + 1, @percentStart, @perEnd, @colorStart, @colorEnd);
 }
 
 @progress-bar-bg-a: #428bca;
-@progress-bar-bg-b: #5cb85c; //#5bc0de;
+@progress-bar-bg-b: #5cb85c;
 @progress-bar-bg-c: #e1dd4c;
 @progress-bar-bg-d: #f09b32;
 @progress-bar-bg-e: #d9534f;

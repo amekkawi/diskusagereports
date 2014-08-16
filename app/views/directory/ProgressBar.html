@@ -1,0 +1,6 @@
+<div class="progress">
+	<div class="progress-bar du-progress-<%-Math.round(args.percent * 100)%>" role="progressbar" aria-valuenow="<%-Math.round(args.percent * 100)%>" aria-valuemin="0" aria-valuemax="100" style="width: <%-Math.round(args.percent * 100000) / 1000%>%;">
+		<% if (args.leftText) { %><span class="left"><%-args.leftText%></span><% } %>
+		<% if (args.rightText) { %><span class="right"><%-args.rightText%></span><% } %>
+	</div>
+</div>

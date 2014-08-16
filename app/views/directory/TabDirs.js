@@ -2,30 +2,10 @@ define([
 	'underscore',
 	'marionette',
 	'i18n!nls/report',
-	'tpl!views/directory/TabDirs.html'
-], function(_, Marionette, Lang, Template) {
+	'tpl!views/directory/TabDirs.html',
+	'tpl!views/directory/ProgressBar.html'
+], function(_, Marionette, Lang, Template, TemplateProgressBar) {
 	'use strict';
-
-	function formatBytes(bytes) {
-		if (bytes >= 1000 * 1024 * 1024 * 1024 * 1024) {
-			return (Math.floor(bytes / 1024 / 1024 / 1024 / 1024 / 1024 * 10) / 10) + 'P';
-		}
-		else if (bytes >= 1000 * 1024 * 1024 * 1024) {
-			return (Math.floor(bytes / 1024 / 1024 / 1024 / 1024 * 10) / 10) + 'T';
-		}
-		else if (bytes >= 1000 * 1024 * 1024) {
-			return (Math.floor(bytes / 1024 / 1024 / 1024 * 10) / 10) + 'G';
-		}
-		else if (bytes >= 1000 * 1024) {
-			return (Math.floor(bytes / 1024 / 1024 * 10) / 10) + 'M';
-		}
-		else if (bytes >= 1024) {
-			return (Math.floor(bytes / 1024 * 10) / 10) + 'K';
-		}
-		else {
-			return '' + bytes
-		}
-	}
 
 	return Marionette.ItemView.extend({
 
@@ -74,8 +54,8 @@ define([
 				app: app,
 				route: app.getRoute(),
 				settings: settings.attributes,
-				formatBytes: formatBytes,
-				Lang: Lang
+				Lang: Lang,
+				progressBar: TemplateProgressBar
 			}, Marionette.ItemView.prototype.serializeData.apply(this, arguments));
 		}
 	});
