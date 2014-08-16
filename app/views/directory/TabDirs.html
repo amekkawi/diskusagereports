@@ -54,6 +54,15 @@ var sortColumns = {
 
 			<th class="du-tab-dirs-col4">
 				<%=args.sortLink({ sort: sort, label: 'Name', asc: 'n', desc: 'N', key: 'dirs', style: 'width: 100%;', app: args.app })%>
+				<% if (args.maxPage > 1) { %>
+				<div style="position: relative;">
+					<ul class="pagination pagination-sm" style="margin: 0; position: absolute; right: 0; bottom: -6px;">
+						<li class="<%-args.page === 1 ? 'disabled' : ''%>"><a href="#<%-args.app.buildRouteUrl({ page: Math.max(1, args.page - 1) })%>"><span class="glyphicon glyphicon-chevron-left"></span></a></li>
+						<li class=""><a href="javascript:;" style="font-weight: normal;"><%-args.page%> of <%-args.maxPage%></a></li>
+						<li class="<%-args.page === args.maxPage ? 'disabled' : ''%>"><a href="#<%-args.app.buildRouteUrl({ page: Math.min(args.maxPage, args.page + 1) })%>"><span class="glyphicon glyphicon-chevron-right"></span></a></li>
+					</ul>
+				</div>
+				<% } %>
 			</th>
 		</tr>
 	</thead>
@@ -84,8 +93,16 @@ var sortColumns = {
 						rightText: args.Lang.formatNumber(dir.dirCount)
 					}) %>
 				</td>
-				<td style="overflow: hidden"><a href="#<%-args.app.buildRouteUrl({ hash: dir.hash, page: 1 })%>" class="icon-link"><span class="glyphicon glyphicon-folder-open"></span><%-dir.name%></a></td>
+				<td style="overflow: hidden">
+					<a href="#<%-args.app.buildRouteUrl({ hash: dir.hash, page: 1 })%>" class="icon-link"><span class="glyphicon glyphicon-folder-open"></span><%-dir.name%></a>
+				</td>
 			</tr><%
 		}); %>
 	</tbody>
 </table>
+
+<% if (args.maxPage > 1) { %>
+<div style="text-align: center;">
+	<%=args.pagination(_.pick(args, ['page','maxPage','app']))%>
+</div>
+<% } %>
