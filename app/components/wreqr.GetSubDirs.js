@@ -39,8 +39,7 @@ define([
 		return 0;
 	}
 
-	function sortAndSlice(settings, dirs, sort, page) {
-		var perPage = settings.get('perPage');
+	function sortAndSlice(dirs, sort, perPage, page) {
 		var maxPage = Math.ceil(dirs.length / perPage);
 		page = Math.min(maxPage, page);
 
@@ -58,21 +57,22 @@ define([
 	function processDir(deferred, dir, sort, page) {
 		var app = this;
 		var settings = app.settings;
+		var subDirCount = dir.get('directSubDirCount');
 		var perPage = settings.get('perPage');
-		var maxPage = Math.ceil(dir.get('directSubDirCount') / perPage);
+		var maxPage = Math.ceil(subDirCount / perPage);
 
 		page = Math.max(1, Math.min(maxPage, page));
 
 		var dirs, dirsMapId, dirsLookup;
 		if ((dirs = dir.get('dirs')) != null) {
-			deferred.resolveWith(app, [ sortAndSlice(settings, dir.parse({ dirs: dirs }).dirs, sort, page), false ]);
+			deferred.resolveWith(app, [ sortAndSlice(dir.parse({ dirs: dirs }).dirs, sort, perPage, page) ]);
 		}
 		else if ((dirsMapId = dir.get('dirsMap')) != null) {
 			app.request('GetFile', 'subdirsmap_' + dirsMapId)
 				.done(function(subDirsMap) {
 					var subDirs = subDirsMap[dir.id];
 					if (subDirs)
-						deferred.resolveWith(app, [ sortAndSlice(settings, dir.parse({ dirs: subDirs }).dirs, sort, page), false ]);
+						deferred.resolveWith(app, [ sortAndSlice(dir.parse({ dirs: subDirs }).dirs, sort, perPage, page) ]);
 					else
 						deferred.rejectWith(app, [ 'SUBDIRS_NOT_FOUND' ]);
 				})
@@ -81,20 +81,28 @@ define([
 				});
 		}
 		else if ((dirsLookup = dir.get('dirsLookup')) != null) {
-			var pagesPerSubdirs = settings.get('pagesPerSubdirs');
-			var dirLookupId = Math.ceil(page / pagesPerSubdirs);
 
+			// Determine the sort column and order.
+			var reversed = false;
 			var subDirsIndex;
-			switch (sort.toLowerCase()) {
+			switch (sort) {
+				case 'N':
+					reversed = true;
 				case 'n':
 					subDirsIndex = 0;
 					break;
+				case 'S':
+					reversed = true;
 				case 's':
 					subDirsIndex = 1;
 					break;
+				case 'C':
+					reversed = true;
 				case 'c':
 					subDirsIndex = 2;
 					break;
+				case 'D':
+					reversed = true;
 				case 'd':
 					subDirsIndex = 3;
 					break;
@@ -102,10 +110,56 @@ define([
 					throw new Error('Failed to determine sort order.');
 			}
 
-			app.request('GetFile', 'subdirs_' + dir.id + '_' + dirLookupId)
-				.done(function(subDirsFile) {
-					var subPage = page - ((dirLookupId - 1) * 2);
-					deferred.resolveWith(app, [ sortAndSlice(settings, dir.parse({ dirs: subDirsFile[subDirsIndex] }).dirs, sort, subPage), false ]);
+			// Reverse the page number if the sort is reversed.
+			if (reversed)
+				page = maxPage - page + 1;
+
+			var pagesPerSubdirs = settings.get('pagesPerSubdirs');
+			var segmentId = Math.ceil(page / pagesPerSubdirs);
+			var segmentPage = page - ((segmentId - 1) * 2);
+			var remainder = reversed ? subDirCount % perPage : 0;
+
+			var files = [];
+			if (reversed && remainder !== 0) {
+				if (segmentPage === 1 && segmentId > 1) {
+					files.push({
+						segmentId: segmentId - 1,
+						start: -(perPage - remainder)
+					});
+				}
+
+				files.push({
+					segmentId: segmentId,
+					start: Math.max(0, (segmentPage-1) * perPage - (perPage - remainder)),
+					end: (segmentPage) * perPage - (perPage - remainder)
+				});
+			}
+			else {
+				files.push({
+					segmentId: segmentId,
+					start: (segmentPage-1) * perPage,
+					end: (segmentPage) * perPage
+				});
+			}
+
+			var innerDeferreds = _.map(files, function(file){
+				return app.request('GetFile', 'subdirs_' + dir.id + '_' + file.segmentId)
+					.done(function(subDirsFile) {
+						file.entries = subDirsFile[subDirsIndex].slice(file.start, file.end);
+					});
+			});
+
+			$.when.apply($, innerDeferreds)
+				.done(function(){
+					var subDirs = _.reduce(files, function(ret, file) {
+						return ret.concat(file.entries);
+					}, []);
+
+					// Reverse the array.
+					if (reversed)
+						subDirs.reverse();
+
+					deferred.resolveWith(app, [ dir.parse({ dirs: subDirs }).dirs ]);
 				})
 				.fail(function() {
 					deferred.rejectWith(app, Array.prototype.slice.call(arguments, 0));
