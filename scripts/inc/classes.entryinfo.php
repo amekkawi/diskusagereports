@@ -42,7 +42,7 @@ class DirInfo extends FileInfo {
 	protected $isOwnFileSizesList = false;
 
 	/**
-	 * @var null|GroupBySizeList
+	 * @var null|GroupByModifiedDates
 	 */
 	protected $modifiedDatesList = null;
 
@@ -146,7 +146,7 @@ class DirInfo extends FileInfo {
 
 		$modifiedDatesDepth = $options->getModifiedDatesDepth();
 		if ($modifiedDatesDepth === true || (is_int($modifiedDatesDepth) && $this->depth <= $modifiedDatesDepth)) {
-			$this->modifiedDatesList = new GroupBySizeList($this->options->sizeGroups);
+			$this->modifiedDatesList = new GroupByModifiedDates($this->options->modifiedGroups);
 			$this->modifiedDatesList->setKey($this->hash);
 			$this->isOwnModifiedDatesList = true;
 		}

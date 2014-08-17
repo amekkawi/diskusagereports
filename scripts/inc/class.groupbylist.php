@@ -125,7 +125,7 @@ class GroupByModifiedDates extends GroupByList {
 
 	public function getGroupIndex(FileInfo $fileInfo) {
 		foreach ($this->groups as $i => $group) {
-			if ($fileInfo->size >= $group['size'])
+			if ($fileInfo->date <= $group['date'])
 				return $i;
 		}
 
