@@ -93,9 +93,9 @@ define([
 						});
 					}
 
-					// Is a lookup mapping.
+					// Sub-dirs are in segment files.
 					else {
-						dir.dirsLookup = _.reduce(['name','size','count','dirs'], function(ret, key, i){
+						dir.dirsSegments = _.reduce(['name','size','count','dirs'], function(ret, key, i){
 							ret[key] = _.map(subDirs[i], function(file) {
 								return {
 									lower: file[0],
@@ -115,56 +115,36 @@ define([
 				var files = dir.files;
 
 				// Files are in a filesmap_* file.
-				if (typeof files === 'number' || typeof files === 'string') {
+				if (typeof files === 'string') {
 					dir.filesMap = '' + files;
 					delete dir.files;
 				}
-				else if (files.length) {
-
-					// Contains the full list.
-					if (typeof files[0][0] === 'string') {
-						dir.files = _.map(files, function(file) {
-							return {
-								type: file[0],
-								name: file[1],
-								size: file[2],
-								date: file[3],
-								time: file[4]
-							};
-						});
-					}
-
-					// Is a lookup mapping.
-					else {
-						dir.filesLookup = files;
-						delete dir.files;
-					}
+				else if (typeof files === 'number') {
+					dir.filesSegments = files;
+					delete dir.files;
+				}
+				else {
+					dir.files = _.map(files, function(file) {
+						return {
+							type: file[0],
+							name: file[1],
+							size: file[2],
+							date: file[3],
+							time: file[4]
+						};
+					});
 				}
 			}
 
-			/*
-			 // Normalize subdir list.
-			 if (_.has(dir, 'parents')) {
-			 dir.parents = _.map(dir.parents, function(val) {
-			 return {
-			 hash: val[0],
-			 name: val[1],
-			 subDirCount: val[2],
-			 fileCount: val[3],
-			 fileSize: val[4]
-			 };
-			 });
-			 }
-
-			 // Normalize grouped totals.
-			 _.each(['fileSizes', 'modifiedDates'], function(attribute) {
-			 if (_.has(dir, attribute)) {
-			 dir[attribute] = _.reduce(dir[attribute][0], function(ret, i) {
-			 ret[i] = dir[attribute][1][i];
-			 }, []);
-			 }
-			 }, this);
-			 */
+			// Normalize the file sizes and modified date groups.
+			_.each(['fileSizes', 'modifiedDates'], function(group) {
+				if (_.has(dir, group)) {
+					dir[group] = _.reduce(dir[group][0], function(ret, groupIndex, i) {
+						ret[groupIndex] = _.zipObject(['size','files'], dir[group][1][i]);
+						return ret;
+					}, []);
+				}
+			});
 
 			return dir;
 		},
