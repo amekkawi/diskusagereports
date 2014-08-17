@@ -50,7 +50,7 @@ define([
 			})
 			.slice(
 				(page - 1) * perPage,
-				Math.min(dirs.length - 1, page * perPage)
+				Math.min(dirs.length, page * perPage)
 			);
 	}
 
@@ -67,7 +67,7 @@ define([
 
 		// Get the sub dirs directly from the dir model, which will contain it if the subdirs list is small enough.
 		if ((dirs = dir.get('dirs')) != null) {
-			deferred.resolveWith(app, [ sortAndSlice(dir.parse({ dirs: dirs }).dirs, sort, perPage, page) ]);
+			deferred.resolveWith(app, [ sortAndSlice(dirs, sort, perPage, page) ]);
 		}
 
 		// Get the sub dirs from a subdirs map (e.g. "subdirsmap_1.txt")

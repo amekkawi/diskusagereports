@@ -45,7 +45,7 @@ define([
 			})
 			.slice(
 				(page - 1) * perPage,
-				Math.min(dirs.length - 1, page * perPage)
+				Math.min(dirs.length, page * perPage)
 			);
 	}
 
@@ -62,7 +62,7 @@ define([
 
 		// Get the file list directly from the dir model, which will contain it if the file list is small enough.
 		if ((files = dir.get('files')) != null) {
-			deferred.resolveWith(app, [ sortAndSlice(dir.parse({ files: files }).files, sort, perPage, page) ]);
+			deferred.resolveWith(app, [ sortAndSlice(files, sort, perPage, page) ]);
 		}
 
 		// Get the file list from a map (e.g. "filesmap_1.txt")
