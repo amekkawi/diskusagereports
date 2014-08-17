@@ -196,7 +196,7 @@ define([
 		var deferred = $.Deferred();
 
 		if (_.isString(dirOrHash)) {
-			app.request('GetDirectory', hash)
+			app.request('GetDirectory', dirOrHash)
 				.done(function(dir) {
 					processDir.call(app, deferred, dir, sort, page);
 				})
