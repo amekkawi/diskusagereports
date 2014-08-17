@@ -36,11 +36,13 @@ body {
 	}
 }
 
-.du-tab-dirs .pagination {
-	margin-top: 0;
+.du-tab-dirs, .du-tab-files {
+	.pagination {
+		margin-top: 0;
 
-	.glyphicon {
-		line-height: 0;
+		.glyphicon {
+			line-height: 0;
+		}
 	}
 }
 
@@ -118,6 +120,27 @@ body {
 
 .du-tab-dirs-col4 {
 	width: 59.5%;
+}
+
+.du-tab-files-col1, .du-tab-files-col2 {
+	width: 13.5%;
+	text-align: center;
+
+	.dropdown-link {
+		display: block;
+	}
+
+	.dropdown-menu li {
+		text-align: left;
+	}
+}
+
+.du-tab-files-col2 {
+	width: 18%;
+}
+
+.du-tab-files-col4 {
+	width: 68.5%;
 }
 
 .du-title {
@@ -237,14 +260,24 @@ body {
 	.du-tab-dirs-col4 {
 		width: 80%;
 	}
-}
 
-@media (max-width: @screen-xs) {
-	.du-tab-dirs-col1 {
+	.du-tab-files-col1, .du-tab-files-col2, .du-tab-files-col3 {
 		width: 25%;
 	}
 
-	.du-tab-dirs-col4 {
+	.du-tab-files-col4 {
+		width: 75%;
+	}
+}
+
+@media (max-width: @screen-xs) {
+	.du-tab-dirs-col1,
+	.du-tab-files-col1 {
+		width: 25%;
+	}
+
+	.du-tab-dirs-col4,
+	.du-tab-files-col4 {
 		width: 75%;
 	}
 }

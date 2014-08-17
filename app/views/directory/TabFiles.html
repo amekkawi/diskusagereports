@@ -1,0 +1,89 @@
+<%
+var ariaId;
+var defaultSort = 's';
+var sort = args.route.sort.files;
+var sortColumns = {
+	s: {
+		long: 'Disk Size',
+		short: 'Size',
+		invert: true
+	},
+	m: {
+		long: 'Modified',
+		short: 'Modified'
+	}
+};
+%>
+<table border="0" class="table table-rigid">
+	<thead>
+		<tr>
+			<th class="du-tab-files-col1 visible-xs">
+				<div class="dropdown">
+					<%=
+					args.sortDropdown({
+						sort: sort,
+						key: 'files',
+						defaultSort: defaultSort,
+						columns: sortColumns,
+						app: args.app
+					})
+					%>
+				</div>
+			</th>
+			<th class="du-tab-files-col1 visible-sm">
+				<%= _.reduce(sortColumns, function(ret, column, columnKey) {
+					ret.push(args.sortLink({ sort: sort, invert: column.invert, label: column.short, asc: columnKey, desc: columnKey.toUpperCase(), key: 'files', app: args.app }));
+					return ret;
+				}, []).join(' / ') %>
+			</th>
+
+			<%
+			var iCol = 1;
+			_.each(sortColumns, function(column, columnKey) {
+				%><th class="du-tab-files-col<%-iCol++%> hidden-sm hidden-xs">
+					<%=args.sortLink({ sort: sort, invert: column.invert, label: column.long, asc: columnKey, desc: columnKey.toUpperCase(), key: 'files', style: 'width: 100%;', app: args.app })%>
+				</th><%
+			});
+			%>
+
+			<th class="du-tab-files-col4">
+				<%=args.sortLink({ sort: sort, label: 'Name', asc: 'n', desc: 'N', key: 'files', style: 'width: 100%;', app: args.app })%>
+				<% if (args.maxPage > 1) { %>
+				<div style="position: relative;">
+					<ul class="pagination pagination-sm" style="margin: 0; position: absolute; right: 0; bottom: -6px;">
+						<li class="<%-args.page === 1 ? 'disabled' : ''%>"><a href="#<%-args.app.buildRouteUrl({ page: Math.max(1, args.page - 1) })%>"><span class="glyphicon glyphicon-chevron-left"></span></a></li>
+						<li class=""><a href="javascript:;" style="font-weight: normal;"><%-args.page%> of <%-args.maxPage%></a></li>
+						<li class="<%-args.page === args.maxPage ? 'disabled' : ''%>"><a href="#<%-args.app.buildRouteUrl({ page: Math.min(args.maxPage, args.page + 1) })%>"><span class="glyphicon glyphicon-chevron-right"></span></a></li>
+					</ul>
+				</div>
+				<% } %>
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		<% _.each(args.files, function(file) {
+			var sizePer = args.fileSize && (file.size / args.fileSize) || 0;
+			%><tr>
+				<td class="<%- sort.toLowerCase() === 's' || sort.toLowerCase() === 'n' ? '' : 'hidden-sm hidden-xs' %>">
+					<%= args.progressBar({
+						percent: sizePer,
+						leftText: Math.round(sizePer * 1000) / 10 + '%',
+						rightText: args.Lang.formatBytes(file.size)
+					}) %>
+				</td>
+				<td class="<%- sort.toLowerCase() === 'm' ? '' : 'hidden-sm hidden-xs' %>" style="text-align: center;">
+					<%-file.date%> <%-file.time%>
+				</td>
+				<td style="overflow: hidden">
+					<%-file.name%>
+				</td>
+			</tr><%
+		}); %>
+	</tbody>
+</table>
+
+<% if (args.maxPage > 1) { %>
+<div style="text-align: center;">
+	<%=args.pagination(_.pick(args, ['page','maxPage','app']))%>
+</div>
+<% } %>
