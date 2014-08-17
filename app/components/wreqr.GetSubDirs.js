@@ -63,7 +63,7 @@ define([
 
 		page = Math.max(1, Math.min(maxPage, page));
 
-		var dirs, dirsMapId, dirsLookup;
+		var dirs, dirsMapId;
 
 		// Get the sub dirs directly from the dir model, which will contain it if the subdirs list is small enough.
 		if ((dirs = dir.get('dirs')) != null) {
@@ -86,7 +86,7 @@ define([
 		}
 
 		// Get the sub dirs via the multi-part files (e.g. "subdirs_2140d2c2dc425c0aaab8a8443e8880ca_1.txt")
-		else if ((dirsLookup = dir.get('dirsLookup')) != null) {
+		else if (dir.get('dirsSegments') != null) {
 
 			// Determine the sort column and order.
 			var reversed = false;
