@@ -7,8 +7,14 @@ define([
 	'views/directory/Breadcrumb',
 	'views/directory/SummarySize',
 	'views/directory/SummaryCount',
-	'views/directory/Tabs'
-], function(_, Marionette, RegionMulti, Template, Basename, Breadcrumb, SummarySize, SummaryCount, Tabs) {
+	'views/directory/Tabs',
+	'views/directory/TabDirs',
+	'views/directory/TabFiles'
+], function(
+	_, Marionette, RegionMulti, Template,
+	Basename, Breadcrumb, SummarySize, SummaryCount, Tabs,
+	TabDirs, TabFiles
+) {
 	'use strict';
 
 	return Marionette.Layout.extend({
@@ -45,7 +51,9 @@ define([
 		},
 
 		onRender: function() {
-			var options = _.pick(this, ['model', 'app']);
+			var app = this.app;
+			var route = app.getRoute();
+			var options = { app: app, model: this.model };
 
 			this.header.show([
 				new Basename(options),
@@ -57,8 +65,16 @@ define([
 				new SummaryCount(options)
 			]);
 
+			var tabView = TabDirs;
+			switch (route.tab) {
+				case 'files':
+					tabView = TabFiles;
+					break;
+			}
+
 			this.detail.show([
-				new Tabs(options)
+				new Tabs(options),
+				new tabView(options)
 			]);
 		}
 	});
