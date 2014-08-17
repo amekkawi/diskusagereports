@@ -7,6 +7,7 @@ define([
 	'components/wreqr.GetDirectory',
 	'components/wreqr.GetSubDirs',
 	'components/wreqr.GetFiles',
+	'components/wreqr.GetGroupModified',
 	'models/Settings',
 	'views/Loader',
 	'views/Title',
@@ -15,7 +16,7 @@ define([
 	'views/directory/Directory'
 ], function(
 	_, $, Marionette,
-	GetFile, GetLookup, GetDirectory, GetSubDirs, GetFiles,
+	GetFile, GetLookup, GetDirectory, GetSubDirs, GetFiles, GetGroupModified,
 	ModelSettings,
 	ViewLoader, ViewTitle, ViewError, ViewAjaxError, ViewDirectory
 ) {
@@ -46,6 +47,9 @@ define([
 			app.reqres.setHandler('GetDirectory', GetDirectory, app);
 			app.reqres.setHandler('GetSubDirs', GetSubDirs, app);
 			app.reqres.setHandler('GetFiles', GetFiles, app);
+			app.reqres.setHandler('GetGroupModified', GetGroupModified, app);
+
+			// General file fetching.
 			app.reqres.setHandler('GetFile', GetFile(), app);
 
 			// Main initialization of the application.
