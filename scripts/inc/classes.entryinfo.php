@@ -226,7 +226,8 @@ class DirInfo extends FileInfo {
 
 			// Otherwise, force it to save.
 			else {
-				//echo "C $this->path\n";
+				echo "C $this->path\n";
+				// TODO: This will throw an error.
 				$this->fileSizes = json_encode($fileSizesList->save());
 			}
 		}
