@@ -21,6 +21,16 @@ define([
 ) {
 	'use strict';
 
+	var routeSortKeys =     ['dirs', 'files', 'modified', 'size', 'ext', 'top'];
+	var routeSortValues =   ['nscd', 'ntsm',  'asc',      'rsc',  'esc', 'ntsmp'];
+	var routeSortDefaults = ['s',    's',     's',        's',    's',   's'];
+
+	var routeDefault = _.zipObject(routeSortKeys, routeSortDefaults);
+
+	routeSortValues = _.map(routeSortValues, function(val) {
+		return new RegExp('^[' + val + ']$', 'i');
+	});
+
 	return Marionette.Application.extend({
 		constructor: function() {
 			var app = this;
@@ -65,14 +75,28 @@ define([
 			if (!this.isValidTab(route.tab))
 				route.tab = 'dirs';
 
-			// Validate the sort.
-			if (!_.isString(route.sort) || route.sort.match(/^[nscd][ntsm][asc][rsc][asc][esc][ntsmp]$/i))
-				route.sort = 'ssssss';
+			if (_.isString(route.sort)) {
 
-			// Split the sort into parts.
-			route.sort = _.defaults(_.zipObject(['dirs','files','modified','ext','top'], route.sort.split('')), oldRoute && oldRoute.sort);
+				// Discard the sort if it is not the correct length.
+				if (route.sort.length != routeSortKeys.length) {
+					delete route.sort;
+				}
 
-			// Clean the page.
+				// Split and validate each sort key.
+				else {
+					route.sort = _.zipObject(routeSortKeys, _.map(route.sort.split(''), function(val, i) {
+						return val.match(routeSortValues[i]) ? val : routeSortDefaults[i];
+					}));
+				}
+			}
+
+			// Set defaults for unset sort keys.
+			route.sort = _.defaults(
+				route.sort || {},
+				oldRoute ? oldRoute.sort : routeDefault
+			);
+
+			// Clean the page num.
 			route.page = Math.max(1, parseInt(route.page, 10) || 1);
 
 			this._route = route;
@@ -96,7 +120,7 @@ define([
 			var sort = route.sort;
 			if (!_.isString(sort)) {
 				sort = _.defaults(sort, baseRoute.sort);
-				sort = [ sort.dirs, sort.files, sort.modified, sort.ext, sort.top ].join('');
+				sort = _.reduce(routeSortKeys, function(ret, key) { return ret + sort[key]; }, '');
 			}
 
 			return [
