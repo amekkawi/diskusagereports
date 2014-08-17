@@ -31,7 +31,7 @@ define([
 			var app = this.app;
 			var route = this.route || app.getRoute();
 			app.request('GetSubDirs', dir, route.sort.dirs, route.page)
-				.done(function(subDirs, isPage) {
+				.done(function(subDirs) {
 					_this.dirs = subDirs;
 
 					if (_this._isRendered)
