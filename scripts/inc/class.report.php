@@ -171,7 +171,7 @@ class Report {
 		$this->fileListOutputs = array(
 			new MultiSortOutput($this, 0, 'name'),
 			new MultiSortOutput($this, 1, 'size', array('reverseSort' => true, 'secondarySortIndexes' => array(0), 'reverseSecondarySortIndexes' => false)),
-			new MultiSortOutput($this, 2, 'modified', array('secondarySortIndexes' => array(3, 0)))
+			new MultiSortOutput($this, 2, 'modified', array('secondarySortIndexes' => array(0)))
 		);
 
 		$this->combinedOutput = new SingleSortOutput($this);
