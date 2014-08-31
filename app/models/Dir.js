@@ -139,10 +139,18 @@ define([
 			// Normalize the file sizes and modified date groups.
 			_.each(['fileSizes', 'modifiedDates'], function(group) {
 				if (_.has(dir, group)) {
-					dir[group] = _.reduce(dir[group][0], function(ret, groupIndex, i) {
-						ret[groupIndex] = _.zipObject(['size','files'], dir[group][1][i]);
-						return ret;
-					}, []);
+					if (typeof dir[group] === 'string' || typeof dir[group] === 'number') {
+						dir[group + 'Map'] = ''+dir[group];
+						delete dir[group];
+					} else {
+						dir[group] = _.map(dir[group][0], function(groupIndex, i) {
+							return {
+								index: groupIndex,
+								size: dir[group][1][i][0],
+								files: dir[group][1][i][1]
+							};
+						});
+					}
 				}
 			});
 
