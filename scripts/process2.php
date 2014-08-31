@@ -167,6 +167,10 @@ try {
 					if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
 					$options->setMaxFileListFilePages(intval($cliarg));
 					break;
+				case '--max-tempkb':
+					if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
+					$options->setMaxTempKB(intval($cliarg));
+					break;
 
 				/** @noinspection PhpMissingBreakStatementInspection */
 				case '-':
