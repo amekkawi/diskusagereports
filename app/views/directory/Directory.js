@@ -9,11 +9,12 @@ define([
 	'views/directory/SummaryCount',
 	'views/directory/Tabs',
 	'views/directory/TabDirs',
-	'views/directory/TabFiles'
+	'views/directory/TabFiles',
+	'views/directory/TabModified'
 ], function(
 	_, Marionette, RegionMulti, Template,
 	Basename, Breadcrumb, SummarySize, SummaryCount, Tabs,
-	TabDirs, TabFiles
+	TabDirs, TabFiles, TabModified
 ) {
 	'use strict';
 
@@ -69,6 +70,9 @@ define([
 			switch (route.tab) {
 				case 'files':
 					tabView = TabFiles;
+					break;
+				case 'modified':
+					tabView = TabModified;
 					break;
 			}
 

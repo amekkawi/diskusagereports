@@ -1,0 +1,79 @@
+<%
+var ariaId;
+var defaultSort = 's';
+var sort = args.route.sort.modified;
+var sortColumns = {
+	s: {
+		long: 'Disk Size',
+		short: 'Size',
+		invert: true
+	},
+	c: {
+		long: 'File Count',
+		short: 'Files'
+	}
+};
+%>
+<table border="0" class="table table-rigid">
+	<thead>
+		<tr>
+			<th class="du-tab-modified-col1 visible-xs">
+				<div class="dropdown">
+					<%=
+					args.sortDropdown({
+						sort: sort,
+						key: 'modified',
+						defaultSort: defaultSort,
+						columns: sortColumns,
+						app: args.app
+					})
+					%>
+				</div>
+			</th>
+			<th class="du-tab-modified-col1 visible-sm">
+				<%= _.reduce(sortColumns, function(ret, column, columnKey) {
+					ret.push(args.sortLink({ sort: sort, invert: column.invert, label: column.short, asc: columnKey, desc: columnKey.toUpperCase(), key: 'modified', app: args.app }));
+					return ret;
+				}, []).join(' / ') %>
+			</th>
+
+			<%
+			var iCol = 1;
+			_.each(sortColumns, function(column, columnKey) {
+				%><th class="du-tab-modified-col<%-iCol++%> hidden-sm hidden-xs">
+					<%=args.sortLink({ sort: sort, invert: column.invert, label: column.long, asc: columnKey, desc: columnKey.toUpperCase(), key: 'modified', style: 'width: 100%;', app: args.app })%>
+				</th><%
+			});
+			%>
+
+			<th class="du-tab-modified-col4">
+				<%=args.sortLink({ sort: sort, label: 'Name', asc: 'a', desc: 'A', key: 'modified', style: 'width: 100%;', app: args.app })%>
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		<% _.each(args.modified, function(modifiedData) {
+			var sizePer = args.fileSize && (modifiedData.size / args.fileSize) || 0;
+			var countPer = args.fileCount && (modifiedData.files / args.fileCount) || 0;
+			%><tr>
+				<td class="<%- sort.toLowerCase() === 's' || sort.toLowerCase() === 'n' ? '' : 'hidden-sm hidden-xs' %>">
+					<%= args.progressBar({
+						percent: sizePer,
+						leftText: Math.round(sizePer * 1000) / 10 + '%',
+						rightText: args.Lang.formatBytes(modifiedData.size)
+					}) %>
+				</td>
+				<td class="<%- sort.toLowerCase() === 'c' ? '' : 'hidden-sm hidden-xs' %>" style="text-align: center;">
+					<%= args.progressBar({
+						percent: countPer,
+						leftText: Math.round(countPer * 1000) / 10 + '%',
+						rightText: args.Lang.formatNumber(modifiedData.files)
+					}) %>
+				</td>
+				<td style="overflow: hidden">
+					<%-args.modifiedGroups[modifiedData.index].label%>
+				</td>
+			</tr><%
+		}); %>
+	</tbody>
+</table>
