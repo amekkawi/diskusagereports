@@ -62,7 +62,7 @@ You may also submit issues at https://github.com/amekkawi/diskusagereports/issue
 License
 ---------------
 
-Copyright &copy; 2011-2012 André Mekkawi <license@diskusagereports.com>
+Copyright &copy; 2011-2014 André Mekkawi <license@diskusagereports.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
