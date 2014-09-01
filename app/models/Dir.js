@@ -182,6 +182,12 @@ define([
 				default:
 					return parseDir['1.0'](response);
 			}
+		},
+
+		parseAttribute: function(name, value, options) {
+			var data = {};
+			data[name] = value;
+			return this.parse(data, options)[name];
 		}
 	});
 });

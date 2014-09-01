@@ -5,9 +5,7 @@ define([
 	'components/wreqr.GetFile',
 	'components/wreqr.GetLookup',
 	'components/wreqr.GetDirectory',
-	'components/wreqr.GetSubDirs',
-	'components/wreqr.GetFiles',
-	'components/wreqr.GetGroupModified',
+	'components/wreqr.GetCollection',
 	'models/Settings',
 	'views/Loader',
 	'views/Title',
@@ -16,7 +14,7 @@ define([
 	'views/directory/Directory'
 ], function(
 	_, $, Marionette,
-	GetFile, GetLookup, GetDirectory, GetSubDirs, GetFiles, GetGroupModified,
+	GetFile, GetLookup, GetDirectory, GetCollection,
 	ModelSettings,
 	ViewLoader, ViewTitle, ViewError, ViewAjaxError, ViewDirectory
 ) {
@@ -45,9 +43,79 @@ define([
 			}), app);
 
 			app.reqres.setHandler('GetDirectory', GetDirectory, app);
-			app.reqres.setHandler('GetSubDirs', GetSubDirs, app);
-			app.reqres.setHandler('GetFiles', GetFiles, app);
-			app.reqres.setHandler('GetGroupModified', GetGroupModified, app);
+
+			app.reqres.setHandler('GetSubDirs', GetCollection({
+				attribute: 'dirs',
+				mapPrefix: 'subdirsmap',
+				segmentPrefix: 'subdirs',
+				count: 'directSubDirCount',
+				notFound: 'SUBDIRS_NOT_FOUND',
+				pagesPerSegment: 'pagesPerSubdirs',
+				sorting: {
+					n: {
+						attributes: ['name'],
+						segmentIndex: 0
+					},
+					s: {
+						attributes: ['size', 'name'],
+						defaultReverse: true,
+						segmentIndex: 1
+					},
+					c: {
+						attributes: ['fileCount', 'name'],
+						defaultReverse: true,
+						segmentIndex: 2
+					},
+					d: {
+						attributes: ['dirCount', 'name'],
+						defaultReverse: true,
+						segmentIndex: 3
+					}
+				}
+			}), app);
+
+			app.reqres.setHandler('GetFiles', GetCollection({
+				attribute: 'files',
+				mapPrefix: 'filesmap',
+				segmentPrefix: 'files',
+				count: 'directFileCount',
+				notFound: 'FILES_NOT_FOUND',
+				pagesPerSegment: 'pagesPerFiles',
+				sorting: {
+					n: {
+						attributes: ['name'],
+						segmentIndex: 0
+					},
+					s: {
+						attributes: ['size', 'name'],
+						defaultReverse: true,
+						segmentIndex: 1
+					},
+					m: {
+						attributes: ['date', 'time', 'name'],
+						segmentIndex: 2
+					}
+				}
+			}), app);
+
+			app.reqres.setHandler('GetGroupModified', GetCollection({
+				attribute: 'modifiedDates',
+				mapPrefix: 'modifieddates',
+				notFound: 'MODIFIED_NOT_FOUND',
+				sorting: {
+					a: {
+						attributes: ['index']
+					},
+					s: {
+						attributes: ['size', 'index'],
+						defaultReverse: true
+					},
+					c: {
+						attributes: ['files', 'index'],
+						defaultReverse: true
+					}
+				}
+			}), app);
 
 			// General file fetching.
 			app.reqres.setHandler('GetFile', GetFile(), app);
