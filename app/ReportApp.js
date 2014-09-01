@@ -20,7 +20,7 @@ define([
 ) {
 	'use strict';
 
-	var routeSortKeys =     ['dirs', 'files', 'modified', 'size', 'ext', 'top'];
+	var routeSortKeys =     ['dirs', 'files', 'modified', 'sizes', 'ext', 'top'];
 	var routeSortValues =   ['nscd', 'ntsm',  'asc',      'rsc',  'esc', 'ntsmp'];
 	var routeSortDefaults = ['s',    's',     's',        's',    's',   's'];
 
@@ -104,6 +104,25 @@ define([
 				notFound: 'MODIFIED_NOT_FOUND',
 				sorting: {
 					a: {
+						attributes: ['index']
+					},
+					s: {
+						attributes: ['size', 'index'],
+						defaultReverse: true
+					},
+					c: {
+						attributes: ['files', 'index'],
+						defaultReverse: true
+					}
+				}
+			}), app);
+
+			app.reqres.setHandler('GetGroupSizes', GetCollection({
+				attribute: 'fileSizes',
+				mapPrefix: 'filesizes',
+				notFound: 'SIZES_NOT_FOUND',
+				sorting: {
+					r: {
 						attributes: ['index']
 					},
 					s: {
