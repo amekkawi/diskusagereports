@@ -22,7 +22,7 @@ define([
 
 	var routeSortKeys =     ['dirs', 'files', 'modified', 'sizes', 'ext', 'top'];
 	var routeSortValues =   ['nscd', 'ntsm',  'asc',      'rsc',  'esc', 'ntsmp'];
-	var routeSortDefaults = ['s',    's',     's',        's',    's',   's'];
+	var routeSortDefaults = ['s',    's',     'a',        'r',    's',   's'];
 
 	var routeDefault = _.zipObject(routeSortKeys, routeSortDefaults);
 
