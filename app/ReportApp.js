@@ -21,7 +21,7 @@ define([
 	'use strict';
 
 	var routeSortKeys =     ['dirs', 'files', 'modified', 'sizes', 'ext', 'top'];
-	var routeSortValues =   ['nscd', 'ntsm',  'asc',      'rsc',   'esc', 'ntsmp'];
+	var routeSortValues =   ['nscd', 'ntsm',  'asc',      'rsc',   'esc', 'nsp'];
 	var routeSortDefaults = ['s',    's',     'a',        'r',     's',   's'];
 
 	var routeDefault = _.zipObject(routeSortKeys, routeSortDefaults);
@@ -132,6 +132,24 @@ define([
 					c: {
 						attributes: ['files', 'index'],
 						defaultReverse: true
+					}
+				}
+			}), app);
+
+			app.reqres.setHandler('GetGroupTop', GetCollection({
+				attribute: 'top',
+				mapPrefix: 'topmap',
+				notFound: 'TOP_NOT_FOUND',
+				sorting: {
+					n: {
+						attributes: ['name']
+					},
+					s: {
+						attributes: ['size', 'name'],
+						defaultReverse: true
+					},
+					p: {
+						attributes: ['path', 'name']
 					}
 				}
 			}), app);

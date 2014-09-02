@@ -11,11 +11,12 @@ define([
 	'views/directory/TabDirs',
 	'views/directory/TabFiles',
 	'views/directory/TabModified',
-	'views/directory/TabSizes'
+	'views/directory/TabSizes',
+	'views/directory/TabTop'
 ], function(
 	_, Marionette, RegionMulti, Template,
 	Basename, Breadcrumb, SummarySize, SummaryCount, Tabs,
-	TabDirs, TabFiles, TabModified, TabSizes
+	TabDirs, TabFiles, TabModified, TabSizes, TabTop
 ) {
 	'use strict';
 
@@ -77,6 +78,9 @@ define([
 					break;
 				case 'sizes':
 					tabView = TabSizes;
+					break;
+				case 'top':
+					tabView = TabTop;
 					break;
 			}
 

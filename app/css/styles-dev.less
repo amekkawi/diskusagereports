@@ -71,6 +71,11 @@ body {
 	}
 }
 
+.du-filepath {
+	word-break: break-all;
+	font-size: 92%;
+}
+
 .du-sortlink {
 	display: inline-block;
 
@@ -185,6 +190,23 @@ body {
 .du-tab-modified-col4,
 .du-tab-sizes-col4 {
 	width: 73%;
+}
+
+.du-tab-top-col1 {
+	width: 13.5%;
+	text-align: center;
+
+	.dropdown-link {
+		display: block;
+	}
+
+	.dropdown-menu li {
+		text-align: left;
+	}
+}
+
+.du-tab-top-col2 {
+	width: 86.5%;
 }
 
 .du-title {
@@ -312,20 +334,30 @@ body {
 	.du-tab-files-col4 {
 		width: 75%;
 	}
+
+	.du-tab-top-col1 {
+		width: 20%;
+	}
+
+	.du-tab-top-col2 {
+		width: 80%;
+	}
 }
 
 @media (max-width: @screen-xs) {
 	.du-tab-dirs-col1,
 	.du-tab-files-col1,
 	.du-tab-modified-col1,
-	.du-tab-sizes-col1 {
+	.du-tab-sizes-col1,
+	.du-tab-top-col1 {
 		width: 30%;
 	}
 
 	.du-tab-dirs-col4,
 	.du-tab-files-col4,
 	.du-tab-modified-col4,
-	.du-tab-sizes-col4 {
+	.du-tab-sizes-col4,
+	.du-tab-top-col2 {
 		width: 70%;
 	}
 }

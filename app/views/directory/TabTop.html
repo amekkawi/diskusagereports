@@ -1,0 +1,63 @@
+<%
+var ariaId;
+var defaultSort = 's';
+var sort = args.route.sort.top;
+var sortColumns = {
+	s: {
+		long: 'Disk Size',
+		short: 'Size',
+		invert: true
+	}
+};
+%>
+<table border="0" class="table table-rigid">
+	<thead>
+	<tr>
+		<th class="du-tab-top-col1 visible-xs">
+			<%=args.sortLink({ sort: sort, invert: true, label: 'Size', asc: 's', desc: 'S', key: 'top', style: 'width: 100%;', app: args.app })%>
+		</th>
+
+		<th class="du-tab-top-col1 hidden-xs">
+			<%=args.sortLink({ sort: sort, invert: true, label: 'Disk Size', asc: 's', desc: 'S', key: 'top', style: 'width: 100%;', app: args.app })%>
+		</th>
+
+		<th class="du-tab-top-col2">
+			<%=args.sortLink({ sort: sort, label: 'Name', asc: 'n', desc: 'N', key: 'top', style: '', app: args.app })%>
+			/ <%=args.sortLink({ sort: sort, label: 'Path', asc: 'p', desc: 'P', key: 'top', style: '', app: args.app })%>
+			<% if (args.maxPage > 1) { %>
+			<div style="position: relative;">
+				<ul class="pagination pagination-sm" style="margin: 0; position: absolute; right: 0; bottom: -6px;">
+					<li class="<%-args.page === 1 ? 'disabled' : ''%>"><a href="#<%-args.app.buildRouteUrl({ page: Math.max(1, args.page - 1) })%>"><span class="glyphicon glyphicon-chevron-left"></span></a></li>
+					<li class=""><a href="javascript:;" style="font-weight: normal;"><%-args.page%> of <%-args.maxPage%></a></li>
+					<li class="<%-args.page === args.maxPage ? 'disabled' : ''%>"><a href="#<%-args.app.buildRouteUrl({ page: Math.min(args.maxPage, args.page + 1) })%>"><span class="glyphicon glyphicon-chevron-right"></span></a></li>
+				</ul>
+			</div>
+			<% } %>
+		</th>
+	</tr>
+	</thead>
+	<tbody>
+	<% _.each(args.top, function(file) {
+		var sizePer = args.fileSize && (file.size / args.fileSize) || 0;
+		%><tr>
+			<td>
+				<%= args.progressBar({
+					percent: sizePer,
+					leftText: Math.round(sizePer * 1000) / 10 + '%',
+					rightText: args.Lang.formatBytes(file.size)
+				}) %>
+			</td>
+			<td style="overflow: hidden">
+				<%-file.name%>
+				<div class="du-filepath"><a href="#<%-args.app.buildRouteUrl({ hash: file.parent, page: 1 })%>"><%-file.path%></a></div>
+			</td>
+		</tr><%
+	}); %>
+	</tbody>
+</table>
+
+<% if (args.maxPage > 1) { %>
+<div style="text-align: center;">
+	<%=args.pagination(_.pick(args, ['page','maxPage','app']))%>
+</div>
+<% } %>
