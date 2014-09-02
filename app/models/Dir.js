@@ -154,6 +154,25 @@ define([
 				}
 			});
 
+			// Normalize the top files group.
+			if (_.has(dir, 'top')) {
+				var top = dir.top;
+
+				if (typeof top === 'string' || typeof top === 'number') {
+					dir.topMap = ''+top;
+					delete dir.top;
+				} else {
+					dir.top = _.map(top, function(file) {
+						return {
+							name: file[0],
+							size: file[1],
+							path: file[2],
+							parent: file[3]
+						};
+					});
+				}
+			}
+
 			return dir;
 		},
 		'1.0': function(dir) {
