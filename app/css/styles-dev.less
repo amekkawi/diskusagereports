@@ -26,6 +26,31 @@ body {
 	margin-top: 50px;
 }
 
+.du-tabs {
+	.glyphicon {
+		margin-right: 5px;
+	}
+	.glyphicon-folder-open {
+		margin-right: 8px;
+	}
+}
+
+@media (max-width: @screen-xs) {
+	.du-tabs .glyphicon {
+		margin-right: 0;
+	}
+}
+
+@media (min-width: (550px)) and (max-width: @screen-sm) {
+	.du-tabs-label {
+		display: none !important;
+
+		.du-tabs li.active & {
+			display: inline !important;
+		}
+	}
+}
+
 .du-detail {
 	.table-rigid {
 		table-layout: fixed;

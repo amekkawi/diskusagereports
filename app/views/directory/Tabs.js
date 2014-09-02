@@ -6,12 +6,12 @@ define([
 	'use strict';
 
 	var tabs = [
-		{ route: 'dirs', lang: 'tab_dirs', isDefault: true },
-		{ route: 'files', lang: 'tab_files' },
-		{ route: 'modified', lang: 'tab_modified' },
-		{ route: 'sizes', lang: 'tab_sizes' },
-		{ route: 'ext', lang: 'tab_ext' },
-		{ route: 'top', lang: 'tab_top' }
+		{ route: 'dirs', lang: 'tab_dirs', icon: 'folder-open', isDefault: true },
+		{ route: 'files', lang: 'tab_files', icon: 'file' },
+		{ route: 'modified', lang: 'tab_modified', icon: 'time' },
+		{ route: 'sizes', lang: 'tab_sizes', icon: 'hdd' },
+		//{ route: 'ext', lang: 'tab_ext', icon: 'asterisk' },
+		{ route: 'top', lang: 'tab_top', icon: 'signal' }
 	];
 
 	return Marionette.ItemView.extend({
