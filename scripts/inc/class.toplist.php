@@ -12,13 +12,15 @@ class TopList implements IKeyedJSON {
 		if ($info->size > $this->lower || count($this->list) < $this->max) {
 
 			// Add the new item and sort the list.
-			$json = array(
-				$info->getEncodedBasename(),
+			$this->list[] = array(
 				$info->size,
-				$info->dirname,
-				$info->getParent()->hash
+				'['
+					. $info->getEncodedBasename()
+					. ',' . json_encode($info->size)
+					. ',' . json_encode($info->dirname)
+					. ',' . json_encode($info->getParent()->hash)
+				. ']'
 			);
-			$this->list[] = array($info->size, json_encode($json));
 			usort($this->list, array($this, 'compare'));
 
 			// Pop off the last item if too large.
