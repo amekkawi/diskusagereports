@@ -166,14 +166,24 @@ define([
 		}
 	};
 
-	return Model.extend({
+	return Model.extend(/** @lends Dir.prototype */{
 
-		url: function() {
-			if (!this.urlRoot)
-				this.urlRoot = this.settings.urlRoot;
-			return Model.prototype.url.apply(this, arguments) + this.settings.suffix;
-		},
+		/**
+		 * Backbone model for directory data.
+		 *
+		 * @extends {Model}
+		 * @constructs
+		 * @name Dir
+		 */
 
+		/**
+		 * Parse the JSON for a directory.
+		 *
+		 * @param {Object} response The JSON for the directory.
+		 * @param {Object} [options]
+		 * @param {Settings} [options.settings]
+		 * @returns {*}
+		 */
 		parse: function(response, options) {
 			var settings = this.settings || options.settings;
 			switch (settings.get('version')) {
@@ -184,6 +194,15 @@ define([
 			}
 		},
 
+		/**
+		 * Parse the JSON for a single attribute.
+		 *
+		 * @param {String} name
+		 * @param value
+		 * @param {Object} [options]
+		 * @param {Settings} [options.settings]
+		 * @returns {*}
+		 */
 		parseAttribute: function(name, value, options) {
 			var data = {};
 			data[name] = value;
