@@ -56,7 +56,7 @@ var sortColumns = {
 			var sizePer = args.fileSize && (sizesData.size / args.fileSize) || 0;
 			var countPer = args.fileCount && (sizesData.files / args.fileCount) || 0;
 			%><tr>
-				<td class="<%- sort.toLowerCase() === 's' || sort.toLowerCase() === 'n' ? '' : 'hidden-sm hidden-xs' %>">
+				<td class="<%- sort.toLowerCase() === 's' || sort.toLowerCase() === 'r' ? '' : 'hidden-sm hidden-xs' %>">
 					<%= args.progressBar({
 						percent: sizePer,
 						leftText: Math.round(sizePer * 1000) / 10 + '%',
