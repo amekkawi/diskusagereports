@@ -69,7 +69,10 @@ define(function(){
 			message_settings_304: 'The settings file for the report is corrupted or is not JSON.',
 			message_settings_404: 'The report was not found.<br>Verify that the web address is correct and refresh to try again.',
 			message_settings_timeout: 'The settings file timed out while trying to load.<br>Check your internet connection and refresh to try again.',
-			message_settings_invalid: 'The settings file for the report has invalid values.'
+			message_settings_invalid: 'The settings file for the report has invalid values.',
+
+			message_no_data: 'This information is not available at this directory depth.',
+			message_not_found: 'Contents could not be loaded.'
 		}
 	};
 });

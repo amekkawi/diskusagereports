@@ -72,6 +72,10 @@ define([
 		else if (dir.get(attribute + 'Segments') != null) {
 			getFromSegments.call(this, deferred, dir, sort, perPage, page, maxPage, options);
 		}
+
+		else {
+			deferred.rejectWith(app, [ 'NO_DATA' ]);
+		}
 	}
 
 	function getFromMap(deferred, dir, mapId, sort, perPage, page, options) {
@@ -87,7 +91,7 @@ define([
 					deferred.resolveWith(app, [sortAndSlice(data, sort, perPage === false ? data.length : perPage, page, options)]);
 				}
 				else
-					deferred.rejectWith(app, [ options.notFound ]);
+					deferred.rejectWith(app, [ 'NOT_FOUND' ]);
 			})
 			.fail(function() {
 				deferred.rejectWith(app, Array.prototype.slice.call(arguments, 0));

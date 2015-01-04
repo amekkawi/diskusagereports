@@ -16,6 +16,31 @@ html {
 	max-width: none !important;
 }
 
+.du-loading {
+	background-image: url(../images/ajax-loader.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+
+	span& {
+		display: inline-block;
+		width: 26px;
+		height: 26px;
+	}
+}
+
+.du-mesage-info, .du-mesage-error {
+	font-size: 125%;
+	margin: 10px 0;
+	background-color: #EEE;
+	color: #444;
+	padding: 8px 12px;
+}
+
+.du-mesage-error {
+	background-color: #FEE;
+	color: #600;
+}
+
 @media (min-width: @screen-md) {
 	.container {
 		//margin: 0 20px;

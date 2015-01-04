@@ -12,7 +12,19 @@ define([
 	return Marionette.ItemView.extend({
 
 		className: 'du-tab-top',
-		template: Template,
+
+		template: function(args) {
+			if (args.top === 'loading')
+				return '<div class="du-loading" style="height: 24px; margin-top: 16px;"></div>';
+
+			else if (args.top === 'NOT_FOUND')
+				return '<div class="du-mesage-error"><span class="glyphicon glyphicon-exclamation-sign"></span> ' + Lang.message_not_found + '</div>';
+
+			else if (args.top === 'NO_DATA')
+				return '<div class="du-mesage-info"><span class="glyphicon glyphicon-info-sign"></span> ' + Lang.message_no_data + '</div>';
+
+			return Template.apply(this, arguments);
+		},
 
 		constructor: function(options) {
 			if (options)
@@ -29,6 +41,9 @@ define([
 
 			var app = this.app;
 			var route = this.route || app.getRoute();
+
+			this.top = 'loading';
+
 			app.request('GetGroupTop', dir, route.sort.top, route.page)
 				.done(function(data) {
 					_this.top = data;
@@ -36,9 +51,11 @@ define([
 					if (_this._isRendered)
 						_this.render();
 				})
-				.fail(function() {
-					// TODO: Show error message.
-					console.log('GetGroupTop fail', arguments);
+				.fail(function(reason) {
+					_this.top = reason;
+
+					if (_this._isRendered)
+						_this.render();
 				});
 		},
 

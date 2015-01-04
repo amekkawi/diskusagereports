@@ -38,8 +38,7 @@ define([
 			this.setRoute();
 
 			app.reqres.setHandler('GetLookup', GetFile({
-				defaultFileName: 'dirmap_lookup',
-				errorNotFound: 'DIRMAP_NOT_FOUND'
+				defaultFileName: 'dirmap_lookup'
 			}), app);
 
 			app.reqres.setHandler('GetDirectory', GetDirectory, app);
@@ -49,7 +48,6 @@ define([
 				mapPrefix: 'subdirsmap',
 				segmentPrefix: 'subdirs',
 				count: 'directSubDirCount',
-				notFound: 'SUBDIRS_NOT_FOUND',
 				pagesPerSegment: 'pagesPerSubdirs',
 				sorting: {
 					n: {
@@ -79,7 +77,6 @@ define([
 				mapPrefix: 'filesmap',
 				segmentPrefix: 'files',
 				count: 'directFileCount',
-				notFound: 'FILES_NOT_FOUND',
 				pagesPerSegment: 'pagesPerFiles',
 				sorting: {
 					n: {
@@ -101,7 +98,6 @@ define([
 			app.reqres.setHandler('GetGroupModified', GetCollection({
 				attribute: 'modifiedDates',
 				mapPrefix: 'modifieddates',
-				notFound: 'MODIFIED_NOT_FOUND',
 				sorting: {
 					a: {
 						attributes: ['index']
@@ -120,7 +116,6 @@ define([
 			app.reqres.setHandler('GetGroupSizes', GetCollection({
 				attribute: 'fileSizes',
 				mapPrefix: 'filesizes',
-				notFound: 'SIZES_NOT_FOUND',
 				sorting: {
 					r: {
 						attributes: ['index']
@@ -139,7 +134,6 @@ define([
 			app.reqres.setHandler('GetGroupTop', GetCollection({
 				attribute: 'top',
 				mapPrefix: 'topmap',
-				notFound: 'TOP_NOT_FOUND',
 				sorting: {
 					n: {
 						attributes: ['name']

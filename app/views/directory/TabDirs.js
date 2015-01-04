@@ -13,7 +13,19 @@ define([
 	return Marionette.ItemView.extend({
 
 		className: 'du-tab-dirs',
-		template: Template,
+
+		template: function(args) {
+			if (args.dirs === 'loading')
+				return '<div class="du-loading" style="height: 24px; margin-top: 16px;"></div>';
+
+			else if (args.dirs === 'NOT_FOUND')
+				return '<div class="du-mesage-error"><span class="glyphicon glyphicon-exclamation-sign"></span> ' + Lang.message_not_found + '</div>';
+
+			else if (args.dirs === 'NO_DATA')
+				return '<div class="du-mesage-info"><span class="glyphicon glyphicon-info-sign"></span> ' + Lang.message_no_data + '</div>';
+
+			return Template.apply(this, arguments);
+		},
 
 		constructor: function(options) {
 			if (options)
@@ -30,6 +42,9 @@ define([
 
 			var app = this.app;
 			var route = this.route || app.getRoute();
+
+			this.dirs = 'loading';
+
 			app.request('GetSubDirs', dir, route.sort.dirs, route.page)
 				.done(function(subDirs) {
 					_this.dirs = subDirs;
@@ -37,9 +52,11 @@ define([
 					if (_this._isRendered)
 						_this.render();
 				})
-				.fail(function() {
-					// TODO: Show error message.
-					console.log('GetFile subdirsmap fail', arguments);
+				.fail(function(reason) {
+					_this.dirs = reason;
+
+					if (_this._isRendered)
+						_this.render();
 				});
 		},
 

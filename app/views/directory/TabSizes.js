@@ -12,7 +12,19 @@ define([
 	return Marionette.ItemView.extend({
 
 		className: 'du-tab-sizes',
-		template: Template,
+
+		template: function(args) {
+			if (args.sizes === 'loading')
+				return '<div class="du-loading" style="height: 24px; margin-top: 16px;"></div>';
+
+			else if (args.sizes === 'NOT_FOUND')
+				return '<div class="du-mesage-error"><span class="glyphicon glyphicon-exclamation-sign"></span> ' + Lang.message_not_found + '</div>';
+
+			else if (args.sizes === 'NO_DATA')
+				return '<div class="du-mesage-info"><span class="glyphicon glyphicon-info-sign"></span> ' + Lang.message_no_data + '</div>';
+
+			return Template.apply(this, arguments);
+		},
 
 		constructor: function(options) {
 			if (options)
@@ -29,6 +41,9 @@ define([
 
 			var app = this.app;
 			var route = this.route || app.getRoute();
+
+			this.sizes = 'loading';
+
 			app.request('GetGroupSizes', dir, route.sort.sizes, route.page)
 				.done(function(data) {
 					_this.sizes = data;
@@ -36,9 +51,11 @@ define([
 					if (_this._isRendered)
 						_this.render();
 				})
-				.fail(function() {
-					// TODO: Show error message.
-					console.log('GetGroupSizes fail', arguments);
+				.fail(function(reason) {
+					_this.sizes = reason;
+
+					if (_this._isRendered)
+						_this.render();
 				});
 		},
 
