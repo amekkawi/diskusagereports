@@ -412,7 +412,7 @@ class FileInfo {
 	protected $options;
 
 	/**
-	 * @var $parent DirInfo
+	 * @var DirInfo
 	 */
 	protected $parent = null;
 

@@ -12,12 +12,12 @@
 class CollectionOutput implements ICollectionIO {
 
 	/**
-	 * @var $report Report
+	 * @var Report
 	 */
 	protected $report;
 
 	/**
-	 * @var $saveHandler ISaveWatcher
+	 * @var ISaveWatcher
 	 */
 	protected $saveHandler;
 
@@ -65,12 +65,12 @@ class SingleSortOutput extends CollectionOutput implements ICollectionOutput {
 class MultiSortOutput implements ICollectionOutput {
 
 	/**
-	 * @var $report Report
+	 * @var Report
 	 */
 	protected $report;
 
 	/**
-	 * @var $saveHandler ISaveWatcher
+	 * @var ISaveWatcher
 	 */
 	protected $saveHandler;
 
