@@ -20,9 +20,6 @@ class HeaderException extends Exception {
 	const UNSUPPORTED_SCAN_VERSION = 'UNSUPPORTED_SCAN_VERSION';
 	const INVALID_COLUMN_SEPARATOR = 'INVALID_COLUMN_SEPARATOR';
 	const INVALID_DIR_SEPARATOR = 'INVALID_DIR_SEPARATOR';
-	const INVALID_SETTING = 'INVALID_SETTING';
-	const UNKNOWN_SETTING = 'UNKNOWN_SETTING';
-	const MISSING_SETTING = 'MISSING_SETTING';
 	const INVALID_CHARACTERS = 'INVALID_CHARACTERS';
 	const UNEXPECTED_HEADER = 'UNEXPECTED_HEADER';
 
@@ -38,6 +35,10 @@ class HeaderException extends Exception {
  * An exception thrown when a setting in the scan file's header is invalid.
  */
 class HeaderSettingException extends HeaderException {
+
+	const INVALID_SETTING = 'INVALID_SETTING';
+	const UNKNOWN_SETTING = 'UNKNOWN_SETTING';
+	const MISSING_SETTING = 'MISSING_SETTING';
 
 	/**
 	 * @var string The name of the setting.

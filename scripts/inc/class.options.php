@@ -325,22 +325,22 @@ class Options {
 				switch ($setting[0]) {
 					case "basename":
 						if (!$hasValue)
-							throw new HeaderSettingException(HeaderException::INVALID_SETTING, $setting[0]);
+							throw new HeaderSettingException(HeaderSettingException::INVALID_SETTING, $setting[0]);
 						break;
 					case "dirname":
 						if (!$hasValue)
-							throw new HeaderSettingException(HeaderException::INVALID_SETTING, $setting[0]);
+							throw new HeaderSettingException(HeaderSettingException::INVALID_SETTING, $setting[0]);
 						break;
 					case "datetimeformat":
 						if (!$hasValue || $setting[1] !== 'timestamp')
-							throw new HeaderSettingException(HeaderException::INVALID_SETTING, $setting[0]);
+							throw new HeaderSettingException(HeaderSettingException::INVALID_SETTING, $setting[0]);
 						break;
 					case "escaped":
 						// TODO: Why are we ignoring the value?
 						$setting[1] = true;
 						break;
 					default:
-						throw new HeaderSettingException(HeaderException::UNKNOWN_SETTING, $setting[0]);
+						throw new HeaderSettingException(HeaderSettingException::UNKNOWN_SETTING, $setting[0]);
 				}
 
 				$this->$setting[0] = $setting[1];
@@ -348,7 +348,7 @@ class Options {
 		}
 
 		if (is_null($this->basename))
-			throw new HeaderSettingException(HeaderException::MISSING_SETTING, 'basename');
+			throw new HeaderSettingException(HeaderSettingException::MISSING_SETTING, 'basename');
 
 		// Rebuild the lineRegEx.
 		$this->buildLineRegEx();
