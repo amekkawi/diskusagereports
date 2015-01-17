@@ -137,6 +137,11 @@ class Report {
 	public $outSize = 0;
 
 	/**
+	 * @var MultiSortOutput[]
+	 */
+	public $subDirOutputs;
+
+	/**
 	 * @var DirInfo
 	 */
 	protected $currentDirInfo = null;
