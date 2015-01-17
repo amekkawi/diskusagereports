@@ -172,9 +172,8 @@ try {
 					$options->setMaxTempKB(intval($cliarg));
 					break;
 
-				/** @noinspection PhpMissingBreakStatementInspection */
 				case '-':
-					if ($options->getReportDirectory() !== null && $options->getScanFile() !== null) {
+					if ($options->getReportDirectory() !== null && $scanFile !== null) {
 						fwrite($stdErr, "Unexpected argument: $cliarg\n" . $syntax);
 						fclose($stdErr);
 						exit(1);
@@ -182,6 +181,8 @@ try {
 					elseif ($cliarg = array_shift($cliargs) === null) {
 						continue;
 					}
+					break;
+
 				default:
 					if ($options->getReportDirectory() === null) {
 						$options->setReportDirectory($cliarg);
