@@ -9,40 +9,56 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
+/**
+ * Support for identifying this object by a key.
+ */
 interface IKeyed {
+
 	/**
+	 * Get the key that identifies this object in a collection.
 	 * @return string
 	 */
 	public function getKey();
 
 	/**
+	 * Set the key that identifies this object in a collection.
 	 * @param string $key
 	 */
 	public function setKey($key);
 }
 
+/**
+ * Support for serializing the contents of this object to JSON.
+ */
 interface IJSON {
+
 	/**
-	 * @return string The stringified JSON.
+	 * Get the stringified JSON for this object.
+	 * @return string
 	 */
 	public function toJSON();
 
 	/**
-	 * @return int The estimated size of the JSON.
-	 *             Returns false if it cannot be converted to JSON.
+	 * Get the estimated size of the JSON, or false if it cannot be converted to JSON.
+	 * @return int|bool
 	 */
 	public function getJSONSize();
 }
 
+/**
+ * Support for identifying this object by key and serializing its contents to JSON.
+ */
 interface IKeyedJSON extends IKeyed, IJSON {
 
 }
 
+/**
+ * Support for comparing two objects.
+ */
 interface IComparator {
 	/**
 	 * @param mixed $a
 	 * @param mixed $b
-	 *
 	 * @return int A negative number if $a < $b.
 	 *             A positive number if $a > $b.
 	 *             Zero (0) if $a == $b.
@@ -50,6 +66,9 @@ interface IComparator {
 	public function compare($a, $b);
 }
 
+/**
+ * Support for IO actions performed by collections.
+ */
 interface ICollectionIO {
 
 	/**
@@ -59,7 +78,6 @@ interface ICollectionIO {
 	 * @param int    $index
 	 * @param string $suffix
 	 * @param string $mode
-	 *
 	 * @return FileStream
 	 */
 	public function openFile($prefix, $index, $suffix, $mode);
@@ -81,7 +99,6 @@ interface ICollectionIO {
 	 * @param string $prefix
 	 * @param int    $index
 	 * @param string $suffix
-	 *
 	 * @return boolean
 	 */
 	public function deleteFile($prefix, $index, $suffix);
@@ -93,7 +110,6 @@ interface ICollectionIO {
 	 * @param string $prefix
 	 * @param int    $index
 	 * @param string $suffix
-	 *
 	 * @return boolean
 	 */
 	public function renameTo($fromPath, $prefix, $index, $suffix);
@@ -103,6 +119,9 @@ interface ICollectionOutput extends ICollectionIO, IComparator {
 
 }
 
+/**
+ * Interface for classes that listens to writing collection files to disk.
+ */
 interface ISaveWatcher {
 
 	/**
@@ -112,9 +131,7 @@ interface ISaveWatcher {
 	 * @param int|null   $sortIndex The sorting group that is being saved. Null if there are no sort groups.
 	 * @param array|null $firstItem The first item in the collection.
 	 * @param array|null $lastItem  The last item in the collection.
-	 * @param            $path      Path of the file saved.
-	 *
-	 * @return mixed
+	 * @param string     $path      Path of the file saved.
 	 */
 	public function onSave($index, $sortIndex, $firstItem, $lastItem, $path);
 }
