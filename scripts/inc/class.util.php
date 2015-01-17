@@ -78,14 +78,6 @@ class Util {
 		return UTIL_IS_LARGE_INT ? intval($num) : floatval($num);
 	}
 
-	public static function BigAdd($a, $b) {
-		return self::BigVal($a) + self::BigVal($b);
-	}
-
-	public static function BigComp($a, $b) {
-		return self::BigVal($a) - self::BigVal($b);
-	}
-
 	public static function BinarySearch($list, $needle, $comparator) {
 		$low = 0;
 		$high = count($list) - 1;
