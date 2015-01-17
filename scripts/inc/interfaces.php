@@ -108,8 +108,8 @@ interface ISaveWatcher {
 	/**
 	 * Fired when a sorted collection file is saved to disk.
 	 *
-	 * @param int        $index
-	 * @param int        $sortIndex
+	 * @param int        $index     The file's index number.
+	 * @param int|null   $sortIndex The sorting group that is being saved. Null if there are no sort groups.
 	 * @param array|null $firstItem The first item in the collection.
 	 * @param array|null $lastItem  The last item in the collection.
 	 * @param            $path      Path of the file saved.

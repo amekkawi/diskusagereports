@@ -14,15 +14,30 @@
  */
 class RangeLookup implements ISaveWatcher {
 
+	/**
+	 * @var array
+	 */
 	public $ranges = array();
+
+	/**
+	 * @var int The number of range groupings.
+	 */
 	protected $subRanges;
 
+	/**
+	 * Construct a RangeLookup.
+	 *
+	 * @param int $subRanges The number of sort groups that range lookups will be created for. See {@link ISaveWatcher::onSave}'s $sortIndex.
+	 */
 	function __construct($subRanges = 0) {
 		$this->subRanges = $subRanges;
 		if ($subRanges > 0)
 			$this->ranges = array_fill(0, $subRanges, array());
 	}
 
+	/**
+	 * @inheritdoc
+	 */
 	public function onSave($index, $sortIndex, $firstItem, $lastItem, $path) {
 		$range = array(
 			$sortIndex === null ? $firstItem[0] : $firstItem[0][$sortIndex],
@@ -44,41 +59,17 @@ class RangeLookup implements ISaveWatcher {
 	 * For example, it changes...
 	 *
 	 * array(
-	 *   array(
-	 *     'Apartments',
-	 *     'Apple',
-	 *     1
-	 *   ),
-	 *   array(
-	 *     'Apollo',
-	 *     'Bobbles',
-	 *     2
-	 *   ),
-	 *   array(
-	 *     'Copper',
-	 *     'Helix',
-	 *     3
-	 *   ),
+	 *   array('Apartments', 'Apple', 1),
+	 *   array('Apollo', 'Bobbles', 2),
+	 *   array('Copper', 'Helix', 3),
 	 * )
 	 *
 	 * ... to ...
 	 *
 	 * array(
-	 *   array(
-	 *     'Apa',
-	 *     'App',
-	 *     1
-	 *   ),
-	 *   array(
-	 *     'Apo',
-	 *     'B',
-	 *     2
-	 *   ),
-	 *   array(
-	 *     'C',
-	 *     'H',
-	 *     3
-	 *   ),
+	 *   array('Apa', 'App', 1),
+	 *   array('Apo', 'B', 2),
+	 *   array('C', 'H', 3),
 	 * )
 	 *
 	 * @return array
@@ -95,6 +86,12 @@ class RangeLookup implements ISaveWatcher {
 		return $ret;
 	}
 
+	/**
+	 * Internal method that reduces a range (or sub-range).
+	 *
+	 * @param $ranges
+	 * @return array
+	 */
 	protected function reduce($ranges) {
 		$ret = array();
 		for ($ri = 0, $rl = count($ranges); $ri < $rl; $ri++) {
@@ -136,6 +133,9 @@ class RangeLookup implements ISaveWatcher {
 	}
 }
 
+/**
+ * Generates a report.
+ */
 class Report {
 
 	/**
@@ -144,7 +144,7 @@ class Report {
 	public $options;
 
 	/**
-	 * @var RangeLookup
+	 * @var RangeLookup Lookup for the directory mapping files.
 	 */
 	protected $directoryLookup;
 
@@ -182,7 +182,14 @@ class Report {
 	 */
 	public $modifiedDatesMap;
 
+	/**
+	 * @var int Number of report files written to disk.
+	 */
 	public $outFiles = 0;
+
+	/**
+	 * @var int Total size of report files written to disk.
+	 */
 	public $outSize = 0;
 
 	/**
@@ -191,17 +198,25 @@ class Report {
 	public $subDirOutputs;
 
 	/**
-	 * @var DirInfo
+	 * @var DirInfo The current directory being processed.
 	 */
 	protected $currentDirInfo = null;
 
+	/**
+	 * @var bool Whether or not the header is allowed at this point.
+	 */
 	protected $headerAllowed = true;
 
+	/**
+	 * Constructs a Report.
+	 *
+	 * @param Options $options
+	 */
 	public function __construct(Options $options) {
 		$this->options = $options;
 
+		// Storage and lookup for directory entries.
 		$this->directoryLookup = new RangeLookup();
-
 		$this->directoryList = new LargeCollection(array(
 			new SingleSortOutput($this, $this->directoryLookup)
 		), array(
@@ -212,6 +227,7 @@ class Report {
 			'maxTempSize' => $this->options->getMaxTempKB() * 1024
 		));
 
+		// Sort groupings for sub-directory collections.
 		$this->subDirOutputs = array(
 			new MultiSortOutput($this, 0, 'name'),
 			new MultiSortOutput($this, 1, 'size', array('reverseSort' => true, 'secondarySortIndexes' => array(0), 'reverseSecondarySortIndexes' => false)),
@@ -229,6 +245,7 @@ class Report {
 			)
 		);
 
+		// Sort groupings for file collections.
 		$this->fileListOutputs = array(
 			new MultiSortOutput($this, 0, 'name'),
 			new MultiSortOutput($this, 1, 'size', array('reverseSort' => true, 'secondarySortIndexes' => array(0), 'reverseSecondarySortIndexes' => false)),
