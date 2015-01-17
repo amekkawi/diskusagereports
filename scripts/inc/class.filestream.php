@@ -9,6 +9,9 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
+/**
+ * Exception thrown by {@link FileStream}.
+ */
 class IOException extends Exception {
 
 	/**
@@ -16,12 +19,18 @@ class IOException extends Exception {
 	 */
 	protected $writer;
 
+	/**
+	 * Construct the exception.
+	 * @param string     $message
+	 * @param FileStream $writer
+	 */
 	public function __construct($message = "", FileStream $writer) {
 		parent::__construct($message);
 		$this->writer = $writer;
 	}
 
 	/**
+	 * Get the stream for the exception.
 	 * @return FileStream
 	 */
 	public function getWriter() {
@@ -29,6 +38,9 @@ class IOException extends Exception {
 	}
 }
 
+/**
+ * File reader and writer utility class.
+ */
 class FileStream {
 
 	/**
@@ -104,6 +116,7 @@ class FileStream {
 	 *
 	 * @return int Number of bytes written.
 	 * @throws IOException
+	 * @see fwrite
 	 */
 	public function write($string, $length = null) {
 		if ($length === null)
@@ -129,6 +142,7 @@ class FileStream {
 	 *                If there is no more data to read in the file pointer, then FALSE is returned.
 	 *
 	 * @throws IOException
+	 * @see fgets
 	 */
 	public function gets($length = null) {
 		$string = $length === null ? fgets($this->handle) : fgets($this->handle, $length);
@@ -139,15 +153,30 @@ class FileStream {
 		return $string;
 	}
 
+	/**
+	 * Flushes writes to disk.
+	 * @throws IOException
+	 * @see fflush
+	 */
 	public function flush() {
 		if (fflush($this->handle) === false)
 			throw new IOException("Failed to flush the stream.", $this);
 	}
 
+	/**
+	 * @return bool Get if the end of file has been reached.
+	 * @see feof
+	 */
 	public function eof() {
 		return feof($this->handle);
 	}
 
+	/**
+	 * Get the current position of the file pointer.
+	 * @return int
+	 * @throws IOException
+	 * @see ftell
+	 */
 	public function tell() {
 		if (($result = ftell($this->handle)) === false)
 			throw new IOException("Failed to get the current position of the file stream.", $this);
@@ -155,20 +184,42 @@ class FileStream {
 		return $result;
 	}
 
+	/**
+	 * Get information about the file.
+	 * @return array
+	 * @see fstat
+	 */
 	public function stat() {
 		return @fstat($this->handle);
 	}
 
+	/**
+	 * Rewind the file pointer to the beginning of the file.
+	 * @throws IOException
+	 * @see rewind
+	 */
 	public function rewind() {
 		if (rewind($this->handle) === false)
 			throw new IOException("Failed to rewind the file stream.", $this);
 	}
 
+	/**
+	 * Move the file pointer to a specific position in the file.
+	 * @param int $offset
+	 * @param int $whence
+	 * @throws IOException
+	 * @see fseek
+	 */
 	public function seek($offset, $whence = SEEK_SET) {
 		if (fseek($this->handle, $offset, $whence) !== 0)
 			throw new IOException("Failed to seek the file stream.", $this);
 	}
 
+	/**
+	 * Move the file pointer to the end of the file.
+	 * @throws IOException
+	 * @see fseek
+	 */
 	public function seekToEnd() {
 		$this->seek(-1, SEEK_END);
 	}
@@ -190,6 +241,7 @@ class FileStream {
 	 * Close the file and unlink it.
 	 *
 	 * @throws IOException
+	 * @see unlink
 	 */
 	public function unlink($ignoreError = false) {
 		if ($this->isOpen)

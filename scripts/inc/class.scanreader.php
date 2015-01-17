@@ -22,6 +22,11 @@ class ScanReader {
 	 */
 	protected $report;
 
+	/**
+	 * Constructs a ScanReader.
+	 *
+	 * @param Report $report
+	 */
 	public function __construct(Report $report) {
 		$this->report = $report;
 	}

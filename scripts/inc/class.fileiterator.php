@@ -9,19 +9,69 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
+/**
+ * Iterates through lines in a {@link FileStream}.
+ */
 class FileIterator implements Iterator {
 
+	/**
+	 * @var FileStream|null
+	 */
 	protected $stream = null;
+
+	/**
+	 * @var int The number of lines read.
+	 */
+	protected $lineNum = 0;
+
+	/**
+	 * @var null|string The current line.
+	 */
+	protected $line = null;
+
+	/**
+	 * @var int The total number of bytes read.
+	 */
+	protected $readBytes = 0;
+
+	/**
+	 * @var null|int The maximum number of bytes to read from the stream. Null if it cannot be determined.
+	 */
+	protected $length = null;
+
+	/**
+	 * @var int See $options in __construct
+	 */
 	protected $readLength = 40240;
 
-	protected $lineNum = 0;
-	protected $line = null;
-	protected $readBytes = 0;
-	protected $length = null;
+	/**
+	 * @var bool See $options in __construct
+	 */
 	protected $closeOnEnd = false;
+
+	/**
+	 * @var bool See $options in __construct
+	 */
 	protected $unlinkOnEnd = false;
+
+	/**
+	 * @var bool See $options in __construct
+	 */
 	protected $unserialize = false;
 
+	/**
+	 * Create a FileIterator for the specified stream.
+	 *
+	 * <p>Options:
+	 * * $options['readLength'] See {@link FileStream::gets()}.
+	 * * $options['unserialize'] Set to true to unserialize each line.
+	 * * $options['closeOnEnd'] Set to true to close the stream once the end has been reached.
+	 * * $options['unlinkOnEnd'] Set to true to unlink (delete) the stream's file once the end has been reached. See {@link FileStream::Unlink}.
+	 *
+	 * @param FileStream $stream The stream to read from.
+	 * @param array      $options
+	 * @throws Exception
+	 */
 	public function __construct(FileStream $stream, array $options = array()) {
 		$this->stream = $stream;
 
@@ -43,18 +93,30 @@ class FileIterator implements Iterator {
 		$this->next();
 	}
 
+	/**
+	 * @return int Get the number of bytes read from the stream.
+	 */
 	public function position() {
 		return $this->readBytes;
 	}
 
+	/**
+	 * @return int|null Get the maximum number of bytes to read from the stream. Null if it cannot be determined.
+	 */
 	public function length() {
 		return $this->length;
 	}
 
+	/**
+	 * @return null|string Get the current line.
+	 */
 	public function current() {
 		return $this->line;
 	}
 
+	/**
+	 * @inheritdoc
+	 */
 	public function next() {
 		if (!$this->stream->isOpen())
 			return;
@@ -81,14 +143,23 @@ class FileIterator implements Iterator {
 		}
 	}
 
+	/**
+	 * @inheritdoc
+	 */
 	public function key() {
 		return $this->lineNum > 0 ? $this->lineNum : null;
 	}
 
+	/**
+	 * @inheritdoc
+	 */
 	public function valid() {
 		return $this->line !== null;
 	}
 
+	/**
+	 * @inheritdoc
+	 */
 	public function rewind() {
 		if ($this->lineNum == 0)
 			return;

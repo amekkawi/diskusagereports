@@ -9,6 +9,9 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
+/**
+ * Options to use when generating a report.
+ */
 class Options {
 
 	const MAX_SUPPORTED_SCAN_VERSION = 2;
@@ -173,10 +176,21 @@ class Options {
 	 */
 	protected $maxSubDirsFilePages = 2;
 
+	/**
+	 * @var array The file size summary groupings to use.
+	 * Each item in the array should have a 'label' and 'size' property.
+	 */
 	public $sizeGroups;
 
+	/**
+	 * @var array The file size summary groupings to use.
+	 * Each item in the array should have a 'label' and 'date' property.
+	 */
 	public $modifiedDateGroups;
 
+	/**
+	 * Construct an instance of Options.
+	 */
 	public function __construct() {
 		$this->buildLineRegEx();
 
@@ -230,10 +244,23 @@ class Options {
 		}
 	}
 
+	/**
+	 * Lightweight validation of a line from a scan file.
+	 *
+	 * @param $line
+	 * @return int
+	 */
 	public function isValidLine($line) {
 		return preg_match($this->lineRegEx, $line);
 	}
 
+	/**
+	 * Process a header line from a scan file and set options as necessary.
+	 *
+	 * @param $line
+	 * @throws HeaderException
+	 * @throws HeaderSettingException
+	 */
 	public function processHeader($line) {
 		if (substr($line, 1, 2) != '# ') {
 			// Process it as an old-style header.
@@ -327,6 +354,12 @@ class Options {
 		$this->buildLineRegEx();
 	}
 
+	/**
+	 * Process a header line from the scan file using the old format.
+	 *
+	 * @param $line
+	 * @throws HeaderException
+	 */
 	protected function processOldHeader($line) {
 
 		// Fail if the header is too short or too long.
@@ -369,7 +402,10 @@ class Options {
 		$this->buildLineRegEx();
 	}
 
-	// Create the regular expression to validate lines.
+	/**
+	 * Create the regular expression to validate lines.
+	 * @return string
+	 */
 	protected function buildLineRegEx() {
 		switch ($this->scanVersion) {
 			case 1:
@@ -395,8 +431,14 @@ class Options {
 		}
 	}
 
-	public function buildPath($extension) {
-		return $this->reportDirectory . DIRECTORY_SEPARATOR . $extension;
+	/**
+	 * Build the full path for a file in the generated report.
+	 *
+	 * @param string $str The path of the report file.
+	 * @return string
+	 */
+	public function buildPath($str) {
+		return $this->reportDirectory . DIRECTORY_SEPARATOR . $str;
 	}
 
 	/**
@@ -825,6 +867,11 @@ class Options {
 		return $this->maxDirMapKB;
 	}
 
+	/**
+	 * Get the stringified JSON for the settings report file.
+	 *
+	 * @return string
+	 */
 	public function toJSON() {
 		$settings = array(
 			'version' => '2.0',

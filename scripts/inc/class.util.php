@@ -12,6 +12,9 @@
 define('UTIL_IS_LARGE_INT', defined('PHP_INT_MAX') && strlen(PHP_INT_MAX.'') > 14);
 define('HAS_DATETIME', class_exists('DateTime'));
 
+/**
+ * Utility helper methods.
+ */
 class Util {
 
 	public static function Base64Number($number) {
@@ -29,6 +32,15 @@ class Util {
 		return rtrim(base64_encode($bin), '=');
 	}
 
+	/**
+	 * Explode an escaped string into an array.
+	 *
+	 * @param string $delim
+	 * @param string $str
+	 * @param int    $limit
+	 * @param string $escape
+	 * @return array
+	 */
 	public static function ExplodeEscaped($delim, $str, $limit = 0, $escape = "\\") {
 		$arr = array();
 		$index = -1;
@@ -61,6 +73,13 @@ class Util {
 		return $arr;
 	}
 
+	/**
+	 * Format a date to be in the specified format.
+	 *
+	 * @param string $date
+	 * @param string $format
+	 * @return string
+	 */
 	public static function FormatDate($date, $format) {
 		if (preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/', $date)) {
 			return $date;
@@ -74,10 +93,22 @@ class Util {
 		}
 	}
 
+	/**
+	 * Parse a string number into either an int on 64bit systems or a float on 32bit systems to give the best range.
+	 * @param $num
+	 * @return float|int
+	 */
 	public static function BigVal($num) {
 		return UTIL_IS_LARGE_INT ? intval($num) : floatval($num);
 	}
 
+	/**
+	 * Search for a needle in the list using binary search and the specified comparator.
+	 * @param array $list
+	 * @param mixed $needle
+	 * @param callable $comparator
+	 * @return int
+	 */
 	public static function BinarySearch($list, $needle, $comparator) {
 		$low = 0;
 		$high = count($list) - 1;
@@ -104,6 +135,11 @@ class Util {
 		if ($comp > 0) return -2 - $mid;
 	}
 
+	/**
+	 * Format bytes to be more human readable.
+	 * @param int $bytes
+	 * @return string
+	 */
 	public static function FormatBytes($bytes) {
 		if ($bytes >= 1024 * 1024 * 1024 * 1024)
 			return number_format($bytes / 1024 / 1024 / 1024 / 1024, 2) . ' TB';
@@ -117,6 +153,11 @@ class Util {
 			return number_format($bytes) . ' byte' . ($bytes == 1 ? '' : 's');
 	}
 
+	/**
+	 * Format a number to be more human readable.
+	 * @param int|string $num
+	 * @return string
+	 */
 	public static function FormatNumber($num) {
 		return strrev(preg_replace("/([0-9]{3})(?=[0-9])/", '$1,', strrev($num.'')));
 	}
