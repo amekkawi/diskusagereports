@@ -10,7 +10,14 @@
  */
 
 require("inc/interfaces.php");
-require("inc/exceptions.php");
+
+// Exceptions
+require('inc/exception/HeaderException.php');
+require('inc/exception/HeaderSettingException.php');
+require('inc/exception/LineException.php');
+require('inc/exception/OptionException.php');
+require('inc/exception/ScanException.php');
+
 require("inc/class.util.php");
 require("inc/class.logger.php");
 require("inc/class.options.php");
