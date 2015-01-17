@@ -10,9 +10,9 @@
  */
 
 // Interfaces
-require('inc/IKeyed.php');
-require('inc/IJSON.php');
-require('inc/IKeyedJSON.php');
+require('inc/util/IKeyed.php');
+require('inc/util/IJSON.php');
+require('inc/util/IKeyedJSON.php');
 require('inc/collection/IComparator.php');
 require('inc/collection/ICollectionIO.php');
 require('inc/collection/ICollectionOutput.php');
@@ -29,8 +29,8 @@ require('inc/exception/ScanException.php');
 require('inc/io/FileStream.php');
 require('inc/io/FileIterator.php');
 
-require('inc/Util.php');
-require('inc/Logger.php');
+require('inc/util/Util.php');
+require('inc/util/Logger.php');
 require('inc/Options.php');
 require("inc/class.largemap.php");
 require("inc/class.largecollection.php");
