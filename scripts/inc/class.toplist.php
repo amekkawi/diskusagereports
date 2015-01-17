@@ -112,5 +112,12 @@ class TopList implements IKeyedJSON {
 		return $this->getSize();
 	}
 
+	/**
+	 * @return string
+	 * @throws Exception
+	 */
+	public function save() {
+		throw new Exception(get_class($this) . ' cannot be saved.');
+	}
 
 }
