@@ -9,6 +9,9 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
+/**
+ * Detail about a directory being scanned.
+ */
 class DirInfo extends FileInfo {
 
 	/**
@@ -66,20 +69,87 @@ class DirInfo extends FileInfo {
 	 */
 	protected $subDirLookup;
 
+	/**
+	 * @var int The total number of sub-directories that are directly under this directory.
+	 */
 	public $directSubDirCount = 0;
+
+	/**
+	 * @var int The total number of sub-directories under this directory.
+	 */
 	public $subDirCount = 0;
 
+	/**
+	 * @var int The total number of files that are directly under this directory.
+	 */
 	public $directFileCount = 0;
+
+	/**
+	 * @var int The total number of files under this directory.
+	 */
 	public $subFileCount = 0;
 
+	/**
+	 * @var int The total size (in bytes) of files that are directly under this directory.
+	 */
 	public $directSize = 0;
+
+	/**
+	 * @var int The total size (in bytes) of files under this directory.
+	 */
 	public $subSize = 0;
+
+	/**
+	 * @var string
+	 * A stringified JSON
+	 * a) sub-directory list,
+	 * b) number representing the map file that contains the list,
+	 * or c) range lookup (see {@link subDirLookup}).
+	 */
 	public $dirs;
+
+	/**
+	 * @var string|null
+	 * A stringified JSON
+	 * a) files list,
+	 * b) number representing the map file that contains the list,
+	 * or c) null if files are not available at this depth.
+	 */
 	public $files;
+
+	/**
+	 * @var string|null
+	 * A stringified JSON
+	 * a) top-files list,
+	 * b) number representing the map file that contains the list,
+	 * or c) null if top-files are not available at this depth.
+	 */
 	public $top;
+
+	/**
+	 * @var string|null
+	 * A stringified JSON
+	 * a) file size summary list,
+	 * b) number representing the map file that contains the list,
+	 * or c) null if file size summaries are not available at this depth.
+	 */
 	public $fileSizes;
+
+	/**
+	 * @var string|null
+	 * A stringified JSON
+	 * a) modified date summary list,
+	 * b) number representing the map file that contains the list,
+	 * or c) null if modified date summaries are not available at this depth.
+	 */
 	public $modifiedDates;
 
+	/**
+	 * @param Report $report
+	 * @param null   $line Optionally include the line to be processed. See {@link setFromLine}.
+	 *
+	 * @throws LineException
+	 */
 	function __construct(Report $report, $line = null) {
 		parent::__construct($report);
 
@@ -357,6 +427,10 @@ class DirInfo extends FileInfo {
 		}
 	}
 
+	/**
+	 * Get the stringified JSON for this directory.
+	 * @return string
+	 */
 	public function toJSON() {
 		$parents = array();
 		/** @var $parent DirInfo */
@@ -440,6 +514,9 @@ class DirInfo extends FileInfo {
 	}
 }
 
+/**
+ * Detail about a file being scanned.
+ */
 class FileInfo {
 
 	/**
@@ -457,17 +534,54 @@ class FileInfo {
 	 */
 	protected $parent = null;
 
+	/**
+	 * @var null|string|array
+	 */
 	protected $encodedBasename = null;
 
+	/**
+	 * @var string The 'type' column from the line.
+	 */
 	public $type;
+
+	/**
+	 * @var string The 'date' column from the line.
+	 */
 	public $date;
+
+	/**
+	 * @var string The 'time' column from the line.
+	 */
 	public $time;
+
+	/**
+	 * @var int The 'size' column from the line.
+	 */
 	public $size;
+
+	/**
+	 * @var string The 'path' column from the line.
+	 */
 	public $path;
+
+	/**
+	 * @var string The 'dirname' parsed from the {@link path}.
+	 */
 	public $dirname;
+
+	/**
+	 * @var string The 'basename' parsed from the {@link path}.
+	 */
 	public $basename;
+
+	/**
+	 * @var string The 'hash' column from the line.
+	 */
 	public $hash;
 
+	/**
+	 * @param Report $report
+	 */
 	function __construct(Report $report) {
 		$this->report = $report;
 		$this->options = $report->options;
@@ -477,7 +591,6 @@ class FileInfo {
 	 * Set properties of this FileInfo from the specified line.
 	 *
 	 * @param string $line The scan file line to parse.
-	 *
 	 * @throws LineException
 	 */
 	public function setFromLine($line) {
@@ -521,6 +634,11 @@ class FileInfo {
 
 	}
 
+	/**
+	 * The basename for this item encoded to be included in JSON.
+	 *
+	 * @return array|mixed|null|string
+	 */
 	public function getEncodedBasename() {
 		if ($this->encodedBasename !== null)
 			return $this->encodedBasename;
@@ -546,10 +664,18 @@ class FileInfo {
 		return $this->parent;
 	}
 
+	/**
+	 * Set the parent {@link DirInfo} for this file.
+	 *
+	 * @param DirInfo $parent
+	 */
 	public function setParent(DirInfo $parent) {
 		$this->parent = $parent;
 	}
 
+	/**
+	 * @return string Get the stringified JSON for this file.
+	 */
 	public function toJSON() {
 		return
 			'['
