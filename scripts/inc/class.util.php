@@ -10,6 +10,7 @@
  */
 
 define('UTIL_IS_LARGE_INT', defined('PHP_INT_MAX') && strlen(PHP_INT_MAX.'') > 14);
+define('HAS_DATETIME', class_exists('DateTime'));
 
 class Util {
 
@@ -64,7 +65,7 @@ class Util {
 		if (preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/', $date)) {
 			return $date;
 		}
-		elseif (class_exists('DateTime')) {
+		elseif (HAS_DATETIME) {
 			$date = new DateTime($date);
 			return $date->format($format);
 		}
