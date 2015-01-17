@@ -9,6 +9,9 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
+/**
+ * Builds a lookup for finding items in sorted collection save files.
+ */
 class RangeLookup implements ISaveWatcher {
 
 	public $ranges = array();
@@ -34,6 +37,52 @@ class RangeLookup implements ISaveWatcher {
 			$this->ranges[] = $range;
 	}
 
+	/**
+	 * Get the range lookup data with the start/end values reduced only
+	 * what is necessary to determine if a value is in a file.
+	 *
+	 * For example, it changes...
+	 *
+	 * array(
+	 *   array(
+	 *     'Apartments',
+	 *     'Apple',
+	 *     1
+	 *   ),
+	 *   array(
+	 *     'Apollo',
+	 *     'Bobbles',
+	 *     2
+	 *   ),
+	 *   array(
+	 *     'Copper',
+	 *     'Helix',
+	 *     3
+	 *   ),
+	 * )
+	 *
+	 * ... to ...
+	 *
+	 * array(
+	 *   array(
+	 *     'Apa',
+	 *     'App',
+	 *     1
+	 *   ),
+	 *   array(
+	 *     'Apo',
+	 *     'B',
+	 *     2
+	 *   ),
+	 *   array(
+	 *     'C',
+	 *     'H',
+	 *     3
+	 *   ),
+	 * )
+	 *
+	 * @return array
+	 */
 	public function getReduced() {
 		if ($this->subRanges <= 0)
 			return $this->reduce($this->ranges);
@@ -198,6 +247,17 @@ class Report {
 		return $this->options->buildPath($extension);
 	}
 
+	/**
+	 * Process a header line from a scan file.
+	 *
+	 * The header can only be processed once and it must be before any dir/file lines are processed.
+	 *
+	 * @param string $line
+	 *
+	 * @return bool Whether the header was processed.
+	 * @throws HeaderException
+	 * @throws HeaderSettingException
+	 */
 	public function processHeader($line) {
 		if (!$this->headerAllowed)
 			return false;
@@ -209,7 +269,16 @@ class Report {
 		return true;
 	}
 
+	/**
+	 * Processes a directory entry in the scan file.
+	 *
+	 * @param DirInfo $dirInfo
+	 *
+	 * @throws ScanException
+	 */
 	public function processDirInfo(DirInfo $dirInfo) {
+
+		// Create a basic root directory if there was no header line.
 		if ($this->headerAllowed) {
 			$this->currentDirInfo = new DirInfo($this);
 			$this->currentDirInfo->init();
@@ -305,19 +374,40 @@ class Report {
 		$this->outSize += $settingsSize;
 	}
 
+	/**
+	 * Pop off directories from the current directory until the current
+	 * directory's path matches the {@link FileInfo}'s dirname.
+	 *
+	 * <p>Does the following for each popped directory:
+	 *
+	 * - Calls {@link DirInfo::onPop()} on popped directories.
+	 * - Calls {@link DirInfo::onChildPop()} on the parent of popped directories.
+	 * - Adds popped directories' JSON to the {@link directoryList}.
+	 *
+	 * @param FileInfo $fileInfo
+	 *
+	 * @throws ScanException with a message of ScanException::POPDIR_NOPARENT if no directory's path matched the FileInfo's dirname.
+	 */
 	protected function popParents(FileInfo $fileInfo) {
 		while ($this->currentDirInfo->path != $fileInfo->dirname) {
 
 			$popDir = $this->currentDirInfo;
+
+			// Set the current dir to the popped dir's parent.
+			// Fail if there is no parent.
 			if (($this->currentDirInfo = $popDir->getParent()) === null)
 				throw new ScanException(ScanException::POPDIR_NOPARENT);
 
 			if (Logger::doLevel(Logger::LEVEL_DEBUG3))
 				Logger::log("Popping dir: {$popDir->path}", Logger::LEVEL_DEBUG3);
 
+			// Alert the popped dir that it is being popped.
 			$popDir->onPop();
+
+			// Add the popped dir's JSON to the directory list.
 			$this->directoryList->add($popDir->hash, json_encode($popDir->hash) . ":" . $popDir->toJSON());
 
+			// Alert the popped dir's parent that its child has been popped.
 			$this->currentDirInfo->onChildPop($popDir);
 		}
 	}

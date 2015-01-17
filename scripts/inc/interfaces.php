@@ -40,8 +40,8 @@ interface IKeyedJSON extends IKeyed, IJSON {
 
 interface IComparator {
 	/**
-	 * @param $a
-	 * @param $b
+	 * @param mixed $a
+	 * @param mixed $b
 	 *
 	 * @return int A negative number if $a < $b.
 	 *             A positive number if $a > $b.
@@ -53,6 +53,8 @@ interface IComparator {
 interface ICollectionIO {
 
 	/**
+	 * Open a file for the given prefix, index and suffix.
+	 *
 	 * @param string $prefix
 	 * @param int    $index
 	 * @param string $suffix
@@ -63,6 +65,8 @@ interface ICollectionIO {
 	public function openFile($prefix, $index, $suffix, $mode);
 
 	/**
+	 * Fired when a file is saved to disk.
+	 *
 	 * @param int    $index
 	 * @param mixed  $firstItem
 	 * @param mixed  $lastItem
@@ -72,6 +76,8 @@ interface ICollectionIO {
 	public function onSave($index, $firstItem, $lastItem, $size, $path);
 
 	/**
+	 * Fired when a file is deleted from disk.
+	 *
 	 * @param string $prefix
 	 * @param int    $index
 	 * @param string $suffix
@@ -81,6 +87,8 @@ interface ICollectionIO {
 	public function deleteFile($prefix, $index, $suffix);
 
 	/**
+	 * Fired when a file is renamed on disk.
+	 *
 	 * @param string $fromPath
 	 * @param string $prefix
 	 * @param int    $index
@@ -96,5 +104,17 @@ interface ICollectionOutput extends ICollectionIO, IComparator {
 }
 
 interface ISaveWatcher {
+
+	/**
+	 * Fired when a sorted collection file is saved to disk.
+	 *
+	 * @param int        $index
+	 * @param int        $sortIndex
+	 * @param array|null $firstItem The first item in the collection.
+	 * @param array|null $lastItem  The last item in the collection.
+	 * @param            $path      Path of the file saved.
+	 *
+	 * @return mixed
+	 */
 	public function onSave($index, $sortIndex, $firstItem, $lastItem, $path);
 }

@@ -101,16 +101,20 @@ class DirInfo extends FileInfo {
 		$report = $this->report;
 		$options = $this->options;
 
+		// Create a range lookup to quickly find the file that a subdirectory entry is in.
 		$this->subDirLookup = new RangeLookup(4);
+
+		// Sub-directory list.
 		$this->dirList = new LargeCollection($report->subDirOutputs, array(
 			'maxLength' => $options->getMaxSubDirsFilePages() * $options->getMaxPerPage(),
 			'combinedOutput' => $report->combinedOutput,
 			'key' => $this->hash,
 			'prefix' => 'subdirs_' . $this->hash,
 			'maxTempSize' => $options->getMaxTempKB() * 1024,
-			'saveWatcher' => $this->subDirLookup
+			'saveWatcher' => $this->subDirLookup,
 		));
 
+		// Direct files list (if allowed at this depth).
 		$fileListDepth = $options->getFileListDepth();
 		if ($fileListDepth === true || (is_int($fileListDepth) && $this->depth <= $fileListDepth)) {
 			$this->fileList = new LargeCollection($report->fileListOutputs, array(
@@ -122,41 +126,54 @@ class DirInfo extends FileInfo {
 			));
 		}
 
+		// Top files list (if allowed at this depth).
 		$topListDepth = $options->getTopListDepth();
 		if ($topListDepth === true || (is_int($topListDepth) && $this->depth <= $topListDepth)) {
 			$this->topList = new TopList();
 			$this->topList->setKey($this->hash);
 			$this->isOwnTopList = true;
 		}
+		// If not allowed at this depth, re-use the parent's list.
 		elseif (is_int($topListDepth)) {
 			$this->topList = $this->parents[$topListDepth]->topList;
 			$this->isOwnTopList = false;
 		}
 
+		// File size summaries (if allowed at this depth).
 		$fileSizesDepth = $options->getFileSizesDepth();
 		if ($fileSizesDepth === true || (is_int($fileSizesDepth) && $this->depth <= $fileSizesDepth)) {
 			$this->fileSizesList = new GroupBySizeList($this->options->sizeGroups);
 			$this->fileSizesList->setKey($this->hash);
 			$this->isOwnFileSizesList = true;
 		}
+		// If not allowed at this depth, re-use the parent's list.
 		elseif (is_int($fileSizesDepth)) {
 			$this->fileSizesList = $this->parents[$fileSizesDepth]->fileSizesList;
 			$this->isOwnFileSizesList = false;
 		}
 
+		// Modified date summaries (if allowed at this depth).
 		$modifiedDatesDepth = $options->getModifiedDatesDepth();
 		if ($modifiedDatesDepth === true || (is_int($modifiedDatesDepth) && $this->depth <= $modifiedDatesDepth)) {
 			$this->modifiedDatesList = new GroupByModifiedDates($this->options->modifiedGroups);
 			$this->modifiedDatesList->setKey($this->hash);
 			$this->isOwnModifiedDatesList = true;
 		}
+		// If not allowed at this depth, re-use the parent's list.
 		elseif (is_int($modifiedDatesDepth)) {
 			$this->modifiedDatesList = $this->parents[$modifiedDatesDepth]->modifiedDatesList;
 			$this->isOwnModifiedDatesList = false;
 		}
 	}
 
+	/**
+	 * Called when this directory has been "popped" from the current directory stack,
+	 * This should only happen once all sub-directories and files under this directory have been processed.
+	 *
+	 * @throws Exception
+	 */
 	public function onPop() {
+		// Save the files list, if set.
 		if ($this->fileList !== null) {
 			$reportListMap = $this->report->fileListMap;
 			$fileList = $this->fileList;
@@ -182,9 +199,9 @@ class DirInfo extends FileInfo {
 			}
 		}
 
+		// Save the top files list, if set and is not re-used from its parent directory.
 		if ($this->isOwnTopList && $this->topList !== null) {
 			$topListMap = $this->report->topListMap;
-			/** @var $topList TopList */
 			$topList = $this->topList;
 
 			// If it is small enough, store it with the directory entry.
@@ -205,20 +222,18 @@ class DirInfo extends FileInfo {
 			}
 		}
 
+		// Save the file size summaries, if set and is not re-used from its parent directory.
 		if ($this->isOwnFileSizesList && $this->fileSizesList !== null) {
 			$fileSizesMap = $this->report->fileSizesMap;
-			/** @var $fileSizesList GroupBySizeList */
 			$fileSizesList = $this->fileSizesList;
 
 			// If it is small enough, store it with the directory entry.
 			if ($fileSizesList->getSize() < 100) {
-				//echo "A $this->path\n";
 				$this->fileSizes = $fileSizesList->toJSON();
 			}
 
 			// Attempt to store it in the map.
 			elseif (($this->fileSizes = $fileSizesMap->add($fileSizesList)) !== false) {
-				//echo "B $this->path\n";
 				$this->fileSizes = json_encode($this->fileSizes);
 			}
 
@@ -228,20 +243,18 @@ class DirInfo extends FileInfo {
 			}
 		}
 
+		// Save the modified date summaries, if set and is not re-used from its parent directory.
 		if ($this->isOwnModifiedDatesList && $this->modifiedDatesList !== null) {
 			$modifiedDatesMap = $this->report->modifiedDatesMap;
-			/** @var $modifiedDatesList GroupByModifiedDates */
 			$modifiedDatesList = $this->modifiedDatesList;
 
 			// If it is small enough, store it with the directory entry.
 			if ($modifiedDatesList->getSize() < 100) {
-				//echo "A $this->path\n";
 				$this->modifiedDates = $modifiedDatesList->toJSON();
 			}
 
 			// Attempt to store it in the map.
 			elseif (($this->modifiedDates = $modifiedDatesMap->add($modifiedDatesList)) !== false) {
-				//echo "B $this->path\n";
 				$this->modifiedDates = json_encode($this->modifiedDates);
 			}
 
@@ -277,12 +290,21 @@ class DirInfo extends FileInfo {
 		}
 	}
 
+	/**
+	 * Called when a sub-directory is "popped" from the current directory stack.
+	 *
+	 * Adds the sub-directory to this directory's list, and merges in stats and lists as needed.
+	 *
+	 * @param DirInfo $dirInfo
+	 */
 	public function onChildPop(DirInfo $dirInfo) {
+		// Merge in counts and sizes.
 		$this->directSubDirCount++;
 		$this->subDirCount += $dirInfo->subDirCount + 1;
 		$this->subSize += $dirInfo->directSize + $dirInfo->subSize;
 		$this->subFileCount += $dirInfo->directFileCount + $dirInfo->subFileCount;
 
+		// Add to this directory's sub-directory list.
 		$this->dirList->add(array(
 			$dirInfo->basename,
 			$dirInfo->directSize + $dirInfo->subSize,
@@ -290,19 +312,26 @@ class DirInfo extends FileInfo {
 			$dirInfo->subDirCount
 		), $dirInfo->toSubdirJSON());
 
+		// Merge in the top files list, if both this directory and the child have their own lists.
 		if ($this->isOwnTopList && $dirInfo->isOwnTopList) {
 			$this->topList->merge($dirInfo->topList);
 		}
 
+		// Merge in the file size summary, if both this directory and the child have their own lists.
 		if ($this->isOwnFileSizesList && $dirInfo->isOwnFileSizesList) {
 			$this->fileSizesList->merge($dirInfo->fileSizesList);
 		}
 
+		// Merge in the modified date summary, if both this directory and the child have their own lists.
 		if ($this->isOwnModifiedDatesList && $dirInfo->isOwnModifiedDatesList) {
 			$this->modifiedDatesList->merge($dirInfo->modifiedDatesList);
 		}
 	}
 
+	/**
+	 * Process a file that is directly under this directory.
+	 * @param FileInfo $fileInfo
+	 */
 	public function processFileInfo(FileInfo $fileInfo) {
 		$this->directFileCount++;
 		$this->directSize += $fileInfo->size;
@@ -354,6 +383,13 @@ class DirInfo extends FileInfo {
 		. '}';
 	}
 
+	/**
+	 * Get a compact version of {@link toJSON()} that only includes counts and size totals.
+	 *
+	 * Used in sub-directory lists.
+	 *
+	 * @return string
+	 */
 	public function toSubdirJSON() {
 		return '['
 		. json_encode($this->hash)
@@ -364,6 +400,11 @@ class DirInfo extends FileInfo {
 		. ']';
 	}
 
+	/**
+	 * Get a very compact version of {@link toJSON()} that only includes the hash and basename.
+	 *
+	 * @return string
+	 */
 	public function toMinimalJSON() {
 		return '['
 		. json_encode($this->hash)
@@ -371,6 +412,11 @@ class DirInfo extends FileInfo {
 		. ']';
 	}
 
+	/**
+	 * Set the parent {@link DirInfo} for this directory.
+	 *
+	 * @param DirInfo $parent
+	 */
 	public function setParent(DirInfo $parent) {
 		parent::setParent($parent);
 
@@ -386,7 +432,8 @@ class DirInfo extends FileInfo {
 	}
 
 	/**
-	 * @return array
+	 * Get the list of parent directories.
+	 * @return DirInfo[]
 	 */
 	public function getParents() {
 		return $this->parents;
@@ -426,6 +473,13 @@ class FileInfo {
 		$this->options = $report->options;
 	}
 
+	/**
+	 * Set properties of this FileInfo from the specified line.
+	 *
+	 * @param string $line The scan file line to parse.
+	 *
+	 * @throws LineException
+	 */
 	public function setFromLine($line) {
 		$options = $this->options;
 
@@ -460,6 +514,9 @@ class FileInfo {
 		$this->encodedBasename = null;
 	}
 
+	/**
+	 * Initialize the FileInfo after calling {@link setFromLine()} and {@link setParent()}.
+	 */
 	public function init() {
 
 	}

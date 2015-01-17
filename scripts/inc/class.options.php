@@ -220,6 +220,9 @@ class Options {
 		);
 	}
 
+	/**
+	 * Perform final processing of the options just before passing to {@link Report}.
+	 */
 	public function init() {
 		// Format the dates in $modifiedGroups.
 		for ($i = 0; $i < count($this->modifiedGroups); $i++) {
