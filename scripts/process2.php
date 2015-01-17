@@ -9,7 +9,14 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
-require("inc/interfaces.php");
+// Interfaces
+require('inc/IKeyed.php');
+require('inc/IJSON.php');
+require('inc/IKeyedJSON.php');
+require('inc/collection/IComparator.php');
+require('inc/collection/ICollectionIO.php');
+require('inc/collection/ICollectionOutput.php');
+require('inc/collection/ISaveWatcher.php');
 
 // Exceptions
 require('inc/exception/HeaderException.php');
@@ -18,6 +25,10 @@ require('inc/exception/LineException.php');
 require('inc/exception/OptionException.php');
 require('inc/exception/ScanException.php');
 
+// IO
+require('inc/io/FileStream.php');
+require('inc/io/FileIterator.php');
+
 require('inc/Util.php');
 require('inc/Logger.php');
 require('inc/Options.php');
@@ -25,10 +36,13 @@ require("inc/class.largemap.php");
 require("inc/class.largecollection.php");
 require("inc/class.toplist.php");
 require("inc/class.groupbylist.php");
-require("inc/io/FileStream.php");
-require("inc/io/FileIterator.php");
 require("inc/class.multifilesorter.php");
-require("inc/classes.collectionoutput.php");
+
+// Collection Outputs
+require('inc/collection/CollectionOutput.php');
+require('inc/collection/SingleSortOutput.php');
+require('inc/collection/MultiSortOutput.php');
+
 require("inc/classes.entryinfo.php");
 require("inc/class.scanreader.php");
 require("inc/class.report.php");
