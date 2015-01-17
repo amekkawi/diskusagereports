@@ -219,8 +219,15 @@ class Report {
 			new MultiSortOutput($this, 3, 'dirs', array('reverseSort' => true, 'secondarySortIndexes' => array(0), 'reverseSecondarySortIndexes' => false))
 		);
 
-		$this->subDirMap = new LargeMap(new CollectionOutput($this), $this->options->getMaxSubDirsMapKB() * 1024, intval(floor($this->options->getMaxSubDirsMapKB() / 2)) * 1024);
-		$this->subDirMap->prefix = 'subdirsmap';
+		// Storage for sub-directory lists for directories.
+		$this->subDirMap = new LargeMap(
+			new CollectionOutput($this),
+			$this->options->getMaxSubDirsMapKB() * 1024,
+			intval(floor($this->options->getMaxSubDirsMapKB() / 2)) * 1024,
+			array(
+				'prefix' => 'subdirsmap',
+			)
+		);
 
 		$this->fileListOutputs = array(
 			new MultiSortOutput($this, 0, 'name'),
@@ -230,17 +237,45 @@ class Report {
 
 		$this->combinedOutput = new SingleSortOutput($this);
 
-		$this->fileListMap = new LargeMap(new CollectionOutput($this), $this->options->getMaxFileListMapKB() * 1024, intval(floor($this->options->getMaxFileListMapKB() / 2)) * 1024);
-		$this->fileListMap->prefix = 'filesmap';
+		// Storage for file lists.
+		$this->fileListMap = new LargeMap(
+			new CollectionOutput($this),
+			$this->options->getMaxFileListMapKB() * 1024,
+			intval(floor($this->options->getMaxFileListMapKB() / 2)) * 1024,
+			array(
+				'prefix' => 'filesmap',
+			)
+		);
 
-		$this->topListMap = new LargeMap(new CollectionOutput($this), $this->options->getMaxFileListMapKB() * 1024, intval(floor($this->options->getMaxFileListMapKB() / 2)) * 1024);
-		$this->topListMap->prefix = 'topmap';
+		// Storage for top file lists.
+		$this->topListMap = new LargeMap(
+			new CollectionOutput($this),
+			$this->options->getMaxFileListMapKB() * 1024,
+			intval(floor($this->options->getMaxFileListMapKB() / 2)) * 1024,
+			array(
+				'prefix' => 'topmap',
+			)
+		);
 
-		$this->fileSizesMap = new LargeMap(new CollectionOutput($this), $this->options->getMaxFileListMapKB() * 1024, intval(floor($this->options->getMaxFileListMapKB() / 2)) * 1024);
-		$this->fileSizesMap->prefix = 'filesizes';
+		// Storage for file size summaries.
+		$this->fileSizesMap = new LargeMap(
+			new CollectionOutput($this),
+			$this->options->getMaxFileListMapKB() * 1024,
+			intval(floor($this->options->getMaxFileListMapKB() / 2)) * 1024,
+			array(
+				'prefix' => 'filesizes',
+			)
+		);
 
-		$this->modifiedDatesMap = new LargeMap(new CollectionOutput($this), $this->options->getMaxFileListMapKB() * 1024, intval(floor($this->options->getMaxFileListMapKB() / 2)) * 1024);
-		$this->modifiedDatesMap->prefix = 'modifieddates';
+		// Storage for modified date summaries.
+		$this->modifiedDatesMap = new LargeMap(
+			new CollectionOutput($this),
+			$this->options->getMaxFileListMapKB() * 1024,
+			intval(floor($this->options->getMaxFileListMapKB() / 2)) * 1024,
+			array(
+				'prefix' => 'modifieddates',
+			)
+		);
 	}
 
 	public function buildPath($extension) {

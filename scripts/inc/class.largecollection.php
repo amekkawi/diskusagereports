@@ -11,11 +11,10 @@
 
 class LargeCollection implements IKeyedJSON {
 
-	public $prefix = 'root';
-
 	protected $key = null;
 
 	protected $suffix = '.txt';
+	protected $prefix = 'root';
 
 	protected $totalLength = 0;
 	protected $totalSize = 0;
@@ -38,10 +37,21 @@ class LargeCollection implements IKeyedJSON {
 	protected $asObject;
 
 	protected $list;
+
+	/**
+	 * @var ICollectionOutput[]
+	 */
 	protected $outputs;
+
 	protected $combinedOutput = null;
 	protected $saveWatcher = null;
 
+	/**
+	 * @param ICollectionOutput[] $outputs
+	 * @param array $options
+	 *
+	 * @throws Exception
+	 */
 	public function __construct(array $outputs = null, array $options = array()) {
 		$this->outputs = $outputs;
 

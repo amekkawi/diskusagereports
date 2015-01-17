@@ -22,13 +22,12 @@ class LargeMapOpenOut {
 
 class LargeMap {
 
-	public $prefix = 'root';
-
 	/**
 	 * @var ICollectionIO
 	 */
 	protected $output;
 
+	protected $prefix = 'root';
 	protected $suffix = '.txt';
 
 	protected $outCount = 0;
@@ -53,10 +52,17 @@ class LargeMap {
 
 		if (isset($options['suffix']) && is_string($options['suffix']))
 			$this->suffix = $options['suffix'];
+
+		if (isset($options['prefix']) && is_string($options['prefix']))
+			$this->prefix = $options['prefix'];
 	}
 
 	public function getSuffix() {
 		return $this->suffix;
+	}
+
+	public function getPrefix() {
+		return $this->prefix;
 	}
 
 	public function getMaxEntrySize() {
