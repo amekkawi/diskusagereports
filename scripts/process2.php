@@ -18,9 +18,9 @@ require('inc/exception/LineException.php');
 require('inc/exception/OptionException.php');
 require('inc/exception/ScanException.php');
 
-require("inc/class.util.php");
-require("inc/class.logger.php");
-require("inc/class.options.php");
+require('inc/Util.php');
+require('inc/Logger.php');
+require('inc/Options.php');
 require("inc/class.largemap.php");
 require("inc/class.largecollection.php");
 require("inc/class.toplist.php");
