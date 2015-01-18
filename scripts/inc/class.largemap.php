@@ -27,7 +27,14 @@ class LargeMap {
 	 */
 	protected $output;
 
+	/**
+	 * @var string File prefix;
+	 */
 	protected $prefix = 'root';
+
+	/**
+	 * @var string File suffix.
+	 */
 	protected $suffix = '.txt';
 
 	protected $outCount = 0;
@@ -57,10 +64,18 @@ class LargeMap {
 			$this->prefix = $options['prefix'];
 	}
 
+	/**
+	 * Get the file suffix.
+	 * @return string
+	 */
 	public function getSuffix() {
 		return $this->suffix;
 	}
 
+	/**
+	 * Get the file prefix;
+	 * @return string
+	 */
 	public function getPrefix() {
 		return $this->prefix;
 	}

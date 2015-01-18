@@ -9,23 +9,46 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
+/**
+ * Class LargeCollection
+ */
 class LargeCollection implements IKeyedJSON {
 
 	protected $key = null;
 
+	/**
+	 * @var string File suffix.
+	 */
 	protected $suffix = '.txt';
+
+	/**
+	 * @var string File prefix.
+	 */
 	protected $prefix = 'root';
 
+	/**
+	 * @var int Total number of items in the collection.
+	 */
 	protected $totalLength = 0;
+
+	/**
+	 * @var int Total size in bytes of the collection.
+	 */
 	protected $totalSize = 0;
 
 	/**
-	 * Number of temp files saved to disk.
-	 * @var int
+	 * @var int Number of temp files saved to disk.
 	 */
 	protected $tempFiles = 0;
 
+	/**
+	 * @var int Size in bytes of the items in the buffer.
+	 */
 	protected $bufferSize = 0;
+
+	/**
+	 * @var int Number of items in the buffer.
+	 */
 	protected $bufferLength = 0;
 
 	protected $maxSize = false;
@@ -116,22 +139,43 @@ class LargeCollection implements IKeyedJSON {
 		return $this->suffix;
 	}
 
+	/**
+	 * Get the total size in bytes of the collection.
+	 * @return int
+	 */
 	public function getSize() {
 		return $this->totalSize;
 	}
 
+	/**
+	 * @inheritdoc
+	 */
 	public function getJSONSize() {
 		return $this->tempFiles > 0 ? false : $this->totalSize;
 	}
 
+	/**
+	 * Get the number of items in the collection.
+	 * @return int
+	 */
 	public function getLength() {
 		return $this->totalLength;
 	}
 
+	/**
+	 * Get the number of items in the buffer.
+	 * When a new temp file is started the buffer resets to 0.
+	 * @return int
+	 */
 	public function getBufferLength() {
 		return $this->bufferLength;
 	}
 
+	/**
+	 * Get the number of bytes in the buffer.
+	 * When a new temp file is started the buffer resets to 0.
+	 * @return int
+	 */
 	public function getBufferSize() {
 		return $this->bufferLength;
 	}
@@ -152,18 +196,31 @@ class LargeCollection implements IKeyedJSON {
 		return $this->maxOpenFiles;
 	}
 
+	/**
+	 * Get whether or not the collection will need to save to multiple files.
+	 * @return bool
+	 */
 	public function isMultiPart() {
 		return $this->isOverMax($this->totalSize, $this->totalLength);
 	}
 
+	/**
+	 * @inheritdoc
+	 */
 	public function getKey() {
 		return $this->key;
 	}
 
+	/**
+	 * @inheritdoc
+	 */
 	public function setKey($key) {
 		$this->key = $key;
 	}
 
+	/**
+	 * @inheritdoc
+	 */
 	public function toJSON() {
 		if ($this->tempFiles > 0)
 			throw new Exception("Cannot convert list with multiple segments to JSON");
@@ -205,15 +262,19 @@ class LargeCollection implements IKeyedJSON {
 		$this->list[] = array($compareVal, $itemJSON);
 	}
 
+	/**
+	 * Save the buffer to a temp file and then clear the buffer.
+	 * @throws IOException
+	 */
 	protected function saveTemp() {
 		$this->tempFiles++;
 		$outSize = 0;
 
-		/** @var $output ICollectionOutput */
+		// Save a temp file for each output.
 		foreach ($this->outputs as $output) {
 			$tempFile = $output->openFile($this->prefix, $this->tempFiles, '.tmp', 'w');
 
-			// Sort each output.
+			// Sort for this output.
 			usort($this->list, array($output, 'compare'));
 
 			// Write each list item serialized on its own line.
@@ -224,6 +285,7 @@ class LargeCollection implements IKeyedJSON {
 				$tempFile->write($item[2] . "\n");
 			}
 
+			// Record the number of bytes written and close the file.
 			$outSize += $tempFile->tell();
 			$tempFile->close();
 		}
@@ -242,6 +304,13 @@ class LargeCollection implements IKeyedJSON {
 		$this->bufferSize = 0;
 	}
 
+	/**
+	 * Get whether or not the specified size and length is over the maximum allowed.
+	 *
+	 * @param int $size
+	 * @param int $length
+	 * @return bool
+	 */
 	protected function isOverMax($size, $length) {
 		return (($this->maxSize !== false && $this->maxSize < $size)
 			|| ($this->maxLength !== false && $this->maxLength < $length));
@@ -254,7 +323,6 @@ class LargeCollection implements IKeyedJSON {
 	 * @param int               $segments The number of temp files.
 	 * @param int               $maxSegments The maximum number of temp files allowed.
 	 * @param ICollectionOutput $output ICollectionOutput used to determine sorting.
-	 *
 	 * @return int The new number of temp files.
 	 * @throws Exception
 	 */
@@ -272,9 +340,10 @@ class LargeCollection implements IKeyedJSON {
 			for ($oldSeg = 1 + ($newSeg - 1) * $segmentsPer; $oldSeg <= min($segments, $newSeg * $segmentsPer); $oldSeg++) {
 				$iterators[] = new FileIterator(
 					$output->openFile($this->prefix, $oldSeg, '.tmp', 'r'), array(
-					'unserialize' => true,
-					'unlinkOnEnd' => true
-				));
+						'unserialize' => true,
+						'unlinkOnEnd' => true
+					)
+				);
 			}
 
 			// Compact the temp files into the new file (at a temporary path).
@@ -299,9 +368,9 @@ class LargeCollection implements IKeyedJSON {
 		$lastHandlerIndex = count($this->outputs) - 1;
 
 		// Process each output handler.
-		/** @var $output ICollectionOutput */
 		foreach ($this->outputs as $handlerIndex => $output) {
-			// Sort the in-memory buffer.
+
+			// Sort the in-memory buffer for the output.
 			usort($this->list, array($output, 'compare'));
 
 			// Create a list of iterators with the in-memory buffer as one of them.
