@@ -180,7 +180,7 @@ class DirInfo extends FileInfo {
 			'combinedOutput' => $report->combinedOutput,
 			'key' => $this->hash,
 			'prefix' => 'subdirs_' . $this->hash,
-			'maxTempSize' => $options->getMaxTempKB() * 1024,
+			'maxBufferSize' => $options->getMaxTempKB() * 1024,
 			'saveWatcher' => $this->subDirLookup,
 		));
 
@@ -192,7 +192,7 @@ class DirInfo extends FileInfo {
 				'combinedOutput' => $report->combinedOutput,
 				'key' => $this->hash,
 				'prefix' => 'files_' . $this->hash,
-				'maxTempSize' => $options->getMaxTempKB() * 1024
+				'maxBufferSize' => $options->getMaxTempKB() * 1024
 			));
 		}
 

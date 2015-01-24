@@ -224,7 +224,7 @@ class Report {
 			'maxSize' => $this->options->getMaxDirMapKB() * 1024,
 			'asObject' => true,
 			'suffix' => $this->options->getSuffix(),
-			'maxTempSize' => $this->options->getMaxTempKB() * 1024
+			'maxBufferSize' => $this->options->getMaxTempKB() * 1024
 		));
 
 		// Sort groupings for sub-directory collections.

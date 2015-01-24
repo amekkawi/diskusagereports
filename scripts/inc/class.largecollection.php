@@ -54,7 +54,12 @@ class LargeCollection implements IKeyedJSON {
 	protected $maxSize = false;
 	protected $maxLength = false;
 
-	protected $maxTempSize = 204800;
+	/**
+	 * @var int Maximum number of bytes for items stored in memory before being saved to a temp file.
+	 * This does not include some extra bytes needed per item for sorting, so the actual RAM usage will be slightly higher.
+	 */
+	protected $maxBufferSize = 204800;
+
 	protected $maxOpenFiles = 30;
 
 	protected $asObject;
@@ -93,10 +98,10 @@ class LargeCollection implements IKeyedJSON {
 		if (isset($options['maxLength']))
 			$this->maxLength = is_int($options['maxLength']) && $options['maxLength'] > 0 ? $options['maxLength'] : false;
 
-		if (isset($options['maxTempSize'])) {
-			if (!is_int($options['maxTempSize']) || $options['maxTempSize'] < 1024)
-				throw new Exception(get_class($this) . "'s maxTempSize option must be an int no less than 1024.");
-			$this->maxTempSize = $options['maxTempSize'];
+		if (isset($options['maxBufferSize'])) {
+			if (!is_int($options['maxBufferSize']) || $options['maxBufferSize'] < 1024)
+				throw new Exception(get_class($this) . "'s maxBufferSize option must be an int no less than 1024.");
+			$this->maxBufferSize = $options['maxBufferSize'];
 		}
 
 		if (isset($options['maxOpenFiles'])) {
@@ -132,9 +137,12 @@ class LargeCollection implements IKeyedJSON {
 		if (isset($options['key']) && is_string($options['key']))
 			$this->key = $options['key'];
 
-		$this->startNew();
+		$this->clearBuffer();
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getSuffix() {
 		return $this->suffix;
 	}
@@ -188,8 +196,8 @@ class LargeCollection implements IKeyedJSON {
 		return $this->maxLength;
 	}
 
-	public function getMaxTempSize() {
-		return $this->maxTempSize;
+	public function getMaxBufferSize() {
+		return $this->maxBufferSize;
 	}
 
 	public function getMaxOpenFiles() {
@@ -237,9 +245,16 @@ class LargeCollection implements IKeyedJSON {
 		return $ret . ($this->asObject ? '}' : ']');
 	}
 
+	/**
+	 * Add an item to the collection.
+	 *
+	 * @param string|string[] $compareVal Value(s) used for sorted outputs.
+	 * @param string $itemJSON Stringified JSON for the item.
+	 */
 	public function add($compareVal, $itemJSON) {
 		$addLen = strlen($itemJSON) + 1;
 
+		// Clean newlines from the compare value(s).
 		if (is_string($compareVal)) {
 			$compareVal = str_replace("\n", "", $compareVal);
 		}
@@ -250,7 +265,8 @@ class LargeCollection implements IKeyedJSON {
 			}
 		}
 
-		if ($this->bufferSize + $addLen > $this->maxTempSize)
+		// Save the buffer to a temp file and clear the buffer if it is over the max.
+		if ($this->bufferSize + $addLen > $this->maxBufferSize)
 			$this->saveTemp();
 
 		$this->bufferSize += $addLen;
@@ -292,20 +308,23 @@ class LargeCollection implements IKeyedJSON {
 
 		if (Logger::doLevel(Logger::LEVEL_DEBUG1)) {
 			$outSize = round($outSize / max(1, count($this->outputs)));
-			Logger::log("Saved temp file #{$this->tempFiles} x " . count($this->outputs) . " each with " . count($this->list) . " items at ~$outSize bytes.", Logger::LEVEL_DEBUG1);
+			Logger::log("Saved temp file '{$this->prefix}' #{$this->tempFiles} x " . count($this->outputs) . " each with " . count($this->list) . " items at ~$outSize bytes.", Logger::LEVEL_DEBUG1);
 		}
 
-		$this->startNew();
+		$this->clearBuffer();
 	}
 
-	protected function startNew() {
+	/**
+	 * Reset the buffered item list.
+	 */
+	protected function clearBuffer() {
 		$this->list = array();
 		$this->bufferLength = 0;
 		$this->bufferSize = 0;
 	}
 
 	/**
-	 * Get whether or not the specified size and length is over the maximum allowed.
+	 * Get whether or not the specified size and length is over the maximum allowed per file.
 	 *
 	 * @param int $size
 	 * @param int $length
@@ -373,9 +392,10 @@ class LargeCollection implements IKeyedJSON {
 			// Sort the in-memory buffer for the output.
 			usort($this->list, array($output, 'compare'));
 
-			// Create a list of iterators with the in-memory buffer as one of them.
-			$bufferIterator = new ArrayIterator($this->list);
-			$iterators = array($bufferIterator);
+			// List of iterators with the in-memory buffer as one of them.
+			$iterators = array(
+				new ArrayIterator($this->list)
+			);
 
 			// Compact the temp files so there are no more than the specified max,
 			// preventing PHP issues when opening too many files.
@@ -391,9 +411,10 @@ class LargeCollection implements IKeyedJSON {
 			for ($i = 1; $i <= $tempFiles; $i++) {
 				$iterators[] = new FileIterator(
 					$output->openFile($this->prefix, $i, '.tmp', 'r'), array(
-					'unserialize' => true,
-					'unlinkOnEnd' => true
-				));
+						'unserialize' => true,
+						'unlinkOnEnd' => true
+					)
+				);
 			}
 
 			$sorter = new MultiFileSorter($iterators, $output);
@@ -408,7 +429,6 @@ class LargeCollection implements IKeyedJSON {
 			$outHandler = $this->combinedOutput === null ? $output : $this->combinedOutput;
 			$openMode = $this->combinedOutput === null ? 'w' : ($handlerIndex == 0 ? 'w' : 'a');
 
-			/** @var $outFile FileStream */
 			$outFile = $outHandler->openFile($this->prefix, $outIndex, $this->suffix, $openMode);
 			$firstItem = null;
 			$lastItem = null;
