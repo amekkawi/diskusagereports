@@ -166,7 +166,7 @@ try {
 					break;
 				case '--max-per-page':
 					if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
-					$options->setMaxPerPage(intval($cliarg));
+					$options->setPageSize(intval($cliarg));
 					break;
 				case '--max-dirmap-kb':
 					if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }

@@ -255,7 +255,7 @@ class Report implements ICollectionIO, ICollectionListener {
 
 		$this->subDirWriter = new CollectionWriter($this, array(
 			'maxSize' => intval(floor($this->options->getMaxSubDirsMapKB() * Options::MAX_STORE_PERCENTAGE)) * 1024,
-			'pageSize' => $this->options->getMaxPerPage(),
+			'pageSize' => $this->options->getPageSize(),
 			'combined' => true,
 		));
 
@@ -264,7 +264,7 @@ class Report implements ICollectionIO, ICollectionListener {
 
 		$this->fileListWriter = new CollectionWriter($this, array(
 			'maxSize' => intval(floor($this->options->getMaxFileListMapKB() * Options::MAX_STORE_PERCENTAGE)) * 1024,
-			'pageSize' => $this->options->getMaxPerPage(),
+			'pageSize' => $this->options->getPageSize(),
 			'combined' => true,
 		));
 

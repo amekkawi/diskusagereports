@@ -150,7 +150,7 @@ class Options {
 	/**
 	 * @var int The maximum number of items that are displayed per page.
 	 */
-	protected $maxPerPage = 100;
+	protected $pageSize = 100;
 
 	/**
 	 * @var int The maximum size that a 'dirmap' file can be.
@@ -761,21 +761,21 @@ class Options {
 	}
 
 	/**
-	 * @param int $maxPerPage
+	 * @param int $pageSize
 	 *
 	 * @throws OptionException
 	 */
-	public function setMaxPerPage($maxPerPage) {
-		if (!is_int($maxPerPage) || $maxPerPage <= 0 || $maxPerPage % 100 != 0)
-			throw new OptionException('%s must be a positive integer divisible by 100', '$maxPerPage');
-		$this->maxPerPage = $maxPerPage;
+	public function setPageSize($pageSize) {
+		if (!is_int($pageSize) || $pageSize <= 0 || $pageSize % 100 != 0)
+			throw new OptionException('%s must be a positive integer divisible by 100', '$pageSize');
+		$this->pageSize = $pageSize;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getMaxPerPage() {
-		return $this->maxPerPage;
+	public function getPageSize() {
+		return $this->pageSize;
 	}
 
 	/**
@@ -887,7 +887,7 @@ class Options {
 			//'errors' => $this->errors, // TODO: Collect these.
 			'escaped' => $this->escaped,
 			'directoryTree' => !$this->disableDirectoryTree,
-			'perPage' => $this->maxPerPage,
+			'perPage' => $this->pageSize,
 			'pagesPerFiles' => $this->maxFileListFilePages,
 			'pagesPerSubdirs' => $this->maxSubDirsFilePages,
 		);
