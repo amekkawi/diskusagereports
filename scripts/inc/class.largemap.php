@@ -13,6 +13,7 @@ class LargeMapOpenOut {
 	public $index;
 	public $stream;
 	public $size = 0;
+	public $length = 0;
 
 	public function __construct($index, FileStream $stream) {
 		$this->index = $index;
@@ -25,7 +26,12 @@ class LargeMap {
 	/**
 	 * @var ICollectionIO
 	 */
-	protected $output;
+	protected $io;
+
+	/**
+	 * @var ICollectionListener
+	 */
+	protected $listener;
 
 	/**
 	 * @var string File prefix;
@@ -38,7 +44,6 @@ class LargeMap {
 	protected $suffix = '.txt';
 
 	protected $outCount = 0;
-	protected $outSize = 0;
 
 	protected $maxFileSize;
 	protected $maxEntrySize;
@@ -46,8 +51,8 @@ class LargeMap {
 
 	protected $openOuts = array();
 
-	public function __construct(ICollectionIO $output, $maxFileSize, $maxPerEntry, array $options = array()) {
-		$this->output = $output;
+	public function __construct(ICollectionIO $io, $maxFileSize, $maxPerEntry, array $options = array()) {
+		$this->io = $io;
 		$this->maxFileSize = $maxFileSize;
 		$this->maxEntrySize = $maxPerEntry;
 
@@ -56,6 +61,9 @@ class LargeMap {
 				throw new Exception(get_class($this) . "'s maxOpenFiles option must be an int no less than 4.");
 			$this->maxOpenFiles = $options['maxOpenFiles'];
 		}
+
+		if (isset($options['listener']))
+			$this->listener = $options['listener'];
 
 		if (isset($options['suffix']) && is_string($options['suffix']))
 			$this->suffix = $options['suffix'];
@@ -104,21 +112,22 @@ class LargeMap {
 		if ($jsonSize === false)
 			return false;
 
-		if (strLen($keyJSON) + $jsonSize + 2 > $this->maxFileSize)
+		if (strlen($keyJSON) + $jsonSize + 2 > $this->maxFileSize)
 			return false;
 
 		return $this->addJSON($key, $item->toJSON());
 	}
 
 	public function addJSON($key, $itemJSON) {
-		$keyJSON = json_encode($key);
-		$addLen = strLen($keyJSON) + strlen($itemJSON) + 2;
+		$keyJSON = json_encode($key.'');
+		$addLen = strlen($keyJSON) + strlen($itemJSON) + 2;
 		if ($addLen > $this->maxFileSize)
 			return false;
 
 		$out = $this->findOut($addLen);
 		$out->stream->write(($out->size > 0 ? ',' : '{') . $keyJSON . ':' . $itemJSON);
 		$out->size += $addLen;
+		$out->length++;
 		return $this->outCount;
 	}
 
@@ -163,14 +172,18 @@ class LargeMap {
 	}
 
 	protected function openOutFile() {
-		return $this->output->openFile($this->prefix, ++$this->outCount, $this->suffix, 'w');
+		return $this->io->openFile($this->prefix, ++$this->outCount, $this->suffix, 'w');
 	}
 
 	protected function closeOut(LargeMapOpenOut $openOut) {
 		$openOut->stream->write('}');
 		$openOut->stream->close();
-		$this->output->onSave($openOut->index, null, null, $openOut->size + 1, $openOut->stream->getPath());
+
+		if (isset($this->listener))
+			$this->listener->onSave(null, null, $openOut->index, $openOut->length, $openOut->size + 1, null, null, $openOut->stream->getPath());
+
 		$openOut->size = 0;
+		$openOut->length = 0;
 	}
 
 }

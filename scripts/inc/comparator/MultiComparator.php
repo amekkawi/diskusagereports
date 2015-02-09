@@ -9,47 +9,18 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
-class MultiSortOutput implements ICollectionOutput {
-
-	/**
-	 * @var Report
-	 */
-	protected $report;
-
-	/**
-	 * @var ISaveWatcher
-	 */
-	protected $saveHandler;
+class MultiComparator implements IComparator {
 
 	protected $sortIndex;
-	protected $sortName;
 	protected $reverseSort;
-
 	protected $secondarySortIndexes;
 	protected $reverseSecondarySortIndexes;
 
-	public function __construct($report, $sortIndex, $sortName, array $options = array(), ISaveWatcher $saveHandler = null) {
-		$this->report = $report;
+	public function __construct($sortIndex, array $options = array()) {
 		$this->sortIndex = $sortIndex;
-		$this->sortName = $sortName;
 		$this->reverseSort = !empty($options['reverseSort']);
-
 		$this->secondarySortIndexes = isset($options['secondarySortIndexes']) ? $options['secondarySortIndexes'] : null;
 		$this->reverseSecondarySortIndexes = isset($options['reverseSecondarySortIndexes']) ? $options['reverseSecondarySortIndexes'] : $this->reverseSort;
-
-		$this->saveHandler = $saveHandler;
-	}
-
-	public function openFile($prefix, $index, $suffix, $mode) {
-		return new FileStream($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . $suffix), $mode);
-	}
-
-	public function deleteFile($prefix, $index, $suffix) {
-		return unlink($this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . $suffix));
-	}
-
-	public function renameTo($fromPath, $prefix, $index, $suffix) {
-		return rename($fromPath, $this->report->buildPath($prefix . '_' . $this->sortName . '_' . $index . $suffix));
 	}
 
 	public function compare($a, $b) {
@@ -69,17 +40,5 @@ class MultiSortOutput implements ICollectionOutput {
 		}
 
 		return 0;
-	}
-
-	public function onSave($index, $firstItem, $lastItem, $size, $path) {
-		if ($size !== false) {
-			$this->report->outFiles++;
-			$this->report->outSize += $size;
-
-			if (Logger::doLevel(Logger::LEVEL_VERY_VERBOSE))
-				Logger::log('Saved file ' . basename($path) . " at $size bytes.", Logger::LEVEL_VERY_VERBOSE);
-		}
-		if ($this->saveHandler !== null)
-			$this->saveHandler->onSave($index, $this->sortIndex, $firstItem, $lastItem, $path);
 	}
 }

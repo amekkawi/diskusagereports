@@ -175,23 +175,16 @@ class DirInfo extends FileInfo {
 		$this->subDirLookup = new RangeLookup(4);
 
 		// Sub-directory list.
-		$this->dirList = new LargeCollection($report->subDirOutputs, array(
-			'maxLength' => $options->getMaxSubDirsFilePages() * $options->getMaxPerPage(),
-			'combinedOutput' => $report->combinedOutput,
-			'key' => $this->hash,
-			'prefix' => 'subdirs_' . $this->hash,
+		$this->dirList = new LargeCollection($report, $report->subDirComparators, array(
+			'tempPrefix' => 'subdirs_' . $this->hash,
 			'maxBufferSize' => $options->getMaxTempKB() * 1024,
-			'saveWatcher' => $this->subDirLookup,
 		));
 
 		// Direct files list (if allowed at this depth).
 		$fileListDepth = $options->getFileListDepth();
 		if ($fileListDepth === true || (is_int($fileListDepth) && $this->depth <= $fileListDepth)) {
-			$this->fileList = new LargeCollection($report->fileListOutputs, array(
-				'maxLength' => $options->getMaxFileListFilePages() * $options->getMaxPerPage(),
-				'combinedOutput' => $report->combinedOutput,
-				'key' => $this->hash,
-				'prefix' => 'files_' . $this->hash,
+			$this->fileList = new LargeCollection($report, $report->fileListComparators, array(
+				'tempPrefix' => 'files_' . $this->hash,
 				'maxBufferSize' => $options->getMaxTempKB() * 1024
 			));
 		}
@@ -245,27 +238,28 @@ class DirInfo extends FileInfo {
 	public function onPop() {
 		// Save the files list, if set.
 		if ($this->fileList !== null) {
-			$reportListMap = $this->report->fileListMap;
+			$filesListMap = $this->report->fileListMap;
+			$filesListWriter = $this->report->fileListWriter;
 			$fileList = $this->fileList;
 
-			// Multi-part lists must always be saved.
-			if ($fileList->isMultiPart()) {
-				$this->files = json_encode($fileList->save());
-			}
-
 			// If it is small enough, store it with the directory entry.
-			elseif ($fileList->getSize() < 100) {
-				$this->files = $fileList->toJSON();
+			if ($fileList->getSize() < 100) {
+				$this->files = $filesListWriter->toJSON($fileList);
 			}
 
-			// Attempt to store it in the map.
-			elseif (($this->files = $reportListMap->add($fileList)) !== false) {
-				$this->files = json_encode($this->files.'');
+			// Push it into the subDirs store if it fits within its threshold.
+			elseif ($fileList->getSize() <= $filesListWriter->getMaxSize()) {
+				$this->files = $filesListMap->addJSON($this->hash, $filesListWriter->toJSON($fileList));
 			}
 
-			// Otherwise, force it to save.
+			// Otherwise save it to separate files and store a lookup with the directory entry.
 			else {
-				$this->files = json_encode($fileList->save());
+				$rangeLookup = new RangeLookup(count($fileList->getComparators()));
+				$saveData = $filesListWriter->save($fileList, 'files_' . $this->hash, '.txt', $rangeLookup);
+				$this->files = array(
+					$saveData['maxLength'],
+					$rangeLookup->getReduced(),
+				);
 			}
 		}
 
@@ -334,29 +328,26 @@ class DirInfo extends FileInfo {
 			}
 		}
 
-		$subDirsMap = $this->report->subDirMap;
+		$subDirStore = $this->report->subDirStore;
+		$subDirWriter = $this->report->subDirWriter;
 		$dirsList = $this->dirList;
 
-		// Multi-part lists must always be saved.
-		if ($dirsList->isMultiPart()) {
-			$dirsList->save();
-			$this->dirs = json_encode($this->subDirLookup->getReduced());
+		// Push it into the subDirs store if it fits within its threshold.
+		if ($dirsList->getSize() <= $subDirWriter->getMaxSize()) {
+			$subDirsJSON = $subDirWriter->toJSON($dirsList);
+			$subDirStore->add(array($this->hash), json_encode($this->hash) . ':' . $subDirsJSON);
+
+			// If it is small enough, store it with the directory entry as well.
+			if ($dirsList->getSize() < 100) {
+				$this->dirs = $subDirsJSON;
+			}
 		}
 
-		// If it is small enough, store it with the directory entry.
-		elseif ($dirsList->getSize() < 100) {
-			$this->dirs = $dirsList->toJSON();
-		}
-
-		// Attempt to store it in the map.
-		elseif (($this->dirs = $subDirsMap->add($dirsList)) !== false) {
-			$this->dirs = json_encode($this->dirs);
-		}
-
-		// Otherwise, force it to save.
+		// Otherwise save it to separate files and push a lookup to the subDirs store.
 		else {
-			$dirsList->save();
-			$this->dirs = json_encode($this->subDirLookup->getReduced());
+			$rangeLookup = new RangeLookup(count($dirsList->getComparators()));
+			$subDirWriter->save($dirsList, 'subdirs_' . $this->hash, '.txt', $rangeLookup);
+			$subDirStore->add(array($this->hash), $rangeLookup->getReduced());
 		}
 	}
 
@@ -448,8 +439,8 @@ class DirInfo extends FileInfo {
 		. ',"f":' . json_encode($this->subFileCount)
 		. ',"S":' . json_encode($this->directSize)
 		. ',"s":' . json_encode($this->subSize)
-		. ',"L":' . $this->dirs
-		. ($this->fileList === null ? '' : ',"l":' . $this->files)
+		. ($this->dirs === null ? '' : ',"L":' . $this->dirs)
+		. ($this->files === null ? '' : ',"l":' . $this->files)
 		. ($this->top === null ? '' : ',"t":' . $this->top)
 		. ($this->fileSizes === null ? '' : ',"u":' . $this->fileSizes)
 		. ($this->modifiedDates === null ? '' : ',"m":' . $this->modifiedDates)

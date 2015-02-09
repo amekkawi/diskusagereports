@@ -15,6 +15,7 @@
 class Options {
 
 	const MAX_SUPPORTED_SCAN_VERSION = 2;
+	const MAX_STORE_PERCENTAGE = 0.8;
 
 	/**
 	 * @var null|string The directory path that will contain the report.

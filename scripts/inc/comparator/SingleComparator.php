@@ -9,7 +9,7 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
-class SingleSortOutput extends CollectionOutput implements ICollectionOutput {
+class SingleComparator implements IComparator {
 
 	public function compare($a, $b) {
 		if ($a[0] < $b[0])

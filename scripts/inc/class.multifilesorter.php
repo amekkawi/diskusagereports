@@ -9,96 +9,99 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
-class MultiFileSorter implements Iterator {
+/**
+ * Wraps multiple sorted iterators in a single sorted iterator.
+ */
+class MultiIteratorSorter implements Iterator {
 
+	/**
+	 * @var Iterator[]
+	 */
 	protected $iterators;
-	protected $output;
-	protected $values = array();
-	protected $topIndex;
+
+	/**
+	 * @var IComparator
+	 */
+	protected $comparator;
+
+	/**
+	 * @var Iterator
+	 */
+	protected $topIterator;
+
+	/**
+	 * @var int
+	 */
 	protected $key = 0;
 
-	function __construct(array $iterators, ICollectionOutput $output) {
+	/**
+	 * @param Iterator[]  $iterators
+	 * @param IComparator $comparator
+	 */
+	function __construct(array $iterators, IComparator $comparator) {
 		$this->iterators = $iterators;
-		$this->output = $output;
-
-		// Get the first value for each iterator.
-		/** @var $iterator Iterator */
-		foreach ($iterators as $i => $iterator) {
-			$this->values[$i] = $iterator->valid() ? $iterator->current() : null;
-		}
-
-		$this->findTop();
+		$this->comparator = $comparator;
+		$this->topIterator = $this->findTopIterator();
 	}
 
-	protected function findTop() {
-		$this->topIndex = null;
-		$topVal = null;
-		foreach ($this->values as $i => $value) {
-			if ($value !== null) {
-				if ($topVal === null || $this->output->compare($value, $topVal) < 0) {
-					$this->topIndex = $i;
-					$topVal = $value;
+	/**
+	 * Get the iterator that has the next value to return for the MultiIteratorSorter.
+	 * @return Iterator
+	 */
+	protected function findTopIterator() {
+		$topIterator = null;
+		$comparator = $this->comparator;
+
+		foreach ($this->iterators as $i => $iterator) {
+			if ($iterator->valid()) {
+				if ($topIterator === null || $comparator->compare($iterator->current(), $topIterator->current()) < 0) {
+					$topIterator = $iterator;
 				}
 			}
 		}
+
+		return $topIterator;
 	}
 
 	/**
-	 * @param FileIterator $iterator
-	 *
-	 * @return mixed|null
-	 * @throws Exception
-	 */
-	protected function nextIteratorValue($iterator) {
-		$iterator->next();
-		return $iterator->valid() ? $iterator->current() : null;
-	}
-
-	/**
-	 * Return the current element.
-	 *
-	 * @return mixed Can return any type.
+	 * @inheritdoc
 	 */
 	public function current() {
-		return $this->topIndex === null ? null : $this->values[$this->topIndex];
+		return $this->topIterator === null ? null : $this->topIterator->current();
 	}
 
 	/**
-	 * Move forward to next element.
-	 *
-	 * @return void Any returned value is ignored.
+	 * @inheritdoc
 	 */
 	public function next() {
-		if ($this->topIndex === null)
+		if ($this->topIterator === null)
 			return;
 
 		$this->key++;
-		$this->values[$this->topIndex] = $this->nextIteratorValue($this->iterators[$this->topIndex]);
-		$this->findTop();
+		$this->topIterator->next();
+		$this->topIterator = $this->findTopIterator();
 	}
 
 	/**
-	 * Return the key of the current element.
-	 *
-	 * @return mixed scalar on success, or null on failure.
+	 * @inheritdoc
 	 */
 	public function key() {
-		return $this->topIndex === null ? null : $this->key;
+		return $this->topIterator === null ? null : $this->key;
 	}
 
 	/**
-	 * Checks if current position is valid.
-	 *
-	 * @return boolean The return value will be casted to boolean and then evaluated.
-	 *                 Returns true on success or false on failure.
+	 * @inheritdoc
 	 */
 	public function valid() {
-		return $this->topIndex !== null;
+		return $this->topIterator !== null;
 	}
 
+	/**
+	 * @inheritdoc
+	 */
 	public function rewind() {
-		if ($this->key > 1)
-			throw new Exception("Cannot rewind FileIterator");
+		foreach ($this->iterators as $iterator) {
+			$iterator->rewind();
+		}
 	}
-
 }

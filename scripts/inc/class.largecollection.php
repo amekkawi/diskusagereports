@@ -14,17 +14,22 @@
  */
 class LargeCollection implements IKeyedJSON {
 
-	protected $key = null;
+	protected $key;
 
 	/**
-	 * @var string File suffix.
+	 * @var bool Whether or not items can be added to the collection.
 	 */
-	protected $suffix = '.txt';
+	protected $isReadOnly = false;
 
 	/**
-	 * @var string File prefix.
+	 * @var string File suffix for temp files.
 	 */
-	protected $prefix = 'root';
+	protected $tempSuffix = '.tmp';
+
+	/**
+	 * @var string File prefix for temp files.
+	 */
+	protected $tempPrefix = 'root';
 
 	/**
 	 * @var int Total number of items in the collection.
@@ -37,9 +42,9 @@ class LargeCollection implements IKeyedJSON {
 	protected $totalSize = 0;
 
 	/**
-	 * @var int Number of temp files saved to disk.
+	 * @var int|int[] Number of temp files saved to disk.
 	 */
-	protected $tempFiles = 0;
+	protected $tempFiles;
 
 	/**
 	 * @var int Size in bytes of the items in the buffer.
@@ -51,52 +56,51 @@ class LargeCollection implements IKeyedJSON {
 	 */
 	protected $bufferLength = 0;
 
-	protected $maxSize = false;
-	protected $maxLength = false;
-
 	/**
 	 * @var int Maximum number of bytes for items stored in memory before being saved to a temp file.
 	 * This does not include some extra bytes needed per item for sorting, so the actual RAM usage will be slightly higher.
 	 */
 	protected $maxBufferSize = 204800;
 
+	/**
+	 * @var int Maximum number of files that can be opened at once by the iterator returned by getIterator.
+	 */
 	protected $maxOpenFiles = 30;
 
-	protected $asObject;
-
+	/**
+	 * @var array
+	 */
 	protected $list;
 
 	/**
-	 * @var ICollectionOutput[]
+	 * @var IComparator[]
 	 */
-	protected $outputs;
-
-	protected $combinedOutput = null;
-	protected $saveWatcher = null;
+	protected $comparators;
 
 	/**
-	 * @param ICollectionOutput[] $outputs
-	 * @param array $options
+	 * @var ICollectionIO
+	 */
+	protected $io;
+
+	/**
+	 * @param ICollectionIO $io
+	 * @param IComparator[] $comparators
+	 * @param array         $options
 	 *
 	 * @throws Exception
 	 */
-	public function __construct(array $outputs = null, array $options = array()) {
-		$this->outputs = $outputs;
+	public function __construct(ICollectionIO $io, array $comparators, array $options = array()) {
+		$this->io = $io;
+		$this->tempFiles = 0;
 
-		if (!is_array($outputs))
-			throw new Exception(get_class($this) . "'s outputs argument must be an array.");
+		$this->comparators = $comparators;
+		if (empty($comparators))
+			throw new Exception("LargeCollection must have at least one comparator.");
 
-		if (isset($options['prefix']) && is_string($options['prefix']))
-			$this->prefix = $options['prefix'];
-
-		if (isset($options['suffix']) && is_string($options['suffix']))
-			$this->suffix = $options['suffix'];
-
-		if (isset($options['maxSize']))
-			$this->maxSize = is_int($options['maxSize']) && $options['maxSize'] > 0 ? $options['maxSize'] : false;
-
-		if (isset($options['maxLength']))
-			$this->maxLength = is_int($options['maxLength']) && $options['maxLength'] > 0 ? $options['maxLength'] : false;
+		foreach (array('tempPrefix','tempSuffix','key') as $option) {
+			if (isset($options[$option]) && is_string($options[$option]))
+				$this->$option = $options[$option];
+		}
 
 		if (isset($options['maxBufferSize'])) {
 			if (!is_int($options['maxBufferSize']) || $options['maxBufferSize'] < 1024)
@@ -110,41 +114,14 @@ class LargeCollection implements IKeyedJSON {
 			$this->maxOpenFiles = $options['maxOpenFiles'];
 		}
 
-		if ($this->maxSize === false && $this->maxLength === false)
-			throw new Exception("Either " . get_class($this) . "'s maxSize or maxLength options must be set and must be a int greater than 0.");
-
-		if (isset($options['asObject'])) {
-			if (!is_bool($options['asObject']))
-				throw new Exception(get_class($this) . "'s asObject option must be a boolean.");
-
-			$this->asObject = $options['asObject'];
-		}
-
-		if (isset($options['combinedOutput'])) {
-			if (!is_object($options['combinedOutput']) || !($options['combinedOutput'] instanceof ICollectionIO))
-				throw new Exception(get_class($this) . "'s combinedOutput option must an instanceof CollectionOutputAdapter.");
-
-			$this->combinedOutput = $options['combinedOutput'];
-		}
-
-		if (isset($options['saveWatcher'])) {
-			if (!is_object($options['saveWatcher']) || !($options['saveWatcher'] instanceof ISaveWatcher))
-				throw new Exception(get_class($this) . "'s saveWatcher option must be an instance of ISaveWatcher.");
-
-			$this->saveWatcher = $options['saveWatcher'];
-		}
-
-		if (isset($options['key']) && is_string($options['key']))
-			$this->key = $options['key'];
-
 		$this->clearBuffer();
 	}
 
 	/**
-	 * @return string
+	 * @return IComparator[]
 	 */
-	public function getSuffix() {
-		return $this->suffix;
+	public function getComparators() {
+		return $this->comparators;
 	}
 
 	/**
@@ -158,8 +135,22 @@ class LargeCollection implements IKeyedJSON {
 	/**
 	 * @inheritdoc
 	 */
+	public function getKey() {
+		return $this->key;
+	}
+
+	/**
+	 * @inheritdoc
+	*/
+	public function setKey($key) {
+		$this->key = $key;
+	}
+
+	/**
+	 * @inheritdoc
+	 */
 	public function getJSONSize() {
-		return $this->tempFiles > 0 ? false : $this->totalSize;
+		return $this->totalSize;
 	}
 
 	/**
@@ -188,14 +179,6 @@ class LargeCollection implements IKeyedJSON {
 		return $this->bufferLength;
 	}
 
-	public function getMaxSize() {
-		return $this->maxSize;
-	}
-
-	public function getMaxLength() {
-		return $this->maxLength;
-	}
-
 	public function getMaxBufferSize() {
 		return $this->maxBufferSize;
 	}
@@ -205,54 +188,19 @@ class LargeCollection implements IKeyedJSON {
 	}
 
 	/**
-	 * Get whether or not the collection will need to save to multiple files.
-	 * @return bool
-	 */
-	public function isMultiPart() {
-		return $this->isOverMax($this->totalSize, $this->totalLength);
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	public function getKey() {
-		return $this->key;
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	public function setKey($key) {
-		$this->key = $key;
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	public function toJSON() {
-		if ($this->tempFiles > 0)
-			throw new Exception("Cannot convert list with multiple segments to JSON");
-
-		$ret = '';
-		foreach ($this->list as $item) {
-			$ret .= ',' . $item[1];
-		}
-
-		if ($ret == '')
-			return $this->asObject ? '{}' : '[]';
-
-		$ret[0] = $this->asObject ? '{' : '[';
-		return $ret . ($this->asObject ? '}' : ']');
-	}
-
-	/**
 	 * Add an item to the collection.
 	 *
 	 * @param string|string[] $compareVal Value(s) used for sorted outputs.
-	 * @param string $itemJSON Stringified JSON for the item.
+	 * @param string          $itemJSON   Stringified JSON for the item.
+	 * @throws Exception
 	 */
 	public function add($compareVal, $itemJSON) {
+		if ($this->isReadOnly)
+			throw new Exception("Cannot add to LargeCollection once its contents have been read.");
+
 		$addLen = strlen($itemJSON) + 1;
+
+		$compareVal = $this->cleanNewLines($compareVal);
 
 		// Clean newlines from the compare value(s).
 		if (is_string($compareVal)) {
@@ -278,27 +226,49 @@ class LargeCollection implements IKeyedJSON {
 		$this->list[] = array($compareVal, $itemJSON);
 	}
 
+	protected function cleanNewLines($compareVal) {
+		// Clean newlines from the compare value(s).
+		if (is_string($compareVal)) {
+			$compareVal = str_replace("\n", "", $compareVal);
+		}
+		elseif (is_array($compareVal)) {
+			foreach ($compareVal as $i => $compareValItem) {
+				if (is_string($compareValItem))
+					$compareVal[$i] = str_replace("\n", "", $compareValItem);
+			}
+		}
+
+		return $compareVal;
+	}
+
 	/**
 	 * Save the buffer to a temp file and then clear the buffer.
 	 * @throws IOException
 	 */
 	protected function saveTemp() {
 		$this->tempFiles++;
+		$saveStart = microtime(true);
 		$outSize = 0;
 
 		// Save a temp file for each output.
-		foreach ($this->outputs as $output) {
-			$tempFile = $output->openFile($this->prefix, $this->tempFiles, '.tmp', 'w');
+		$comparatorCount = 0;
+		foreach ($this->comparators as $k => $comparator) {
+			$comparatorCount++;
+			$tempFile = $this->io->openFile($this->tempPrefix . '_' . $k, $this->tempFiles, $this->tempSuffix, 'w');
 
 			// Sort for this output.
-			usort($this->list, array($output, 'compare'));
+			usort($this->list, array($comparator, 'compare'));
 
 			// Write each list item serialized on its own line.
-			foreach ($this->list as $item) {
-				if (!isset($item[2]))
-					$item[2] = serialize($item);
+			foreach ($this->list as &$item) {
 
-				$tempFile->write($item[2] . "\n");
+				// Cache the serialization to avoid re-serializatoin for other outputs.
+				if (empty($item[2])) {
+					$item[1] = serialize($item);
+					$item[2] = true;
+				}
+
+				$tempFile->write($item[1] . "\n");
 			}
 
 			// Record the number of bytes written and close the file.
@@ -306,10 +276,8 @@ class LargeCollection implements IKeyedJSON {
 			$tempFile->close();
 		}
 
-		if (Logger::doLevel(Logger::LEVEL_DEBUG1)) {
-			$outSize = round($outSize / max(1, count($this->outputs)));
-			Logger::log("Saved temp file '{$this->prefix}' #{$this->tempFiles} x " . count($this->outputs) . " each with " . count($this->list) . " items at ~$outSize bytes.", Logger::LEVEL_DEBUG1);
-		}
+		if (Logger::doLevel(Logger::LEVEL_DEBUG1))
+			Logger::log("Saved " . count($this->list) . " item(s) at {$outSize} bytes to {$comparatorCount} temp file(s) for '{$this->tempPrefix}' #{$this->tempFiles} in " . sprintf('%.2f', microtime(true) - $saveStart) . " sec.", Logger::LEVEL_DEBUG1);
 
 		$this->clearBuffer();
 	}
@@ -324,186 +292,133 @@ class LargeCollection implements IKeyedJSON {
 	}
 
 	/**
-	 * Get whether or not the specified size and length is over the maximum allowed per file.
-	 *
-	 * @param int $size
-	 * @param int $length
-	 * @return bool
-	 */
-	protected function isOverMax($size, $length) {
-		return (($this->maxSize !== false && $this->maxSize < $size)
-			|| ($this->maxLength !== false && $this->maxLength < $length));
-	}
-
-	/**
-	 * Compact temp files so there are no more than the specified max.
+	 * Compact files so there are no more than the specified max.
 	 * This is to prevent iterating over too many files, causing PHP issues when opening too many files.
 	 *
-	 * @param int               $segments The number of temp files.
-	 * @param int               $maxSegments The maximum number of temp files allowed.
-	 * @param ICollectionOutput $output ICollectionOutput used to determine sorting.
-	 * @return int The new number of temp files.
+	 * @param int         $segments    The number of files.
+	 * @param int         $maxSegments The maximum number of files allowed.
+	 * @param mixed       $comparatorKey
+	 * @param IComparator $comparator
+	 * @return int The new number of files.
 	 * @throws Exception
+	 * @throws IOException
 	 */
-	protected function compactSegments($segments, $maxSegments, ICollectionOutput $output) {
-		// The number of existing temp files that will need to be combined into a single new temp file.
+	protected function compactSegments($segments, $maxSegments, $comparatorKey, IComparator $comparator) {
+		// The number of existing files that will need to be combined into a single new file.
 		$segmentsPer = ceil($segments / $maxSegments);
 
-		// The number of new temp files after being compacted.
+		// The number of new files after being compacted.
 		$newSegments = ceil($segments / $segmentsPer);
 
 		for ($newSeg = 1; $newSeg <= $newSegments; $newSeg++) {
 
-			// Open the temp files that will be compacted into this new temp file.
+			// Open the files that will be compacted into this new file.
 			$iterators = array();
 			for ($oldSeg = 1 + ($newSeg - 1) * $segmentsPer; $oldSeg <= min($segments, $newSeg * $segmentsPer); $oldSeg++) {
 				$iterators[] = new FileIterator(
-					$output->openFile($this->prefix, $oldSeg, '.tmp', 'r'), array(
+					$this->io->openFile($this->tempPrefix . '_' . $comparatorKey, $oldSeg, $this->tempSuffix, 'r'), array(
 						'unserialize' => true,
-						'unlinkOnEnd' => true
+						'unlinkOnEnd' => true,
 					)
 				);
 			}
 
-			// Compact the temp files into the new file (at a temporary path).
-			$compactedFile = $output->openFile('compact', $newSeg, '.tmp', 'w');
-			$sorter = new MultiFileSorter($iterators, $output);
+			// Compact the original files into a temporary compacted file.
+			$compactedFile = $this->io->openFile($this->tempPrefix . '_' . $comparatorKey . '_compact', $newSeg, $this->tempSuffix, 'w');
+			$sorter = new MultiIteratorSorter($iterators, $comparator);
 			foreach ($sorter as $item) {
 				$compactedFile->write(serialize($item) . "\n");
 			}
 			$compactedFile->close();
 
-			// Move the new temp file to its final path.
-			if ($output->renameTo($compactedFile->getPath(), $this->prefix, $newSeg, '.tmp') === false)
+			// Move the new file to its final path.
+			// By now the old files have been removed.
+			if ($this->io->renameTo($compactedFile->getPath(), $this->tempPrefix . '_' . $comparatorKey, $newSeg, $this->tempSuffix) === false)
 				throw new Exception("Failed to rename compacted file.");
 		}
 
 		return $newSegments;
 	}
 
-	public function save() {
+	/**
+	 * Get an Iterator for the specified comparator key.
+	 *
+	 * @param string $key
+	 * @param bool   $unlinkOnEnd Optionally unlink the temp files after the iterator completes.
+	 * @return Iterator
+	 * @throws Exception
+	 */
+	public function getIterator($key, $unlinkOnEnd = false) {
+		if (!$this->isReadOnly) {
+			$this->isReadOnly = true;
 
-		$ret = 0;
-		$lastHandlerIndex = count($this->outputs) - 1;
+			// Get copies of the original list and temp file count.
+			$origTempFiles = $this->tempFiles;
+			$list = $this->list;
 
-		// Process each output handler.
-		foreach ($this->outputs as $handlerIndex => $output) {
+			// Set arrays to list/tempFile to hold values for each comparator.
+			$this->list = array();
+			$this->tempFiles = array();
 
-			// Sort the in-memory buffer for the output.
-			usort($this->list, array($output, 'compare'));
+			foreach ($this->comparators as $k => $comparator) {
+				// Sort the in-memory buffer for the output.
+				usort($list, array($comparator, 'compare'));
+				$this->list[$k] = $list;
+				$this->tempFiles[$k] = $origTempFiles;
 
-			// List of iterators with the in-memory buffer as one of them.
-			$iterators = array(
-				new ArrayIterator($this->list)
-			);
-
-			// Compact the temp files so there are no more than the specified max,
-			// preventing PHP issues when opening too many files.
-			$tempFiles = $this->tempFiles;
-			if ($tempFiles > $this->maxOpenFiles) {
-				$compactStart = microtime(true);
-				$origTempFiles = $tempFiles;
-				$tempFiles = $this->compactSegments($tempFiles, $this->maxOpenFiles, $output);
-				Logger::log("Compacted $origTempFiles temp files into $tempFiles with up to " . ceil($origTempFiles / $tempFiles) . " each in " . sprintf('%.2f', microtime(true) - $compactStart) . " sec", Logger::LEVEL_VERBOSE);
-			}
-
-			// Add iterators for the temp files.
-			for ($i = 1; $i <= $tempFiles; $i++) {
-				$iterators[] = new FileIterator(
-					$output->openFile($this->prefix, $i, '.tmp', 'r'), array(
-						'unserialize' => true,
-						'unlinkOnEnd' => true
-					)
-				);
-			}
-
-			$sorter = new MultiFileSorter($iterators, $output);
-
-			if (($iteratorCount = count($iterators)) > 1) {
-				$sortStart = microtime(true);
-			}
-
-			$outIndex = 1;
-			$outSize = 0;
-			$outLines = 0;
-			$outHandler = $this->combinedOutput === null ? $output : $this->combinedOutput;
-			$openMode = $this->combinedOutput === null ? 'w' : ($handlerIndex == 0 ? 'w' : 'a');
-
-			$outFile = $outHandler->openFile($this->prefix, $outIndex, $this->suffix, $openMode);
-			$firstItem = null;
-			$lastItem = null;
-
-			// Combined output files need extra delimiters.
-			if ($this->combinedOutput !== null)
-				$outFile->write($handlerIndex == 0 ? '[' : ',');
-
-			// Read all lines via the multi-sorter.
-			foreach ($sorter as $item) {
-				$itemSize = strlen($item[1]) + 1;
-
-				// Move to the next file if this will make the current one too large.
-				if ($outSize > 0 && $this->isOverMax($outSize + $itemSize + 2, $outLines + 1)) {
-					$outFile->write($this->asObject ? '}' : ']');
-
-					// Combined output files need a trailing array delimiter,
-					// and only close after the last handler.
-					if ($handlerIndex == $lastHandlerIndex && $this->combinedOutput !== null) {
-						$outFile->write(']');
-						$outFile->close();
-						$this->combinedOutput->onSave($outIndex, null, null, filesize($outFile->getPath()), $outFile->getPath());
-					}
-					else {
-						$outFile->close();
-					}
-
-					$output->onSave($outIndex, $firstItem, $lastItem, $this->combinedOutput !== null ? false : $outSize + 1, $outFile->getPath());
-					if ($this->saveWatcher !== null)
-						$this->saveWatcher->onSave($outIndex, $handlerIndex, $firstItem, $lastItem, $outFile->getPath());
-
-					$outIndex++;
-					$outSize = 0;
-					$outLines = 0;
-					$outFile = $outHandler->openFile($this->prefix, $outIndex, $this->suffix, $openMode);
-
-					// Combined output files need extra delimiters.
-					if ($this->combinedOutput !== null)
-						$outFile->write($handlerIndex == 0 ? '[' : ',');
+				// Compact the temp files so there are no more than the specified max,
+				// preventing PHP issues when opening too many files.
+				if ($origTempFiles > $this->maxOpenFiles) {
+					$compactStart = microtime(true);
+					$this->tempFiles[$k] = $this->compactSegments($origTempFiles, $this->maxOpenFiles, $k, $comparator);
+					Logger::log("Compacted {$origTempFiles} temp files into {$this->tempFiles[$k]} with up to " . ceil($origTempFiles / $this->tempFiles[$k]) . " each in " . sprintf('%.2f', microtime(true) - $compactStart) . " sec", Logger::LEVEL_VERBOSE);
 				}
-
-				$lastItem = $item;
-				if ($outSize === 0)
-					$firstItem = $item;
-
-				$outFile->write(($outSize > 0 ? ',' : ($this->asObject ? '{' : '[')) . $item[1]);
-				$outSize += $itemSize;
-				$outLines++;
 			}
-
-			$outFile->write($this->asObject ? '}' : ']');
-			$output->onSave($outIndex, $firstItem, $lastItem, $this->combinedOutput !== null ? false : $outSize + 1, $outFile->getPath());
-
-			if ($this->saveWatcher !== null)
-				$this->saveWatcher->onSave($outIndex, $handlerIndex, $firstItem, $lastItem, $outFile->getPath());
-
-			// Combined output files need a trailing array delimiter,
-			// and only close after the last handler.
-			if ($handlerIndex == $lastHandlerIndex && $this->combinedOutput !== null) {
-				$outFile->write(']');
-				$outFile->close();
-				$this->combinedOutput->onSave($outIndex, null, null, filesize($outFile->getPath()), $outFile->getPath());
-			}
-			else {
-				$outFile->close();
-			}
-
-			if ($iteratorCount > 1) {
-				Logger::log("Sorted $iteratorCount temp files in " . sprintf('%.2f', microtime(true) - $sortStart) . " sec.", Logger::LEVEL_VERBOSE);
-			}
-
-			$ret = $outIndex;
 		}
 
-		return $ret;
+		// List of iterators with the in-memory buffer as one of them.
+		$iterators = array(
+			new ArrayIterator($this->list[$key])
+		);
+
+		// Add iterators for the temp files.
+		for ($i = 1; $i <= $this->tempFiles[$key]; $i++) {
+			$iterators[] = new FileIterator(
+				$this->io->openFile($this->tempPrefix . '_' . $key, $i, $this->tempSuffix, 'r'), array(
+					'unserialize' => true,
+					'unlinkOnEnd' => !!$unlinkOnEnd,
+				)
+			);
+		}
+
+		return new MultiIteratorSorter($iterators, $this->comparators[$key]);
 	}
 
+	/**
+	 * Get the stringified JSON for this object.
+	 *
+	 * @return string
+	 */
+	public function toJSON() {
+		$key = current(array_keys($this->comparators));
+		$json = implode(',', iterator_to_array($this->getIterator($key, true)));
+		foreach ($this->getIterator($key, true) as $item) {
+			$json[] = $item;
+		}
+		$this->clear();
+	}
+
+	/**
+	 * Clean up any temp files.
+	 */
+	public function clear() {
+		foreach ($this->comparators as $key => $comparator) {
+			for ($i = 0, $l = is_array($this->tempFiles) ? $this->tempFiles[$key] : $this->tempFiles; $i < $l; $i++) {
+				$this->io->deleteFile($this->tempPrefix . '_' . $key, $i, $this->tempSuffix);
+			}
+		}
+
+		$this->clearBuffer();
+		$this->tempFiles = 0;
+	}
 }

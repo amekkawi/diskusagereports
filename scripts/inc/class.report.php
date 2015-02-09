@@ -12,7 +12,7 @@
 /**
  * Builds a lookup for finding items in sorted collection save files.
  */
-class RangeLookup implements ISaveWatcher {
+class RangeLookup implements ICollectionListener {
 
 	/**
 	 * @var array
@@ -38,18 +38,22 @@ class RangeLookup implements ISaveWatcher {
 	/**
 	 * @inheritdoc
 	 */
-	public function onSave($index, $sortIndex, $firstItem, $lastItem, $path) {
+	public function onSave($sortIndex, $sortKey, $fileIndex, $length, $size, $firstItem, $lastItem, $path) {
+		if (!isset($sortIndex))
+			return;
+
 		$range = array(
-			$sortIndex === null ? $firstItem[0] : $firstItem[0][$sortIndex],
-			$sortIndex === null ? $lastItem[0] : $lastItem[0][$sortIndex],
-			$index
+			$this->subRanges === 0 ? $firstItem[0] : $firstItem[0][$sortIndex],
+			$this->subRanges === 0 ? $lastItem[0] : $lastItem[0][$sortIndex],
+			$fileIndex,
 		);
 
-		if ($sortIndex !== null) {
+		if ($this->subRanges === 0) {
+			$this->ranges[] = $range;
+		}
+		else {
 			$this->ranges[$sortIndex][] = $range;
 		}
-		else
-			$this->ranges[] = $range;
 	}
 
 	/**
@@ -102,6 +106,9 @@ class RangeLookup implements ISaveWatcher {
 			$prevEnd = $ri == 0 ? '' : $ranges[$ri-1][1];
 			$nextStart = $ri + 1 < $rl ? $ranges[$ri+1][0] : '';
 
+			$startSubstr = $range[0];
+			$endSubstr = $range[1];
+
 			$jl = max(strlen($prevEnd), strlen($range[0]), strlen($range[1]));
 			for ($j = 1; $j <= $jl; $j++) {
 				$lastSubstr = substr($prevEnd, 0, $j);
@@ -136,7 +143,7 @@ class RangeLookup implements ISaveWatcher {
 /**
  * Generates a report.
  */
-class Report {
+class Report implements ICollectionIO, ICollectionListener {
 
 	/**
 	 * @var Options
@@ -144,23 +151,34 @@ class Report {
 	public $options;
 
 	/**
-	 * @var RangeLookup Lookup for the directory mapping files.
+	 * @var LargeCollection
 	 */
-	protected $directoryLookup;
+	protected $directoryStore;
+
+	/**
+	 * @var IComparator[]
+	 */
+	public $subDirComparators;
 
 	/**
 	 * @var LargeCollection
 	 */
-	protected $directoryList;
+	public $subDirStore;
 
 	/**
-	 * @var LargeMap
+	 * @var CollectionWriter
 	 */
-	public $subDirMap;
+	public $subDirWriter;
 
-	public $fileListOutputs;
+	/**
+	 * @var IComparator[]
+	 */
+	public $fileListComparators;
 
-	public $combinedOutput;
+	/**
+	 * @var CollectionWriter
+	 */
+	public $fileListWriter;
 
 	/**
 	 * @var LargeMap
@@ -193,11 +211,6 @@ class Report {
 	public $outSize = 0;
 
 	/**
-	 * @var MultiSortOutput[]
-	 */
-	public $subDirOutputs;
-
-	/**
 	 * @var DirInfo The current directory being processed.
 	 */
 	protected $currentDirInfo = null;
@@ -215,82 +228,95 @@ class Report {
 	public function __construct(Options $options) {
 		$this->options = $options;
 
-		// Storage and lookup for directory entries.
-		$this->directoryLookup = new RangeLookup();
-		$this->directoryList = new LargeCollection(array(
-			new SingleSortOutput($this, $this->directoryLookup)
+		// Storage and lookup for directory entries
+		$this->directoryStore = new LargeCollection($this, array(
+			new SingleComparator(),
 		), array(
-			'prefix' => 'dirmap',
-			'maxSize' => $this->options->getMaxDirMapKB() * 1024,
-			'asObject' => true,
-			'suffix' => $this->options->getSuffix(),
+			'tempPrefix' => 'dirmap',
 			'maxBufferSize' => $this->options->getMaxTempKB() * 1024
 		));
 
-		// Sort groupings for sub-directory collections.
-		$this->subDirOutputs = array(
-			new MultiSortOutput($this, 0, 'name'),
-			new MultiSortOutput($this, 1, 'size', array('reverseSort' => true, 'secondarySortIndexes' => array(0), 'reverseSecondarySortIndexes' => false)),
-			new MultiSortOutput($this, 2, 'count', array('reverseSort' => true, 'secondarySortIndexes' => array(0), 'reverseSecondarySortIndexes' => false)),
-			new MultiSortOutput($this, 3, 'dirs', array('reverseSort' => true, 'secondarySortIndexes' => array(0), 'reverseSecondarySortIndexes' => false))
+		// Sub-directory lists
+		// ===================================
+
+		$this->subDirComparators = array(
+			'name' => new MultiComparator(0),
+			'size' => new MultiComparator(1, array('reverseSort' => true, 'secondarySortIndexes' => array(0), 'reverseSecondarySortIndexes' => false)),
+			'count' => new MultiComparator(2, array('reverseSort' => true, 'secondarySortIndexes' => array(0), 'reverseSecondarySortIndexes' => false)),
+			'dirs' => new MultiComparator(3, array('reverseSort' => true, 'secondarySortIndexes' => array(0), 'reverseSecondarySortIndexes' => false)),
 		);
 
-		// Storage for sub-directory lists for directories.
-		$this->subDirMap = new LargeMap(
-			new CollectionOutput($this),
-			$this->options->getMaxSubDirsMapKB() * 1024,
-			intval(floor($this->options->getMaxSubDirsMapKB() / 2)) * 1024,
-			array(
-				'prefix' => 'subdirsmap',
-			)
+		$this->subDirStore = new LargeCollection($this, array(
+			new SingleComparator(),
+		), array(
+			'tempPrefix' => 'subdirsmap',
+			'maxBufferSize' => $this->options->getMaxTempKB() * 1024,
+		));
+
+		$this->subDirWriter = new CollectionWriter($this, array(
+			'maxSize' => intval(floor($this->options->getMaxSubDirsMapKB() * Options::MAX_STORE_PERCENTAGE)) * 1024,
+			'pageSize' => $this->options->getMaxPerPage(),
+			'combined' => true,
+		));
+
+		// File lists
+		// ===================================
+
+		$this->fileListWriter = new CollectionWriter($this, array(
+			'maxSize' => intval(floor($this->options->getMaxFileListMapKB() * Options::MAX_STORE_PERCENTAGE)) * 1024,
+			'pageSize' => $this->options->getMaxPerPage(),
+			'combined' => true,
+		));
+
+		$this->fileListComparators = array(
+			'name' => new MultiComparator(0),
+			'size' => new MultiComparator(1, array('reverseSort' => true, 'secondarySortIndexes' => array(0), 'reverseSecondarySortIndexes' => false)),
+			'modified' => new MultiComparator(2, array('reverseSort' => true, 'secondarySortIndexes' => array(0), 'reverseSecondarySortIndexes' => false)),
 		);
 
-		// Sort groupings for file collections.
-		$this->fileListOutputs = array(
-			new MultiSortOutput($this, 0, 'name'),
-			new MultiSortOutput($this, 1, 'size', array('reverseSort' => true, 'secondarySortIndexes' => array(0), 'reverseSecondarySortIndexes' => false)),
-			new MultiSortOutput($this, 2, 'modified', array('secondarySortIndexes' => array(0)))
-		);
-
-		$this->combinedOutput = new SingleSortOutput($this);
-
-		// Storage for file lists.
 		$this->fileListMap = new LargeMap(
-			new CollectionOutput($this),
+			$this,
 			$this->options->getMaxFileListMapKB() * 1024,
 			intval(floor($this->options->getMaxFileListMapKB() / 2)) * 1024,
 			array(
 				'prefix' => 'filesmap',
+				'listener' => $this,
 			)
 		);
 
+		// Other stores
+		// ===================================
+
 		// Storage for top file lists.
 		$this->topListMap = new LargeMap(
-			new CollectionOutput($this),
+			$this,
 			$this->options->getMaxFileListMapKB() * 1024,
 			intval(floor($this->options->getMaxFileListMapKB() / 2)) * 1024,
 			array(
 				'prefix' => 'topmap',
+				'listener' => $this,
 			)
 		);
 
 		// Storage for file size summaries.
 		$this->fileSizesMap = new LargeMap(
-			new CollectionOutput($this),
+			$this,
 			$this->options->getMaxFileListMapKB() * 1024,
 			intval(floor($this->options->getMaxFileListMapKB() / 2)) * 1024,
 			array(
 				'prefix' => 'filesizes',
+				'listener' => $this,
 			)
 		);
 
 		// Storage for modified date summaries.
 		$this->modifiedDatesMap = new LargeMap(
-			new CollectionOutput($this),
+			$this,
 			$this->options->getMaxFileListMapKB() * 1024,
 			intval(floor($this->options->getMaxFileListMapKB() / 2)) * 1024,
 			array(
 				'prefix' => 'modifieddates',
+				'listener' => $this,
 			)
 		);
 	}
@@ -325,7 +351,6 @@ class Report {
 	 * Processes a directory entry in the scan file.
 	 *
 	 * @param DirInfo $dirInfo
-	 *
 	 * @throws ScanException
 	 */
 	public function processDirInfo(DirInfo $dirInfo) {
@@ -348,6 +373,12 @@ class Report {
 			Logger::log("Entering dir: {$this->currentDirInfo->path}", Logger::LEVEL_DEBUG2);
 	}
 
+	/**
+	 * Process a file entry in the scan file.
+	 *
+	 * @param FileInfo $fileInfo
+	 * @throws ScanException
+	 */
 	public function processFileInfo(FileInfo $fileInfo) {
 		if ($this->headerAllowed) {
 			$this->currentDirInfo = new DirInfo($this);
@@ -366,7 +397,14 @@ class Report {
 		$this->currentDirInfo->processFileInfo($fileInfo);
 	}
 
+	/**
+	 * Finalize the report and save maps/lookups/settings to disk.
+	 *
+	 * @throws Exception
+	 * @throws ScanException
+	 */
 	public function save() {
+		// Create a root directory entry if a header was not processed.
 		if ($this->headerAllowed) {
 			$this->currentDirInfo = new DirInfo($this);
 			$this->currentDirInfo->init();
@@ -381,7 +419,7 @@ class Report {
 			$popDir = $this->currentDirInfo;
 
 			$popDir->onPop();
-			$this->directoryList->add($popDir->hash, json_encode($popDir->hash) . ":" . $popDir->toJSON());
+			$this->directoryStore->add($popDir->hash, json_encode($popDir->hash) . ":" . $popDir->toJSON());
 
 			$this->currentDirInfo = $this->currentDirInfo->getParent();
 			if ($this->currentDirInfo !== null) {
@@ -389,35 +427,59 @@ class Report {
 			}
 		}
 
-		// Save any open maps.
-		$this->subDirMap->save();
+		if (Logger::doLevel(Logger::LEVEL_VERBOSE))
+			Logger::log("Saving maps...", Logger::LEVEL_VERBOSE);
+
+		// Save directory map.
+		$start = microtime(true);
+		$dirsLookup = new RangeLookup();
+		CollectionWriter::Build($this, array(
+			'maxSize' => $this->options->getMaxDirMapKB() * 1024,
+			'asObject' => true,
+			'listeners' => array($this),
+		))->save($this->directoryStore, 'dirmap', $this->options->getSuffix(), $dirsLookup);
+
+		if (Logger::doLevel(Logger::LEVEL_VERBOSE))
+			Logger::log("Saved directory map files. Took " . sprintf('%.2f', microtime(true) - $start) . " sec", Logger::LEVEL_VERBOSE);
+
+		// Save sub-directory lists map.
+		$start = microtime(true);
+		$subDirsLookup = new RangeLookup();
+		CollectionWriter::Build($this, array(
+			'maxSize' => $this->options->getMaxSubDirsMapKB() * 1024,
+			'asObject' => true,
+			'listeners' => array($this),
+		))->save($this->subDirStore, 'subdirsmap', $this->options->getSuffix(), $subDirsLookup);
+
+		if (Logger::doLevel(Logger::LEVEL_VERBOSE))
+			Logger::log("Saved sub-directory map files. Took " . sprintf('%.2f', microtime(true) - $start) . " sec", Logger::LEVEL_VERBOSE);
+
+		// Save large maps.
 		$this->fileListMap->save();
 		$this->topListMap->save();
 		$this->fileSizesMap->save();
 		$this->modifiedDatesMap->save();
 
-		$startDirLists = microtime(true);
-		if (Logger::doLevel(Logger::LEVEL_VERBOSE)) {
-			Logger::log("Saved directory files...", Logger::LEVEL_VERBOSE);
-		}
-
-		// Save the directory list.
-		$this->directoryList->save();
-
 		if (Logger::doLevel(Logger::LEVEL_VERBOSE))
-			Logger::log("Saved directory files. Took " . sprintf('%.2f', microtime(true) - $startDirLists) . " sec", Logger::LEVEL_VERBOSE);
+			Logger::log("Saving lookups and settings...", Logger::LEVEL_VERBOSE);
 
-		if (Logger::doLevel(Logger::LEVEL_VERBOSE))
-			Logger::log("Saving dir lookup...", Logger::LEVEL_VERBOSE);
-
-		// Save the directory lookup
-		$lookupSize = file_put_contents($this->buildPath('dirmap_lookup' . $this->options->getSuffix()), json_encode($this->directoryLookup->getReduced()));
+		// Save the directory lookup.
+		$lookupSize = file_put_contents($this->buildPath('dirmap_lookup' . $this->options->getSuffix()), json_encode($dirsLookup->getReduced()));
 		if ($lookupSize === false)
 			throw new ScanException('Failed to write dirmap_lookup' . $this->options->getSuffix() . '.');
 
 		$this->outFiles++;
 		$this->outSize += $lookupSize;
 
+		// Save the sub-directory lookup.
+		$lookupSize = file_put_contents($this->buildPath('subdirmap_lookup' . $this->options->getSuffix()), json_encode($subDirsLookup->getReduced()));
+		if ($lookupSize === false)
+			throw new ScanException('Failed to write subdirmap_lookup' . $this->options->getSuffix() . '.');
+
+		$this->outFiles++;
+		$this->outSize += $lookupSize;
+
+		// Save settings.
 		$settingsSize = file_put_contents($this->buildPath('settings' . $this->options->getSuffix()), $this->options->toJSON());
 		if ($lookupSize === false)
 			throw new ScanException('Failed to write settings' . $this->options->getSuffix() . '.');
@@ -434,7 +496,7 @@ class Report {
 	 *
 	 * - Calls {@link DirInfo::onPop()} on popped directories.
 	 * - Calls {@link DirInfo::onChildPop()} on the parent of popped directories.
-	 * - Adds popped directories' JSON to the {@link directoryList}.
+	 * - Adds popped directories' JSON to the {@link directoryStore}.
 	 *
 	 * @param FileInfo $fileInfo
 	 *
@@ -457,10 +519,45 @@ class Report {
 			$popDir->onPop();
 
 			// Add the popped dir's JSON to the directory list.
-			$this->directoryList->add($popDir->hash, json_encode($popDir->hash) . ":" . $popDir->toJSON());
+			$this->directoryStore->add($popDir->hash, json_encode($popDir->hash) . ":" . $popDir->toJSON());
 
 			// Alert the popped dir's parent that its child has been popped.
 			$this->currentDirInfo->onChildPop($popDir);
 		}
 	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public function openFile($prefix, $index, $suffix, $mode) {
+		return new FileStream($this->buildPath($prefix . '_' . $index . $suffix), $mode);
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public function deleteFile($prefix, $index, $suffix) {
+		return @unlink($this->buildPath($prefix . '_' . $index . $suffix));
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public function renameTo($fromPath, $prefix, $index, $suffix) {
+		return rename($fromPath, $this->buildPath($prefix . '_' . $index . $suffix));
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public function onSave($sortIndex, $sortKey, $fileIndex, $length, $size, $firstItem, $lastItem, $path) {
+		if (!empty($size)) {
+			$this->outFiles++;
+			$this->outSize += $size;
+
+			if (Logger::doLevel(Logger::LEVEL_VERY_VERBOSE))
+				Logger::log('Saved file ' . basename($path) . ' with ' . number_format($length) . ' items at ' . number_format($size) . ' bytes.', Logger::LEVEL_VERY_VERBOSE);
+		}
+	}
+
 }

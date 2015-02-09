@@ -108,7 +108,7 @@ class FileIterator implements Iterator {
 	}
 
 	/**
-	 * @return null|string Get the current line.
+	 * @inheritdoc
 	 */
 	public function current() {
 		return $this->line;

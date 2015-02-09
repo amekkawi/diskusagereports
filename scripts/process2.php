@@ -9,14 +9,15 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
+define('DEBUG', true);
+
 // Interfaces
 require('inc/util/IKeyed.php');
 require('inc/util/IJSON.php');
 require('inc/util/IKeyedJSON.php');
-require('inc/collection/IComparator.php');
+require('inc/comparator/IComparator.php');
 require('inc/collection/ICollectionIO.php');
-require('inc/collection/ICollectionOutput.php');
-require('inc/collection/ISaveWatcher.php');
+require('inc/collection/ICollectionListener.php');
 
 // Exceptions
 require('inc/exception/HeaderException.php');
@@ -38,10 +39,9 @@ require("inc/class.toplist.php");
 require("inc/class.groupbylist.php");
 require("inc/class.multifilesorter.php");
 
-// Collection Outputs
-require('inc/collection/CollectionOutput.php');
-require('inc/collection/SingleSortOutput.php');
-require('inc/collection/MultiSortOutput.php');
+require('inc/comparator/SingleComparator.php');
+require('inc/comparator/MultiComparator.php');
+require('inc/collection/CollectionWriter.php');
 
 require("inc/classes.entryinfo.php");
 require("inc/class.scanreader.php");

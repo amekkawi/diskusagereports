@@ -72,7 +72,7 @@ class FileStream {
 	public function __construct($path, $mode = 'r') {
 		$this->path = $path;
 		$this->mode = $mode;
-		$this->handle = fopen($path, $mode);
+		$this->handle = @fopen($path, $mode);
 		if ($this->handle === false)
 			throw new IOException("Failed to open file for '$mode': $path", $this);
 		$this->isOpen = true;

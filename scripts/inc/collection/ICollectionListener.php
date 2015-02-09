@@ -9,6 +9,6 @@
  * The license is also available at http://diskusagereports.com/license.html
  */
 
-interface ICollectionOutput extends ICollectionIO, IComparator {
-
+interface ICollectionListener {
+	public function onSave($sortIndex, $sortKey, $fileIndex, $length, $size, $firstItem, $lastItem, $path);
 }

@@ -26,17 +26,6 @@ interface ICollectionIO {
 	public function openFile($prefix, $index, $suffix, $mode);
 
 	/**
-	 * Fired when a file is saved to disk.
-	 *
-	 * @param int    $index
-	 * @param mixed  $firstItem
-	 * @param mixed  $lastItem
-	 * @param int    $size
-	 * @param string $path
-	 */
-	public function onSave($index, $firstItem, $lastItem, $size, $path);
-
-	/**
 	 * Fired when a file is deleted from disk.
 	 *
 	 * @param string $prefix
