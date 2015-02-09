@@ -335,7 +335,7 @@ class DirInfo extends FileInfo {
 		// Push it into the subDirs store if it fits within its threshold.
 		if ($dirsList->getSize() <= intval(floor($subDirWriter->getMaxSize() * Options::MAX_STORE_PERCENTAGE))) {
 			$subDirsJSON = $subDirWriter->toJSON($dirsList);
-			$subDirStore->add(array($this->hash), json_encode($this->hash) . ':' . $subDirsJSON);
+			$subDirStore->add($this->hash, json_encode($this->hash) . ':' . $subDirsJSON);
 
 			// If it is small enough, store it with the directory entry as well.
 			if ($dirsList->getSize() < 100) {
@@ -347,7 +347,7 @@ class DirInfo extends FileInfo {
 		else {
 			$rangeLookup = new RangeLookup(count($dirsList->getComparators()));
 			$subDirWriter->save($dirsList, 'subdirs_' . $this->hash, '.txt', $rangeLookup);
-			$subDirStore->add(array($this->hash), $rangeLookup->getReduced());
+			$subDirStore->add($this->hash, $rangeLookup->getReduced());
 		}
 	}
 
