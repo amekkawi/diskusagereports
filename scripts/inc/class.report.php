@@ -254,7 +254,7 @@ class Report implements ICollectionIO, ICollectionListener {
 		));
 
 		$this->subDirWriter = new CollectionWriter($this, array(
-			'maxSize' => intval(floor($this->options->getMaxSubDirsMapKB() * Options::MAX_STORE_PERCENTAGE)) * 1024,
+			'maxSize' => $this->options->getMaxSubDirsMapKB() * 1024,
 			'pageSize' => $this->options->getPageSize(),
 			'combined' => true,
 		));
@@ -263,7 +263,7 @@ class Report implements ICollectionIO, ICollectionListener {
 		// ===================================
 
 		$this->fileListWriter = new CollectionWriter($this, array(
-			'maxSize' => intval(floor($this->options->getMaxFileListMapKB() * Options::MAX_STORE_PERCENTAGE)) * 1024,
+			'maxSize' => $this->options->getMaxFileListMapKB() * 1024,
 			'pageSize' => $this->options->getPageSize(),
 			'combined' => true,
 		));
@@ -454,7 +454,7 @@ class Report implements ICollectionIO, ICollectionListener {
 		if (Logger::doLevel(Logger::LEVEL_VERBOSE))
 			Logger::log("Saved sub-directory map files. Took " . sprintf('%.2f', microtime(true) - $start) . " sec", Logger::LEVEL_VERBOSE);
 
-		// Save large maps.
+		// Save LargeMaps.
 		$this->fileListMap->save();
 		$this->topListMap->save();
 		$this->fileSizesMap->save();
@@ -467,7 +467,6 @@ class Report implements ICollectionIO, ICollectionListener {
 		$lookupSize = file_put_contents($this->buildPath('dirmap_lookup' . $this->options->getSuffix()), json_encode($dirsLookup->getReduced()));
 		if ($lookupSize === false)
 			throw new ScanException('Failed to write dirmap_lookup' . $this->options->getSuffix() . '.');
-
 		$this->outFiles++;
 		$this->outSize += $lookupSize;
 
@@ -475,7 +474,6 @@ class Report implements ICollectionIO, ICollectionListener {
 		$lookupSize = file_put_contents($this->buildPath('subdirmap_lookup' . $this->options->getSuffix()), json_encode($subDirsLookup->getReduced()));
 		if ($lookupSize === false)
 			throw new ScanException('Failed to write subdirmap_lookup' . $this->options->getSuffix() . '.');
-
 		$this->outFiles++;
 		$this->outSize += $lookupSize;
 
@@ -483,7 +481,6 @@ class Report implements ICollectionIO, ICollectionListener {
 		$settingsSize = file_put_contents($this->buildPath('settings' . $this->options->getSuffix()), $this->options->toJSON());
 		if ($lookupSize === false)
 			throw new ScanException('Failed to write settings' . $this->options->getSuffix() . '.');
-
 		$this->outFiles++;
 		$this->outSize += $settingsSize;
 	}

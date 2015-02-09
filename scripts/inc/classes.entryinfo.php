@@ -248,7 +248,7 @@ class DirInfo extends FileInfo {
 			}
 
 			// Push it into the subDirs store if it fits within its threshold.
-			elseif ($fileList->getSize() <= $filesListWriter->getMaxSize()) {
+			elseif ($fileList->getSize() <= intval(floor($filesListWriter->getMaxSize() * Options::MAX_STORE_PERCENTAGE))) {
 				$this->files = $filesListMap->addJSON($this->hash, $filesListWriter->toJSON($fileList));
 			}
 
@@ -333,7 +333,7 @@ class DirInfo extends FileInfo {
 		$dirsList = $this->dirList;
 
 		// Push it into the subDirs store if it fits within its threshold.
-		if ($dirsList->getSize() <= $subDirWriter->getMaxSize()) {
+		if ($dirsList->getSize() <= intval(floor($subDirWriter->getMaxSize() * Options::MAX_STORE_PERCENTAGE))) {
 			$subDirsJSON = $subDirWriter->toJSON($dirsList);
 			$subDirStore->add(array($this->hash), json_encode($this->hash) . ':' . $subDirsJSON);
 
