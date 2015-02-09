@@ -176,17 +176,9 @@ try {
 					if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
 					$options->setMaxSubDirsMapKB(intval($cliarg));
 					break;
-				case '--max-subdir-filepages':
-					if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
-					$options->setMaxSubDirsFilePages(intval($cliarg));
-					break;
 				case '--max-filelist-mapkb':
 					if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
 					$options->setMaxFileListMapKB(intval($cliarg));
-					break;
-				case '--max-filelist-filepages':
-					if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }
-					$options->setMaxFileListFilePages(intval($cliarg));
 					break;
 				case '--max-tempkb':
 					if (!preg_match('/^[0-9]+$/', $cliarg = array_shift($cliargs))) { fwrite($stdErr, "$cliargOrig must be followed by a number.\n".$syntax); fclose($stdErr); exit(1); }

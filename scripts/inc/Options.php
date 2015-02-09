@@ -163,19 +163,9 @@ class Options {
 	protected $maxFileListMapKB = 80;
 
 	/**
-	 * @var int The maximum number of pages that a 'files' file can contain per sort.
-	 */
-	protected $maxFileListFilePages = 2;
-
-	/**
 	 * @var int The maximum size that a 'subdirsmap' file can be.
 	 */
 	protected $maxSubDirsMapKB = 20;
-
-	/**
-	 * @var int The maximum number of pages that a 'subdirs' file can contain per sort.
-	 */
-	protected $maxSubDirsFilePages = 2;
 
 	/**
 	 * @var array The file size summary groupings to use.
@@ -797,24 +787,6 @@ class Options {
 	}
 
 	/**
-	 * @param int $maxSubDirsFilePages
-	 *
-	 * @throws OptionException
-	 */
-	public function setMaxSubDirsFilePages($maxSubDirsFilePages) {
-		if (!is_int($maxSubDirsFilePages) || $maxSubDirsFilePages < 1)
-			throw new OptionException('%s must be an integer no less than 1', '$maxSubDirsFilePages');
-		$this->maxSubDirsFilePages = $maxSubDirsFilePages;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getMaxSubDirsFilePages() {
-		return $this->maxSubDirsFilePages;
-	}
-
-	/**
 	 * @param int $maxFileListMapKB
 	 *
 	 * @throws OptionException
@@ -830,24 +802,6 @@ class Options {
 	 */
 	public function getMaxFileListMapKB() {
 		return $this->maxFileListMapKB;
-	}
-
-	/**
-	 * @param int $maxFileListFilePages
-	 *
-	 * @throws OptionException
-	 */
-	public function setMaxFileListFilePages($maxFileListFilePages) {
-		if (!is_int($maxFileListFilePages) || $maxFileListFilePages < 1)
-			throw new OptionException('%s must be an integer no less than 1', '$maxFileListFilePages');
-		$this->maxFileListFilePages = $maxFileListFilePages;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getMaxFileListFilePages() {
-		return $this->maxFileListFilePages;
 	}
 
 	/**
@@ -888,8 +842,6 @@ class Options {
 			'escaped' => $this->escaped,
 			'directoryTree' => !$this->disableDirectoryTree,
 			'perPage' => $this->pageSize,
-			'pagesPerFiles' => $this->maxFileListFilePages,
-			'pagesPerSubdirs' => $this->maxSubDirsFilePages,
 		);
 
 		if ($this->includeFullPath && isset($this->dirname))
