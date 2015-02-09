@@ -147,32 +147,32 @@ class CollectionWriter {
 
 		$fileSizeBySortIndex = array();
 		$fileLengthBySortIndex = array();
-		$outIndexByKey = array_fill_keys($comparatorKeys, 0);
-		$outIndex = 0;
+		$fileIndexByKey = array_fill_keys($comparatorKeys, 0);
+		$fileIndex = 0;
 
 		foreach ($comparatorKeys as $sortIndex => $sortKey) {
 			if ($lastSortIndex > 0)
 				$sortStart = microtime(true);
 
 			$iterator = $collection->getIterator($sortKey, true);
-			$outIndex = 1;
-			$outSize = 0;
-			$outLines = 0;
+			$fileIndex = 1;
+			$fileBytes = 0;
+			$fileLength = 0;
 			$firstItem = null;
 			$lastItem = null;
 
-			if (!isset($fileSizeBySortIndex[$outIndex])) {
-				$fileSizeBySortIndex[$outIndex] = 0;
-				$fileLengthBySortIndex[$outIndex] = 0;
+			if (!isset($fileSizeBySortIndex[$fileIndex])) {
+				$fileSizeBySortIndex[$fileIndex] = 0;
+				$fileLengthBySortIndex[$fileIndex] = 0;
 			}
 
 			$openMode = $this->combined ? ($sortIndex == 0 ? 'w' : 'a') : 'w';
-			$outFile = $io->openFile($prefix . ($this->combined ? '' : ($lastSortIndex > 0 ? "_$sortKey" : '')), $outIndex, $suffix, $openMode);
+			$file = $io->openFile($prefix . ($this->combined ? '' : ($lastSortIndex > 0 ? "_$sortKey" : '')), $fileIndex, $suffix, $openMode);
 
 			// Combined output files need extra delimiters.
 			if ($this->combined) {
-				$fileSizeBySortIndex[$outIndex]++;
-				$outFile->write($sortIndex == 0 ? '[' : ',');
+				$fileSizeBySortIndex[$fileIndex]++;
+				$file->write($sortIndex == 0 ? '[' : ',');
 			}
 
 			// Read all lines via the multi-sorter.
@@ -181,112 +181,112 @@ class CollectionWriter {
 
 				// Move to the next file if this will make the current one too large,
 				// but only if we've writen at least one line to this file.
-				if ($outLines > 0 && $this->isOverMax($outLines + 1, $outSize + $itemSize + 2, $maxLength, $maxSize)) {
-					$fileSizeBySortIndex[$outIndex]++;
-					$outSize++;
-					$outFile->write($this->asObject ? '}' : ']');
+				if ($fileLength > 0 && $this->isOverMax($fileLength + 1, $fileBytes + $itemSize + 2, $maxLength, $maxSize)) {
+					$fileSizeBySortIndex[$fileIndex]++;
+					$fileBytes++;
+					$file->write($this->asObject ? '}' : ']');
 
 					// Combined output files need a trailing array delimiter.
 					if ($sortIndex == $lastSortIndex && $this->combined) {
-						$fileSizeBySortIndex[$outIndex]++;
-						$outFile->write(']');
-						$outFile->close();
+						$fileSizeBySortIndex[$fileIndex]++;
+						$file->write(']');
+						$file->close();
 
 						if (DEBUG) {
-							if (($debugCheck = filesize($outFile->getPath())) !== $fileSizeBySortIndex[$outIndex])
-								throw new Exception("Out size did not match (a): {$debugCheck} !== {$fileSizeBySortIndex[$outIndex]} for " . $outFile->getPath());
+							if (($debugCheck = filesize($file->getPath())) !== $fileSizeBySortIndex[$fileIndex])
+								throw new Exception("Out size did not match (a): {$debugCheck} !== {$fileSizeBySortIndex[$fileIndex]} for " . $file->getPath());
 						}
 
 						// Fire an event for completing a combined file.
 						foreach ($listeners as $listener) {
-							$listener->onSave(null, null, $outIndex, $fileLengthBySortIndex[$outIndex], $fileSizeBySortIndex[$outIndex], null, null, $outFile->getPath());
+							$listener->onSave(null, null, $fileIndex, $fileLengthBySortIndex[$fileIndex], $fileSizeBySortIndex[$fileIndex], null, null, $file->getPath());
 						}
 					}
 					else {
-						$outFile->close();
+						$file->close();
 
 						if (DEBUG) {
-							if (!$this->combined && ($debugCheck = filesize($outFile->getPath())) !== $outSize)
-								throw new Exception("Out size did not match (b): {$debugCheck} !== {$outSize} for " . $outFile->getPath());
+							if (!$this->combined && ($debugCheck = filesize($file->getPath())) !== $fileBytes)
+								throw new Exception("Out size did not match (b): {$debugCheck} !== {$fileBytes} for " . $file->getPath());
 						}
 					}
 
 					// Fire events for completing an iterator for a file.
 					foreach ($listeners as $listener) {
-						$listener->onSave($sortIndex, $sortKey, $outIndex, $outLines, $this->combined ? false : $outSize + 1, $firstItem, $lastItem, $outFile->getPath());
+						$listener->onSave($sortIndex, $sortKey, $fileIndex, $fileLength, $this->combined ? false : $fileBytes + 1, $firstItem, $lastItem, $file->getPath());
 					}
 
-					$outIndex++;
-					if (!isset($fileSizeBySortIndex[$outIndex])) {
-						$fileSizeBySortIndex[$outIndex] = 0;
-						$fileLengthBySortIndex[$outIndex] = 0;
+					$fileIndex++;
+					if (!isset($fileSizeBySortIndex[$fileIndex])) {
+						$fileSizeBySortIndex[$fileIndex] = 0;
+						$fileLengthBySortIndex[$fileIndex] = 0;
 					}
 
-					$outSize = 0;
-					$outLines = 0;
-					$outFile = $io->openFile($prefix . ($this->combined ? '' : (count($comparatorKeys) > 1 ? "_$sortKey" : '')), $outIndex, $suffix, $openMode);
+					$fileBytes = 0;
+					$fileLength = 0;
+					$file = $io->openFile($prefix . ($this->combined ? '' : (count($comparatorKeys) > 1 ? "_$sortKey" : '')), $fileIndex, $suffix, $openMode);
 
 					// Combined output files need extra delimiters.
 					if ($this->combined) {
-						$outFile->write($sortIndex == 0 ? '[' : ',');
-						$fileSizeBySortIndex[$outIndex]++;
+						$file->write($sortIndex == 0 ? '[' : ',');
+						$fileSizeBySortIndex[$fileIndex]++;
 					}
 				}
 
 				$lastItem = $item;
-				if ($outSize === 0)
+				if ($fileBytes === 0)
 					$firstItem = $item;
 
-				$outFile->write(($outSize > 0 ? ',' : ($this->asObject ? '{' : '[')) . $item[1]);
-				$outSize += $itemSize;
-				$fileSizeBySortIndex[$outIndex] += $itemSize;
+				$file->write(($fileBytes > 0 ? ',' : ($this->asObject ? '{' : '[')) . $item[1]);
+				$fileBytes += $itemSize;
+				$fileSizeBySortIndex[$fileIndex] += $itemSize;
 
-				$outLines++;
-				$fileLengthBySortIndex[$outIndex]++;
+				$fileLength++;
+				$fileLengthBySortIndex[$fileIndex]++;
 			}
 
-			$outFile->write($this->asObject ? '}' : ']');
-			$fileSizeBySortIndex[$outIndex]++;
-			$outSize++;
+			$file->write($this->asObject ? '}' : ']');
+			$fileSizeBySortIndex[$fileIndex]++;
+			$fileBytes++;
 
 			// Fire events for completing an iterator for a file.
 			foreach ($listeners as $listener) {
-				$listener->onSave($sortIndex, $sortKey, $outIndex, $outLines, $this->combined ? false : $outSize + 1, $firstItem, $lastItem, $outFile->getPath());
+				$listener->onSave($sortIndex, $sortKey, $fileIndex, $fileLength, $this->combined ? false : $fileBytes + 1, $firstItem, $lastItem, $file->getPath());
 			}
 
 			// Combined output files need a trailing array delimiter.
 			if ($sortIndex == $lastSortIndex && $this->combined) {
-				$outFile->write(']');
-				$outFile->close();
-				$fileSizeBySortIndex[$outIndex]++;
+				$file->write(']');
+				$file->close();
+				$fileSizeBySortIndex[$fileIndex]++;
 
 				if (DEBUG) {
-					if (($debugCheck = filesize($outFile->getPath())) !== $fileSizeBySortIndex[$outIndex])
-						throw new Exception("Out size did not match (c): {$debugCheck} !== {$fileSizeBySortIndex[$outIndex]} for " . $outFile->getPath());
+					if (($debugCheck = filesize($file->getPath())) !== $fileSizeBySortIndex[$fileIndex])
+						throw new Exception("Out size did not match (c): {$debugCheck} !== {$fileSizeBySortIndex[$fileIndex]} for " . $file->getPath());
 				}
 
 				// Fire an event for completing a combined file.
 				foreach ($listeners as $listener) {
-					$listener->onSave(null, null, $outIndex, $fileLengthBySortIndex[$outIndex], $fileSizeBySortIndex[$outIndex], null, null, $outFile->getPath());
+					$listener->onSave(null, null, $fileIndex, $fileLengthBySortIndex[$fileIndex], $fileSizeBySortIndex[$fileIndex], null, null, $file->getPath());
 				}
 			}
 			else {
-				$outFile->close();
+				$file->close();
 
 				if (DEBUG) {
-					if (!$this->combined && ($debugCheck = filesize($outFile->getPath())) !== $outSize)
-						throw new Exception("Out size did not match (d): {$debugCheck} !== {$outSize} for " . $outFile->getPath());
+					if (!$this->combined && ($debugCheck = filesize($file->getPath())) !== $fileBytes)
+						throw new Exception("Out size did not match (d): {$debugCheck} !== {$fileBytes} for " . $file->getPath());
 				}
 			}
 
 			if (isset($sortStart))
 				Logger::log("Sorted " . ($lastSortIndex+1) . " temp files in " . sprintf('%.2f', microtime(true) - $sortStart) . " sec.", Logger::LEVEL_VERBOSE);
 
-			$outIndexByKey[$sortKey] = $outIndex;
+			$fileIndexByKey[$sortKey] = $fileIndex;
 		}
 
 		return array(
-			'outIndex' => $this->combined ? $outIndex : $outIndexByKey,
+			'fileIndex' => $this->combined ? $fileIndex : $fileIndexByKey,
 			'maxLength' => $maxLength,
 			'maxSize' => $maxSize,
 		);
