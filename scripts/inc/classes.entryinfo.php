@@ -343,11 +343,46 @@ class DirInfo extends FileInfo {
 			}
 		}
 
-		// Otherwise save it to separate files and push a lookup to the subDirs store.
+		// Otherwise save it to separate files and push save data to the subDirs store.
 		else {
-			$rangeLookup = new RangeLookup(count($dirsList->getComparators()));
-			$subDirWriter->save($dirsList, 'subdirs_' . $this->hash, '.txt', $rangeLookup);
-			$subDirStore->add($this->hash, $rangeLookup->getReduced());
+
+			// Only save the normal JSON if it fits within one file.
+			if ($dirsList->getSize() <= $subDirWriter->getMaxSize()) {
+				$subDirsLength = $dirsList->getLength();
+				$subDirsJSON = $subDirWriter->toJSON($dirsList);
+
+				// Write the file.
+				$saveFile = $this->report->openFile('subdirs_' . $this->hash, 1, '.txt', 'w');
+				$saveFile->write($subDirsJSON);
+				$saveFile->close();
+				$this->report->onSave(null, null, 1, $subDirsLength, strlen($subDirsJSON), null, null, $saveFile->getPath());
+
+				$saveJSON = json_encode(array(
+					1,
+					intval(ceil($subDirsLength / $subDirWriter->getPageSize())),
+				));
+			}
+
+			// Otherwise, save it to multiple files.
+			else {
+				$rangeLookup = new RangeLookup(count($dirsList->getComparators()));
+				$writerData = $subDirWriter->save($dirsList, 'subdirs_' . $this->hash, '.txt', $rangeLookup);
+
+				$saveJSON = json_encode(array(
+					$writerData['fileIndex'],
+					intval(ceil($writerData['maxLength'] / $subDirWriter->getPageSize())),
+					$rangeLookup->getReduced(),
+				));
+			}
+
+			// Push the save data into the subDirs store.
+			$subDirStore->add($this->hash, json_encode($this->hash) . ':' . $saveJSON);
+
+			// If it is small enough, store it with the directory entry as well.
+			if (strlen($saveJSON) < 300) {
+				if (isset($subDirsJSON)) echo $this->hash . "\n";
+				$this->dirs = $saveJSON;
+			}
 		}
 	}
 
