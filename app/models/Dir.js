@@ -41,7 +41,7 @@ define([
 	}
 
 	var parseDir = {
-		'2.0': function(dir) {
+		'2.0': function(dir, settings) {
 			dir = remapAttributes(
 				dir,
 				dirAttributeMapping['2.0']
@@ -72,16 +72,38 @@ define([
 			// Normalize the sub-dirs list.
 			if (_.has(dir, 'dirs')) {
 				var subDirs = dir.dirs;
+				if (subDirs && subDirs.length) {
 
-				// Subdirs are in a subdirsmap_* file.
-				if (typeof subDirs === 'number' || typeof subDirs === 'string') {
-					dir.dirsMap = '' + subDirs;
-					delete dir.dirs;
-				}
-				else if (subDirs.length) {
+					// Contains save data.
+					if (typeof subDirs[0] === 'number') {
+						delete dir.dirs;
+						dir.dirsSave = {
+							segments: subDirs[0]
+						};
 
-					// Contains the full list.
-					if (typeof subDirs[0][0] === 'string') {
+						if (subDirs[1] != null)
+							dir.dirsSave.pagesPerSegment = subDirs[1];
+
+						if (subDirs[2])
+							dir.dirsSave.lookup = _.reduce(['name','size','count','dirs'], function(ret, key, i){
+								ret[key] = _.map(subDirs[2][i], function(file) {
+									return {
+										lower: file[0],
+										upper: file[1],
+										id: file[2]
+									};
+								});
+								return ret;
+							}, {});
+
+						// The number of entries in the last segment.
+						// i.e. total - perPage * (segments - 1) * pagesPerSegment
+						if (subDirs[3])
+							dir.dirsSave.remainder = subDirs[3];
+					}
+
+					// Otherwise, contains the list of sub-directories which needs to be parsed.
+					else {
 						dir.dirs = _.map(subDirs, function(subDir) {
 							return {
 								hash: subDir[0],
@@ -91,21 +113,6 @@ define([
 								size: subDir[4]
 							};
 						});
-					}
-
-					// Sub-dirs are in segment files.
-					else {
-						dir.dirsSegments = _.reduce(['name','size','count','dirs'], function(ret, key, i){
-							ret[key] = _.map(subDirs[i], function(file) {
-								return {
-									lower: file[0],
-									upper: file[1],
-									id: file[2]
-								};
-							});
-							return ret;
-						}, {});
-						delete dir.dirs;
 					}
 				}
 			}
@@ -207,9 +214,9 @@ define([
 			var settings = this.settings || options.settings;
 			switch (settings.get('version')) {
 				case '2.0':
-					return parseDir['2.0'](response);
+					return parseDir['2.0'](response, settings);
 				default:
-					return parseDir['1.0'](response);
+					return parseDir['1.0'](response, settings);
 			}
 		},
 
