@@ -366,12 +366,19 @@ class DirInfo extends FileInfo {
 			// Otherwise, save it to multiple files.
 			else {
 				$rangeLookup = new RangeLookup(count($dirsList->getComparators()));
+				$length = $dirsList->getLength();
 				$writerData = $subDirWriter->save($dirsList, 'subdirs_' . $this->hash, '.txt', $rangeLookup);
 
+				$segments = $writerData['fileIndex'];
+				$pagesPerSegment = intval(ceil($writerData['maxLength'] / $subDirWriter->getPageSize()));
+
 				$saveJSON = json_encode(array(
-					$writerData['fileIndex'],
-					intval(ceil($writerData['maxLength'] / $subDirWriter->getPageSize())),
+					$segments,
+					$pagesPerSegment,
 					$rangeLookup->getReduced(),
+
+					// The number of entries in the last segment.
+					$length - ($this->options->getPageSize() * ($segments-1) * $pagesPerSegment),
 				));
 			}
 
