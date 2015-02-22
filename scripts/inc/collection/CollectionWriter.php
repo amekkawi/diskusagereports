@@ -280,7 +280,7 @@ class CollectionWriter {
 			}
 
 			if (isset($sortStart))
-				Logger::log("Sorted " . ($lastSortIndex+1) . " temp files in " . sprintf('%.2f', microtime(true) - $sortStart) . " sec.", Logger::LEVEL_VERBOSE);
+				Logger::log("Sorted " . ($lastSortIndex+1) . " temp files in " . sprintf('%.2f', microtime(true) - $sortStart) . " sec.", Logger::LEVEL_DEBUG1);
 
 			$fileIndexByKey[$sortKey] = $fileIndex;
 		}
