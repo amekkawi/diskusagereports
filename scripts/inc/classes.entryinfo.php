@@ -236,7 +236,19 @@ class DirInfo extends FileInfo {
 	 * @throws Exception
 	 */
 	public function onPop() {
-		// Save the files list, if set.
+		$this->saveFileList();
+		$this->saveTopList();
+		$this->saveFileSizesList();
+		$this->saveModifiedDatesList();
+		$this->saveSubDirsList();
+	}
+
+	/**
+	 * Save the files list, if allowed at this depth.
+	 *
+	 * @throws Exception
+	 */
+	protected function saveFileList() {
 		if ($this->fileList !== null) {
 			$filesListMap = $this->report->fileListMap;
 			$filesListWriter = $this->report->fileListWriter;
@@ -271,8 +283,14 @@ class DirInfo extends FileInfo {
 				));
 			}
 		}
+	}
 
-		// Save the top files list, if set and is not re-used from its parent directory.
+	/**
+	 * Save the top files list, only if not passing through to a parent directory.
+	 *
+	 * @throws Exception
+	 */
+	protected function saveTopList() {
 		if ($this->isOwnTopList && $this->topList !== null) {
 			$topListMap = $this->report->topListMap;
 			$topList = $this->topList;
@@ -294,8 +312,14 @@ class DirInfo extends FileInfo {
 				$this->top = json_encode($topList->save());
 			}
 		}
+	}
 
-		// Save the file size summaries, if set and is not re-used from its parent directory.
+	/**
+	 * Save the file size summaries, only if not passing through to a parent directory.
+	 *
+	 * @throws Exception
+	 */
+	protected function saveFileSizesList() {
 		if ($this->isOwnFileSizesList && $this->fileSizesList !== null) {
 			$fileSizesMap = $this->report->fileSizesMap;
 			$fileSizesList = $this->fileSizesList;
@@ -315,8 +339,14 @@ class DirInfo extends FileInfo {
 				$this->fileSizes = json_encode($fileSizesList->save());
 			}
 		}
+	}
 
-		// Save the modified date summaries, if set and is not re-used from its parent directory.
+	/**
+	 * Save the modified date summaries, only if not passing through to a parent directory.
+	 *
+	 * @throws Exception
+	 */
+	protected function saveModifiedDatesList() {
 		if ($this->isOwnModifiedDatesList && $this->modifiedDatesList !== null) {
 			$modifiedDatesMap = $this->report->modifiedDatesMap;
 			$modifiedDatesList = $this->modifiedDatesList;
@@ -336,7 +366,15 @@ class DirInfo extends FileInfo {
 				$this->modifiedDates = json_encode($modifiedDatesList->save());
 			}
 		}
+	}
 
+	/**
+	 * Save the sub-directory list.
+	 *
+	 * @throws Exception
+	 * @throws IOException
+	 */
+	protected function saveSubDirsList() {
 		$subDirStore = $this->report->subDirStore;
 		$subDirWriter = $this->report->subDirWriter;
 		$dirsList = $this->dirList;
