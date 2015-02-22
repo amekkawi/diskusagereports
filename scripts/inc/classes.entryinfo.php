@@ -380,7 +380,6 @@ class DirInfo extends FileInfo {
 
 			// If it is small enough, store it with the directory entry as well.
 			if (strlen($saveJSON) < 300) {
-				if (isset($subDirsJSON)) echo $this->hash . "\n";
 				$this->dirs = $saveJSON;
 			}
 		}

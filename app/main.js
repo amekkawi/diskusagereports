@@ -47,8 +47,6 @@ require([
 ], function(app, Marionette, TitleView) {
 	"use strict";
 
-	console.log('loaded');
-
 	var reportsBaseURL = '/git/diskusage-data/',
 		report = window.location.search.substring(1),
 		suffix = [ '.txt', '' ];
