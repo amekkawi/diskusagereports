@@ -255,11 +255,20 @@ class DirInfo extends FileInfo {
 			// Otherwise save it to separate files and store a lookup with the directory entry.
 			else {
 				$rangeLookup = new RangeLookup(count($fileList->getComparators()));
-				$saveData = $filesListWriter->save($fileList, 'files_' . $this->hash, '.txt', $rangeLookup);
-				$this->files = array(
-					$saveData['maxLength'],
+				$length = $fileList->getLength();
+				$writerData = $filesListWriter->save($fileList, 'files_' . $this->hash, '.txt', $rangeLookup);
+
+				$segments = $writerData['fileIndex'];
+				$pagesPerSegment = intval(ceil($writerData['maxLength'] / $filesListWriter->getPageSize()));
+
+				$this->files = json_encode(array(
+					$segments,
+					$pagesPerSegment,
 					$rangeLookup->getReduced(),
-				);
+
+					// The number of entries in the last segment.
+					$length - ($filesListWriter->getPageSize() * ($segments-1) * $pagesPerSegment),
+				));
 			}
 		}
 
@@ -378,7 +387,7 @@ class DirInfo extends FileInfo {
 					$rangeLookup->getReduced(),
 
 					// The number of entries in the last segment.
-					$length - ($this->options->getPageSize() * ($segments-1) * $pagesPerSegment),
+					$length - ($subDirWriter->getPageSize() * ($segments-1) * $pagesPerSegment),
 				));
 			}
 
