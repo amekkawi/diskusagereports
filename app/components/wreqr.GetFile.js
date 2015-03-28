@@ -1,90 +1,103 @@
 define([
 	'jquery'
 ], function($) {
-	return function(options) {
+
+	// Global cache of in-progress requests.
+	var activePromiseStore = {};
+
+	GetFile.Build = Build;
+	return GetFile;
+
+	/**
+	 * Build a GetFile WREQR request with preset options.
+	 *
+	 * @param {Object}  [options]
+	 * @param {Object}  [options.fileName] The file name to always use, ignoring the passed file name.
+	 * @param {Object}  [options.defaultFileName] The file name to use when a file name was not passed.
+	 * @param {Boolean} [options.errorNotFound] The error code to return instead of "NOT_FOUND".
+	 * @returns {GetFileRequest}
+	 */
+	function Build(options) {
 		options = options || {};
+		return GetFileRequest;
 
-		var responseCache = {
-			limit: options.responseCacheLimit || 10,
-			map: {},
-			keys: []
-		};
+		/**
+		 * GetFile WREQR request with preset options.
+		 *
+		 * @param fileName
+		 * @returns {Object}
+		 */
+		function GetFileRequest(fileName) {
+			console.log('GetFileRequest', options.fileName || fileName || options.defaultFileName);
+			return GetFile(this, options.fileName || fileName || options.defaultFileName, options);
+		}
+	}
 
-		var deferredCache = {
-			limit: options.deferredCacheLimit || 10,
-			map: {},
-			keys: []
-		};
+	/**
+	 * Get a report file.
+	 *
+	 * @param {Object}        app The Marionette.Application.
+	 * @param {String|Object} fileName
+	 * @param {Object}        [options]
+	 * @param {Boolean}       [options.errorNotFound] The error code to return instead of "NOT_FOUND".
+	 * @returns {Object} jQuery.Deferred
+	 */
+	function GetFile(app, fileName, options) {
+		var existingPromise = activePromiseStore[fileName];
+		if (existingPromise) {
+			// TODO: Destroy existing promise if too old?
 
-		function pushToCache(cache, key, value) {
-			if (!cache.limit)
-				return;
-
-			cache.map[key] = value;
-			cache.keys.push(key);
-
-			// Trim if over cache limit.
-			if (cache.keys.length > cache.limit) {
-				var firstKey = cache.keys.shift();
-				delete cache.map[firstKey];
-			}
+			// Increment the number of promises listening to this promise.
+			existingPromise._abortCount++;
+			return wrapPromise(existingPromise);
 		}
 
-		return function(fileName) {
-			if (!fileName && options.defaultFileName)
-				fileName = options.defaultFileName;
+		var promise = $.Deferred();
+		var xhr;
 
-			var cachedDeferred = deferredCache.map[fileName];
-			if (cachedDeferred) {
-				if (cachedDeferred.state() === 'pending')
-					cachedDeferred._abortCount++;
+		// Add a counter to determine how many abort calls must be made before the XHR is actually aborted.
+		promise._abortCount = 1;
 
-				return cachedDeferred;
-			}
+		// Add XHR-like abort method.
+		promise.abort = function() {
+			console.log('abort', fileName, promise._abortCount - 1 === 0);
+			if (--promise._abortCount <= 0)
+				xhr && xhr.abort();
+		};
 
-			var app = this;
-			var deferred = $.Deferred();
-			var xhr;
+		// Cache the new promise.
+		activePromiseStore[fileName] = promise;
 
-			deferred._abortCount = 1;
-			deferred.abort = function() {
-				if ((--deferred._abortCount) === 0)
-					xhr && xhr.abort();
-			};
-
-			pushToCache(deferredCache, fileName, deferred);
-
-			var cachedResponse = responseCache.map[fileName];
-			if (cachedResponse) {
-				deferred.resolveWith(app, [ cachedResponse ]);
-			}
-			else if (app.settings) {
-				xhr = $.ajax({
-					dataType: 'json',
-					url: app.urlRoot + '/' + fileName + app.suffix
-				})
+		if (app.settings) {
+			xhr = $.ajax({
+				dataType: 'json',
+				url: app.urlRoot + '/' + fileName + app.suffix
+			})
 				.done(function(resp) {
-					pushToCache(responseCache, fileName, resp);
-					deferred.resolveWith(app, [ resp ]);
+					delete activePromiseStore[fileName];
+					promise.resolveWith(app, [ resp ]);
 				})
 				.fail(function(xhr, status, error) {
+					delete activePromiseStore[fileName];
 					if (status === 'abort') {
-						delete deferredCache.map[fileName];
-						deferred.rejectWith(app, [ 'ABORT' ]);
-						return;
+						promise.rejectWith(app, [ 'ABORT' ]);
 					}
-
-					if (options.cacheFailed !== true)
-						delete deferredCache.map[fileName];
-
-					deferred.rejectWith(app, [ options.errorNotFound || 'NOT_FOUND', 'FETCH_FAIL', xhr, status, error ]);
+					else {
+						promise.rejectWith(app, [options.errorNotFound || 'NOT_FOUND', 'FETCH_FAIL', xhr, status, error]);
+					}
 				});
-			}
-			else {
-				deferred.rejectWith(app, [ 'SETTINGS_NOT_LOADED' ]);
-			}
+		}
+		else {
+			promise.rejectWith(app, [ 'SETTINGS_NOT_LOADED' ]);
+		}
 
-			return deferred;
-		};
-	};
+		return wrapPromise(promise);
+	}
+
+	// Wrap the promise but keep the abort handler.
+	function wrapPromise(promise) {
+		var wrapped = promise.promise();
+		wrapped.abort = promise.abort;
+		return wrapped;
+	}
 });
