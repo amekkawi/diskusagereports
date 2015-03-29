@@ -109,11 +109,6 @@ define([
 						segmentIndex: 3
 					}
 				}
-			}).memoize({
-				limit: 10,
-				resolver: function(key) {
-					return _.isObject(key) ? key.id : key;
-				}
 			}), app);
 
 			// =================================
