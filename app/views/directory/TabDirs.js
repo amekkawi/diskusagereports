@@ -72,7 +72,7 @@ define([
 				hash: dir.id,
 				dirs: this.dirs,
 				app: app,
-				route: app.getRoute(),
+				route: route,
 				settings: settings.attributes,
 				Lang: Lang,
 				page: route.page,

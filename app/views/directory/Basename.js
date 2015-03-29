@@ -19,21 +19,19 @@ define([
 		},
 
 		serializeData: function() {
-			var model = this.model;
-			var settings = model.settings;
+			var app = this.app;
+			var settings = app.settings;
 
 			return _.extend({
-				app: this.app,
-				isRoot: model.id === settings.get('root'),
+				app: app,
+				isRoot: this.model.id === settings.get('root'),
 				settings: settings.attributes,
 				Lang: Lang
 			}, Marionette.Layout.prototype.serializeData.apply(this, arguments));
 		},
 
 		onRender: function() {
-			var model = this.model;
-			var isRoot = model.id === model.settings.get('root');
-
+			var isRoot = this.model.id === this.app.settings.get('root');
 			this.$el.toggleClass('is-root', isRoot);
 		}
 	});
