@@ -2,20 +2,21 @@ define([
 	'underscore',
 	'jquery',
 	'marionette',
+	'components/util.memoizepromise',
 	'components/wreqr.GetFile',
-	'components/wreqr.GetLookup',
-	'components/wreqr.GetDirectory',
-	'components/wreqr.GetCollection',
+	'components/wreqr.GetMapEntry',
+	'components/wreqr.GetList',
 	'models/Settings',
+	'models/Dir',
 	'views/Loader',
 	'views/Title',
 	'views/Error',
 	'views/AjaxError',
 	'views/directory/Directory'
 ], function(
-	_, $, Marionette,
-	GetFile, GetLookup, GetDirectory, GetCollection,
-	ModelSettings,
+	_, $, Marionette, MemoizePromise,
+	GetFile, GetMapEntry, GetList,
+	ModelSettings, ModelDir,
 	ViewLoader, ViewTitle, ViewError, ViewAjaxError, ViewDirectory
 ) {
 	'use strict';
@@ -37,18 +38,56 @@ define([
 
 			this.setRoute();
 
-			app.reqres.setHandler('GetLookup', GetFile({
-				defaultFileName: 'dirmap_lookup'
+			// General file fetching.
+			app.reqres.setHandler('GetFile', GetFile.Build(), app);
+
+			// =================================
+			// Directory requests
+			// =================================
+
+			app.reqres.setHandler('GetDirLookup', GetFile.Build({
+				fileName: 'dirmap_lookup',
+				errorNotFound: 'LOOKUP_NOT_FOUND'
+			}).memoize({
+				key: 'dirmap_lookup'
 			}), app);
 
-			app.reqres.setHandler('GetDirectory', GetDirectory, app);
+			// TODO: 1.0 reports need to use GetFile (url: app.urlRoot + '/' + hash + app.suffix)
+			app.reqres.setHandler('GetDirectory', GetMapEntry.Build({
+				mapPrefix: 'dirmap_',
+				lookupRequest: 'GetDirLookup',
+				parse: function(entry, key) {
+					return new ModelDir(entry, { id: key, settings: app.settings, parse: true });
+				}
+			}).memoize({
+				limit: 10
+			}), app);
 
-			app.reqres.setHandler('GetSubDirs', GetCollection({
+			// =================================
+			// Subdirectory list requests
+			// =================================
+
+			app.reqres.setHandler('GetSubDirLookup', GetFile.Build({
+				fileName: 'subdirmap_lookup',
+				errorNotFound: 'LOOKUP_NOT_FOUND'
+			}).memoize({
+				key: 'subdirmap_lookup'
+			}), app);
+
+			app.reqres.setHandler('GetSubDirsMap', GetMapEntry.Build({
+				mapPrefix: 'subdirsmap_',
+				lookupRequest: 'GetSubDirLookup',
+				parse: function(entry) {
+					return ModelDir.parse({ dirs: entry }, { settings: app.settings });
+				}
+			}), app);
+
+			app.reqres.setHandler('GetSubDirs', GetList.Build({
 				attribute: 'dirs',
 				mapPrefix: 'subdirsmap',
 				segmentPrefix: 'subdirs',
-				count: 'directSubDirCount',
-				pagesPerSegment: 'pagesPerSubdirs',
+				lookupRequest: 'GetSubDirLookup',
+				sortedMap: 'GetSubDirsMap',
 				sorting: {
 					n: {
 						attributes: ['name'],
@@ -70,14 +109,33 @@ define([
 						segmentIndex: 3
 					}
 				}
+			}).memoize({
+				limit: 10,
+				resolver: function(key) {
+					return _.isObject(key) ? key.id : key;
+				}
 			}), app);
 
-			app.reqres.setHandler('GetFiles', GetCollection({
+			// =================================
+			// File list requests
+			// =================================
+
+			app.reqres.setHandler('GetFilesMap', GetMapEntry.Build({
+				mapPrefix: 'filesmap_',
+				parse: function(entry) {
+					return ModelDir.parse({ files: entry }, { settings: app.settings });
+				}
+			}).memoize({
+				limit: 5,
+				resolver: function(key) {
+					return _.isObject(key) ? key.id : key;
+				}
+			}), app);
+
+			app.reqres.setHandler('GetFiles', GetList.Build({
 				attribute: 'files',
-				mapPrefix: 'filesmap',
+				mapRequest: 'GetFilesMap',
 				segmentPrefix: 'files',
-				count: 'directFileCount',
-				pagesPerSegment: 'pagesPerFiles',
 				sorting: {
 					n: {
 						attributes: ['name'],
@@ -95,9 +153,25 @@ define([
 				}
 			}), app);
 
-			app.reqres.setHandler('GetGroupModified', GetCollection({
+			// =================================
+			// Modified dates list requests
+			// =================================
+
+			app.reqres.setHandler('GetGroupModifiedMap', GetMapEntry.Build({
+				mapPrefix: 'modifieddates_',
+				parse: function(entry) {
+					return ModelDir.parse({ modifiedDates: entry }, { settings: app.settings });
+				}
+			}).memoize({
+				limit: 5,
+				resolver: function(key) {
+					return _.isObject(key) ? key.id : key;
+				}
+			}), app);
+
+			app.reqres.setHandler('GetGroupModified', GetList.Build({
 				attribute: 'modifiedDates',
-				mapPrefix: 'modifieddates',
+				mapRequest: 'GetGroupModifiedMap',
 				sorting: {
 					a: {
 						attributes: ['index']
@@ -113,9 +187,25 @@ define([
 				}
 			}), app);
 
-			app.reqres.setHandler('GetGroupSizes', GetCollection({
+			// =================================
+			// File sizes list requests
+			// =================================
+
+			app.reqres.setHandler('GetGroupSizesMap', GetMapEntry.Build({
+				mapPrefix: 'filesizes_',
+				parse: function(entry) {
+					return ModelDir.parse({ fileSizes: entry }, { settings: app.settings });
+				}
+			}).memoize({
+				limit: 5,
+				resolver: function(key) {
+					return _.isObject(key) ? key.id : key;
+				}
+			}), app);
+
+			app.reqres.setHandler('GetGroupSizes', GetList.Build({
 				attribute: 'fileSizes',
-				mapPrefix: 'filesizes',
+				mapRequest: 'GetGroupSizesMap',
 				sorting: {
 					r: {
 						attributes: ['index']
@@ -131,7 +221,11 @@ define([
 				}
 			}), app);
 
-			app.reqres.setHandler('GetGroupTop', GetCollection({
+			// =================================
+			// Top files list requests
+			// =================================
+
+			app.reqres.setHandler('GetGroupTop', GetList.Build({
 				attribute: 'top',
 				mapPrefix: 'topmap',
 				sorting: {
@@ -147,9 +241,6 @@ define([
 					}
 				}
 			}), app);
-
-			// General file fetching.
-			app.reqres.setHandler('GetFile', GetFile(), app);
 
 			// Main initialization of the application.
 			app.addInitializer(function(options) {
@@ -252,7 +343,6 @@ define([
 
 			app.request('GetDirectory', routeHash)
 				.done(function(dir) {
-					//console.log('_loadDirectory success', routeHash, dir);
 					app.container.show(
 						new ViewDirectory({
 							model: dir,

@@ -1,6 +1,7 @@
 define([
-	'jquery'
-], function($) {
+	'jquery',
+	'components/util.memoizepromise'
+], function($, MemoizePromise) {
 
 	// Global cache of in-progress requests.
 	var activePromiseStore = {};
@@ -19,7 +20,17 @@ define([
 	 */
 	function Build(options) {
 		options = options || {};
+		GetFileRequest.memoize = memoize;
 		return GetFileRequest;
+
+		/**
+		 * Memoize the WREQR request.
+		 * @param options
+		 * @returns {GetFileRequest}
+		 */
+		function memoize(options) {
+			return MemoizePromise(GetFileRequest, options);
+		}
 
 		/**
 		 * GetFile WREQR request with preset options.
@@ -28,7 +39,6 @@ define([
 		 * @returns {Object}
 		 */
 		function GetFileRequest(fileName) {
-			console.log('GetFileRequest', options.fileName || fileName || options.defaultFileName);
 			return GetFile(this, options.fileName || fileName || options.defaultFileName, options);
 		}
 	}
@@ -60,7 +70,6 @@ define([
 
 		// Add XHR-like abort method.
 		promise.abort = function() {
-			console.log('abort', fileName, promise._abortCount - 1 === 0);
 			if (--promise._abortCount <= 0)
 				xhr && xhr.abort();
 		};

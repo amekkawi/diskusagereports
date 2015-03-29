@@ -72,48 +72,41 @@ define([
 			// Normalize the sub-dirs list.
 			if (_.has(dir, 'dirs')) {
 				var subDirs = dir.dirs;
-				if (subDirs && subDirs.length) {
 
-					// Contains save data.
-					if (typeof subDirs[0] === 'number') {
-						delete dir.dirs;
-						dir.dirsSave = {
-							segments: subDirs[0]
+				// Contains the list of sub-directories.
+				if (_.isArray(subDirs)) {
+					dir.dirs = _.map(subDirs, function(subDir) {
+						return {
+							hash: subDir[0],
+							name: subDir[1],
+							dirCount: subDir[2],
+							fileCount: subDir[3],
+							size: subDir[4]
 						};
+					});
+				}
 
-						if (subDirs[1] != null)
-							dir.dirsSave.pagesPerSegment = subDirs[1];
-
-						if (subDirs[2])
-							dir.dirsSave.lookup = _.reduce(['name','size','count','dirs'], function(ret, key, i){
-								ret[key] = _.map(subDirs[2][i], function(file) {
-									return {
-										lower: file[0],
-										upper: file[1],
-										id: file[2]
-									};
-								});
-								return ret;
-							}, {});
+				// Contains save data.
+				else if (_.isObject(subDirs)) {
+					delete dir.dirs;
+					dir.dirsSave = {
+						segments: subDirs.s,
+						pagesPerSegment: subDirs.p,
+						lookup: subDirs.l ? _.reduce(['name','size','count','dirs'], function(ret, key, i){
+							ret[key] = _.map(subDirs.l[i], function(file) {
+								return {
+									lower: file[0],
+									upper: file[1],
+									id: file[2]
+								};
+							});
+							return ret;
+						}, {}) : null,
 
 						// The number of entries in the last segment.
 						// i.e. total - perPage * (segments - 1) * pagesPerSegment
-						if (subDirs[3])
-							dir.dirsSave.remainder = subDirs[3];
-					}
-
-					// Otherwise, contains the list of sub-directories which needs to be parsed.
-					else {
-						dir.dirs = _.map(subDirs, function(subDir) {
-							return {
-								hash: subDir[0],
-								name: subDir[1],
-								dirCount: subDir[2],
-								fileCount: subDir[3],
-								size: subDir[4]
-							};
-						});
-					}
+						remainder: subDirs.r || null
+					};
 				}
 			}
 
@@ -122,15 +115,13 @@ define([
 				var files = dir.files;
 
 				// Files are in a filesmap_* file.
-				if (typeof files === 'string') {
-					dir.filesMap = '' + files;
+				if (typeof files === 'number') {
+					dir.filesMap = files;
 					delete dir.files;
 				}
-				else if (typeof files === 'number') {
-					dir.filesSegments = files;
-					delete dir.files;
-				}
-				else {
+
+				// Contains the list of files.
+				else if (_.isArray(files)) {
 					dir.files = _.map(files, function(file) {
 						return {
 							type: file[0],
@@ -140,6 +131,29 @@ define([
 							time: file[4]
 						};
 					});
+				}
+
+				// Contains save data.
+				else if (_.isObject(files)) {
+					delete dir.files;
+					dir.filesSave = {
+						segments: files.s,
+						pagesPerSegment: files.p,
+						lookup: files.l ? _.reduce(['name','size','modified'], function(ret, key, i){
+							ret[key] = _.map(files.l[i], function(file) {
+								return {
+									lower: file[0],
+									upper: file[1],
+									id: file[2]
+								};
+							});
+							return ret;
+						}, {}) : null,
+
+						// The number of entries in the last segment.
+						// i.e. total - perPage * (segments - 1) * pagesPerSegment
+						remainder: files.r || null
+					};
 				}
 			}
 
@@ -192,47 +206,51 @@ define([
 		}
 	};
 
-	return Model.extend(/** @lends Dir.prototype */{
-
-		/**
-		 * Backbone model for directory data.
-		 *
-		 * @extends {Model}
-		 * @constructs
-		 * @name Dir
-		 */
-
-		/**
-		 * Parse the JSON for a directory.
-		 *
-		 * @param {Object} response The JSON for the directory.
-		 * @param {Object} [options]
-		 * @param {Settings} [options.settings]
-		 * @returns {*}
-		 */
-		parse: function(response, options) {
-			var settings = this.settings || options.settings;
-			switch (settings.get('version')) {
-				case '2.0':
-					return parseDir['2.0'](response, settings);
-				default:
-					return parseDir['1.0'](response, settings);
-			}
-		},
-
-		/**
-		 * Parse the JSON for a single attribute.
-		 *
-		 * @param {String} name
-		 * @param value
-		 * @param {Object} [options]
-		 * @param {Settings} [options.settings]
-		 * @returns {*}
-		 */
-		parseAttribute: function(name, value, options) {
-			var data = {};
-			data[name] = value;
-			return this.parse(data, options)[name];
+	/**
+	 * Parse the JSON for a directory.
+	 *
+	 * @param {Object} response The JSON for the directory.
+	 * @param {Object} [options]
+	 * @param {Settings} [options.settings]
+	 * @returns {Object}
+	 */
+	function parse(response, options) {
+		var settings = this.settings || options.settings;
+		switch (settings.get('version')) {
+			case '2.0':
+				return parseDir['2.0'](response, settings);
+			default:
+				return parseDir['1.0'](response, settings);
 		}
+	}
+
+	/**
+	 * Parse the JSON for a single attribute.
+	 *
+	 * @param {String} name
+	 * @param value
+	 * @param {Object} [options]
+	 * @param {Settings} [options.settings]
+	 * @returns {*}
+	 */
+	function parseAttribute(name, value, options) {
+		var data = {};
+		data[name] = value;
+		return this.parse(data, options)[name];
+	}
+
+	/**
+	 * Backbone model for directory data.
+	 *
+	 * @extends {Model}
+	 * @constructs
+	 * @name Dir
+	 */
+	return Model.extend(/** @lends Dir.prototype */{
+		parse: parse,
+		parseAttribute: parseAttribute
+	}, {
+		parse: parse,
+		parseAttribute: parseAttribute
 	});
 });

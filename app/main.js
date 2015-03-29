@@ -1,4 +1,9 @@
 "use strict";
+
+window.has = function() {
+	return true;
+};
+
 requirejs.config({
 	baseUrl: './app',
 	paths: {
@@ -63,7 +68,6 @@ require([
 
 	// Re-render the title view to display new information from the settings.
 	app.vent.on('route', function(route) {
-		console.log('route', route);
 	});
 
 	app.start({
