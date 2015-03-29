@@ -220,9 +220,21 @@ define([
 			// Top files list requests
 			// =================================
 
+			app.reqres.setHandler('GetGroupTopMap', GetMapEntry.Build({
+				mapPrefix: 'topmap_',
+				parse: function(entry) {
+					return ModelDir.parse({ top: entry }, { settings: app.settings });
+				}
+			}).memoize({
+				limit: 5,
+				resolver: function(key) {
+					return _.isObject(key) ? key.id : key;
+				}
+			}), app);
+
 			app.reqres.setHandler('GetGroupTop', GetList.Build({
 				attribute: 'top',
-				mapPrefix: 'topmap',
+				mapRequest: 'GetGroupTopMap',
 				sorting: {
 					n: {
 						attributes: ['name']
