@@ -253,6 +253,7 @@ class DirInfo extends FileInfo {
 			$filesListMap = $this->report->fileListMap;
 			$filesListWriter = $this->report->fileListWriter;
 			$fileList = $this->fileList;
+			$length = $fileList->getLength();
 
 			// If it is small enough, store it with the directory entry.
 			if ($fileList->getSize() < 100) {
@@ -264,23 +265,53 @@ class DirInfo extends FileInfo {
 				$this->files = $filesListMap->addJSON($this->hash, $filesListWriter->toJSON($fileList));
 			}
 
-			// Otherwise save it to separate files and store a lookup with the directory entry.
+			// Otherwise save it to separate files.
 			else {
-				$rangeLookup = new RangeLookup(count($fileList->getComparators()));
-				$length = $fileList->getLength();
-				$writerData = $filesListWriter->save($fileList, 'files_' . $this->hash, '.txt', $rangeLookup);
+				// Only save the normal JSON if it fits within one file.
+				if ($fileList->getSize() <= $filesListWriter->getMaxSize()) {
+					$json = $filesListWriter->toJSON($fileList);
 
-				$segments = $writerData['fileIndex'];
-				$pagesPerSegment = intval(ceil($writerData['maxLength'] / $filesListWriter->getPageSize()));
+					// Write the file.
+					$saveFile = $this->report->openFile('files_' . $this->hash, 1, '.txt', 'w');
+					$saveFile->write($json);
+					$saveFile->close();
+					$this->report->onSave(null, null, 1, $length, strlen($json), null, null, $saveFile->getPath());
 
-				$this->files = json_encode(array(
-					$segments,
-					$pagesPerSegment,
-					$rangeLookup->getReduced(),
+					$saveJSON = json_encode(array(
+						's' => 1,
+						'p' => intval(ceil($length / $filesListWriter->getPageSize())),
+					));
+				}
 
-					// The number of entries in the last segment.
-					$length - ($filesListWriter->getPageSize() * ($segments-1) * $pagesPerSegment),
-				));
+				// Otherwise, save it to multiple files with multiple lists for each sort.
+				else {
+					$rangeLookup = new RangeLookup(count($fileList->getComparators()));
+					$writerData = $filesListWriter->save($fileList, 'files_' . $this->hash, '.txt', $rangeLookup);
+
+					$segments = $writerData['fileIndex'];
+					$pagesPerSegment = intval(ceil($writerData['maxLength'] / $filesListWriter->getPageSize()));
+
+					$saveJSON = json_encode(array(
+						's' => $segments,
+						'p' => $pagesPerSegment,
+						'l' => $rangeLookup->getReduced(),
+
+						// The number of entries in the last segment.
+						'r' => $length - ($filesListWriter->getPageSize() * ($segments-1) * $pagesPerSegment),
+					));
+				}
+
+				// If it is small enough,
+				// include the save data with the directory entry.
+				if (strlen($saveJSON) < 100) {
+					$this->files = $saveJSON;
+				}
+
+				// Otherwise push the save data to the store,
+				// and record the map index with the directory entry.
+				else {
+					$this->files = $filesListMap->addJSON($this->hash, $saveJSON);
+				}
 			}
 		}
 	}
@@ -390,7 +421,7 @@ class DirInfo extends FileInfo {
 			}
 		}
 
-		// Otherwise save it to separate files and push save data to the subDirs store.
+		// Otherwise save it to separate files.
 		else {
 
 			// Only save the normal JSON if it fits within one file.
@@ -405,12 +436,12 @@ class DirInfo extends FileInfo {
 				$this->report->onSave(null, null, 1, $subDirsLength, strlen($subDirsJSON), null, null, $saveFile->getPath());
 
 				$saveJSON = json_encode(array(
-					1,
-					intval(ceil($subDirsLength / $subDirWriter->getPageSize())),
+					's' => 1,
+					'p' => intval(ceil($subDirsLength / $subDirWriter->getPageSize())),
 				));
 			}
 
-			// Otherwise, save it to multiple files.
+			// Otherwise, save it to multiple files with multiple lists for each sort.
 			else {
 				$rangeLookup = new RangeLookup(count($dirsList->getComparators()));
 				$length = $dirsList->getLength();
@@ -420,12 +451,12 @@ class DirInfo extends FileInfo {
 				$pagesPerSegment = intval(ceil($writerData['maxLength'] / $subDirWriter->getPageSize()));
 
 				$saveJSON = json_encode(array(
-					$segments,
-					$pagesPerSegment,
-					$rangeLookup->getReduced(),
+					's' => $segments,
+					'p' => $pagesPerSegment,
+					'l' => $rangeLookup->getReduced(),
 
 					// The number of entries in the last segment.
-					$length - ($subDirWriter->getPageSize() * ($segments-1) * $pagesPerSegment),
+					'r' => $length - ($subDirWriter->getPageSize() * ($segments-1) * $pagesPerSegment),
 				));
 			}
 
