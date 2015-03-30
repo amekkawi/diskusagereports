@@ -7,7 +7,7 @@ define([
 	var dirAttributeMapping = {
 		'2.0': {
 			n: 'name',
-			D: 'directSubDirCount',
+			D: 'directDirCount',
 			d: 'subDirCount',
 			F: 'directFileCount',
 			f: 'subFileCount',
@@ -48,7 +48,7 @@ define([
 			);
 
 			// Normalize numbers.
-			_.each(['subDirCount','directFileCount','subFileCount','directFileSize','subFileSize'], function(attribute){
+			_.each(['directDirCount','subDirCount','directFileCount','subFileCount','directFileSize','subFileSize'], function(attribute){
 				if (_.has(dir, attribute))
 					dir[attribute] = parseInt(dir[attribute]);
 			}, this);
@@ -58,6 +58,8 @@ define([
 				dir.fileCount = dir.directFileCount + dir.subFileCount;
 			if (_.has(dir, 'directFileSize') && _.has(dir, 'subFileSize'))
 				dir.fileSize = dir.directFileSize + dir.subFileSize;
+			if (_.has(dir, 'directDirCount') && _.has(dir, 'subDirCount'))
+				dir.dirCount = dir.directDirCount + dir.subDirCount;
 
 			// Normalize parent list.
 			if (_.has(dir, 'parents')) {

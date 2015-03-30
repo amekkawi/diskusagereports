@@ -70,9 +70,9 @@ class DirInfo extends FileInfo {
 	protected $subDirLookup;
 
 	/**
-	 * @var int The total number of sub-directories that are directly under this directory.
+	 * @var int The total number of directories that are directly under this directory.
 	 */
-	public $directSubDirCount = 0;
+	public $directDirCount = 0;
 
 	/**
 	 * @var int The total number of sub-directories under this directory.
@@ -479,8 +479,8 @@ class DirInfo extends FileInfo {
 	 */
 	public function onChildPop(DirInfo $dirInfo) {
 		// Merge in counts and sizes.
-		$this->directSubDirCount++;
-		$this->subDirCount += $dirInfo->directSubDirCount + $dirInfo->subDirCount;
+		$this->directDirCount++;
+		$this->subDirCount += $dirInfo->directDirCount + $dirInfo->subDirCount;
 		$this->subSize += $dirInfo->directSize + $dirInfo->subSize;
 		$this->subFileCount += $dirInfo->directFileCount + $dirInfo->subFileCount;
 
@@ -552,7 +552,7 @@ class DirInfo extends FileInfo {
 
 		return '{'
 		. '"n":' . $this->getEncodedBasename()
-		. ',"D":' . json_encode($this->directSubDirCount)
+		. ',"D":' . json_encode($this->directDirCount)
 		. ',"d":' . json_encode($this->subDirCount)
 		. ',"F":' . json_encode($this->directFileCount)
 		. ',"f":' . json_encode($this->subFileCount)

@@ -69,7 +69,7 @@ define([
 			var route = this.route || app.getRoute();
 
 			var dir = this.model;
-			var maxPage = Math.ceil(dir.get('directSubDirCount') / settings.get('perPage'));
+			var maxPage = Math.ceil(dir.get('directDirCount') / settings.get('perPage'));
 
 			return _.defaults({
 				hash: dir.id,
