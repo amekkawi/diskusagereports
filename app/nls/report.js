@@ -72,7 +72,10 @@ define(function(){
 			message_settings_invalid: 'The settings file for the report has invalid values.',
 
 			message_no_data: 'This information is not available at this directory depth.',
-			message_not_found: 'Contents could not be loaded.'
+			message_not_found: 'Contents could not be loaded.',
+
+			message_no_dirs: 'This directory does not contain any sub directories.',
+			message_no_files: 'This directory does not contain any files.'
 		}
 	};
 });

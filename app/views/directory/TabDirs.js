@@ -24,6 +24,9 @@ define([
 			else if (args.dirs === 'NO_DATA')
 				return '<div class="du-mesage-info"><span class="glyphicon glyphicon-info-sign"></span> ' + Lang.message_no_data + '</div>';
 
+			else if (args.subDirCount === 0)
+				return '<div class="du-mesage-info"><span class="glyphicon glyphicon-info-sign"></span> ' + Lang.message_no_dirs + '</div>';
+
 			return Template.apply(this, arguments);
 		},
 

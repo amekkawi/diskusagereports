@@ -23,6 +23,9 @@ define([
 			else if (args.top === 'NO_DATA')
 				return '<div class="du-mesage-info"><span class="glyphicon glyphicon-info-sign"></span> ' + Lang.message_no_data + '</div>';
 
+			else if (args.fileCount === 0)
+				return '<div class="du-mesage-info"><span class="glyphicon glyphicon-info-sign"></span> ' + Lang.message_no_files + '</div>';
+
 			return Template.apply(this, arguments);
 		},
 
