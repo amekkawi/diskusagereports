@@ -480,7 +480,7 @@ class DirInfo extends FileInfo {
 	public function onChildPop(DirInfo $dirInfo) {
 		// Merge in counts and sizes.
 		$this->directSubDirCount++;
-		$this->subDirCount += $dirInfo->subDirCount + 1;
+		$this->subDirCount += $dirInfo->directSubDirCount + $dirInfo->subDirCount;
 		$this->subSize += $dirInfo->directSize + $dirInfo->subSize;
 		$this->subFileCount += $dirInfo->directFileCount + $dirInfo->subFileCount;
 
