@@ -38,6 +38,26 @@ define([
 
 			this.setRoute();
 
+			this._initRequests();
+
+			// Main initialization of the application.
+			app.addInitializer(function(options) {
+				app.addRegions({
+					container: options.container
+				});
+
+				app._loadSettings(options);
+			});
+
+			// Load the directory after the settings are loaded.
+			app.vent.once('settings:loaded', function() {
+				app._loadDirectory();
+			});
+		},
+
+		_initRequests: function() {
+			var app = this;
+
 			// General file fetching.
 			app.reqres.setHandler('GetFile', GetFile.Build(), app);
 
@@ -248,20 +268,6 @@ define([
 					}
 				}
 			}), app);
-
-			// Main initialization of the application.
-			app.addInitializer(function(options) {
-				app.addRegions({
-					container: options.container
-				});
-
-				app._loadSettings(options);
-			});
-
-			// Load the directory after the settings are loaded.
-			app.vent.once('settings:loaded', function() {
-				app._loadDirectory();
-			});
 		},
 
 		getRoute: function() {
