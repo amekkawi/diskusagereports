@@ -2,18 +2,18 @@
   "name": "Disk Usage Reports",
   "version": "3.0.0",
   "dependencies": {
-    "requirejs": "~2.1.10",
-    "backbone": "~1.1.0",
-    "jquery": "~2.1.0",
-    "lodash": "~2.4.1",
-    "html5-boilerplate": "~4.3.0",
-    "requirejs-i18n": "~2.0.4",
-    "requirejs-text": "~2.0.10",
-    "modernizr": "~2.7.1",
-    "bootstrap": "~3.1.1",
-    "backbone.marionette": "~1.8.3",
-    "backbone.eventbinder": "~1.0.2",
-    "backbone.babysitter": "~0.1.1",
-    "backbone.wreqr": "~1.2.1"
+    "requirejs": "2.1.18",
+    "backbone": "1.1.2",
+    "jquery": "2.1.4",
+    "lodash": "2.4.2",
+    "html5-boilerplate": "4.3.0",
+    "requirejs-i18n": "2.0.5",
+    "requirejs-text": "2.0.14",
+    "modernizr": "2.7.2",
+    "bootstrap": "3.1.1",
+    "backbone.marionette": "1.8.8",
+    "backbone.eventbinder": "1.0.2",
+    "backbone.babysitter": "0.1.7",
+    "backbone.wreqr": "1.2.1"
   }
 }
