@@ -7,6 +7,7 @@ define([
 	'views/directory/Breadcrumb',
 	'views/directory/SummarySize',
 	'views/directory/SummaryCount',
+	'views/directory/SummaryDirs',
 	'views/directory/Tabs',
 	'views/directory/TabDirs',
 	'views/directory/TabFiles',
@@ -15,7 +16,7 @@ define([
 	'views/directory/TabTop'
 ], function(
 	_, Marionette, RegionMulti, Template,
-	Basename, Breadcrumb, SummarySize, SummaryCount, Tabs,
+	Basename, Breadcrumb, SummarySize, SummaryCount, SummaryDirs, Tabs,
 	TabDirs, TabFiles, TabModified, TabSizes, TabTop
 ) {
 	'use strict';
@@ -65,7 +66,8 @@ define([
 
 			this.summary.show([
 				new SummarySize(options),
-				new SummaryCount(options)
+				new SummaryCount(options),
+				new SummaryDirs(options)
 			]);
 
 			var tabView = TabDirs;

@@ -55,6 +55,7 @@ define(function(){
 			basename_dropdown_header: 'Parent Directories:',
 			total_size: 'Total Size: ${total} &ndash; ${sub} (<%-Math.floor(1000 * subRaw / Math.max(1, totalRaw)) / 10%>%) from sub directories',
 			total_files: 'Total Files: ${total} &ndash; ${sub} (<%-Math.floor(1000 * subRaw / Math.max(1, totalRaw)) / 10%>%) from sub directories',
+			total_dirs: 'Total Dirs: ${total} &ndash; ${sub} (<%-Math.floor(1000 * subRaw / Math.max(1, totalRaw)) / 10%>%) from sub directories',
 
 			tab_dirs: 'Contents',
 			tab_files: 'File List',
