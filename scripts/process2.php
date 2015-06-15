@@ -148,6 +148,9 @@ try {
 				case '--debug3':
 					Logger::setLevel(Logger::LEVEL_DEBUG3);
 					break;
+				case '--memory-usage':
+					$options->setDebugMemory(true);
+					break;
 				case '-fp':
 				case '--full-path':
 					$options->setIncludeFullPath(true);

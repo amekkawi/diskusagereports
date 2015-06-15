@@ -36,6 +36,7 @@ class ScanReader {
 	 *
 	 * @param string $filename
 	 *
+	 * @throws Exception
 	 * @throws IOException
 	 * @throws ScanException
 	 */
@@ -47,6 +48,24 @@ class ScanReader {
 		}
 		catch (IOException $e) {
 			throw new ScanException(ScanException::FOPEN_FAIL);
+		}
+
+		$memLimit = false;
+		if ($this->report->options->isDebugMemory()) {
+			if (preg_match('/^([0-9]+)([GMK]?)(B?)$/', strtoupper(ini_get('memory_limit').''), $matches)) {
+				$memLimit = intval($matches[1]);
+				switch ($matches[2]) {
+					case "G":
+						$memLimit *= 1024;
+					case "M":
+						$memLimit *= 1024;
+					case "K":
+						$memLimit *= 1024;
+				}
+			}
+			else {
+				throw new Exception("Failed to match memory limit: " . ini_get('memory_limit'));
+			}
 		}
 
 		$start = microtime(true);
@@ -70,6 +89,10 @@ class ScanReader {
 						$progressPercent = floor($iterator->position() / $iterator->length() * 1000) / 10;
 						$message .= sprintf('%4.1f', $progressPercent) . "%: ";
 					}
+
+					// Add RAM usage.
+					if ($memLimit !== false)
+						$message .= '[' . sprintf('%4.1f', memory_get_usage() / $memLimit * 100) . "%] ";
 
 					$message .= "Processed " . Util::FormatNumber($lineNum - $progressLastLines) . " lines from " . Util::FormatBytes($iterator->position() - $progressLastBytes) . ". Wrote " . Util::FormatBytes($this->report->outSize - $progressLastOutSize) . " to " . Util::FormatNumber($this->report->outFiles - $progressLastOutFiles) . " files.";
 					$progressLastReport = time();

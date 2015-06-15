@@ -168,6 +168,11 @@ class Options {
 	protected $maxSubDirsMapKB = 20;
 
 	/**
+	 * @var bool Optionally include memory usage in progress messages.
+	 */
+	protected $debugMemory = false;
+
+	/**
 	 * @var array The file size summary groupings to use.
 	 * Each item in the array should have a 'label' and 'size' property.
 	 */
@@ -820,6 +825,20 @@ class Options {
 	 */
 	public function getMaxDirMapKB() {
 		return $this->maxDirMapKB;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function isDebugMemory() {
+		return $this->debugMemory;
+	}
+
+	/**
+	 * @param boolean $debugMemory
+	 */
+	public function setDebugMemory($debugMemory) {
+		$this->debugMemory = $debugMemory;
 	}
 
 	/**
