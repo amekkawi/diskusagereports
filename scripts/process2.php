@@ -38,6 +38,7 @@ require("inc/class.largecollection.php");
 require("inc/class.toplist.php");
 require("inc/class.groupbylist.php");
 require("inc/class.multifilesorter.php");
+require("inc/class.groupbyfiletype.php");
 
 require('inc/comparator/SingleComparator.php');
 require('inc/comparator/MultiComparator.php');

@@ -55,6 +55,16 @@ class DirInfo extends FileInfo {
 	protected $isOwnModifiedDatesList = false;
 
 	/**
+	 * @var null|GroupByFileType
+	 */
+	protected $fileTypeList = null;
+
+	/**
+	 * @var bool
+	 */
+	protected $isOwnFileTypeList = false;
+
+	/**
 	 * @var array All parent DirInfo.
 	 */
 	protected $parents = array();
@@ -145,6 +155,11 @@ class DirInfo extends FileInfo {
 	public $modifiedDates;
 
 	/**
+	 * @var string|null TODO: Match docs to $modifiedDates.
+	 */
+	public $fileTypes;
+
+	/**
 	 * @param Report $report
 	 * @param null   $line Optionally include the line to be processed. See {@link setFromLine}.
 	 *
@@ -227,6 +242,19 @@ class DirInfo extends FileInfo {
 			$this->modifiedDatesList = $this->parents[$modifiedDatesDepth]->modifiedDatesList;
 			$this->isOwnModifiedDatesList = false;
 		}
+
+		// File type summaries (if allowed at this depth).
+		$fileTypesDepth = $options->getFileTypesDepth();
+		if ($fileTypesDepth === true || (is_int($fileTypesDepth) && $this->depth <= $fileTypesDepth)) {
+			$this->fileTypeList = new GroupByFileType($this->options->modifiedGroups);
+			$this->fileTypeList->setKey($this->hash);
+			$this->isOwnFileTypeList = true;
+		}
+		// If not allowed at this depth, re-use the parent's list.
+		elseif (is_int($fileTypesDepth)) {
+			$this->fileTypeList = $this->parents[$fileTypesDepth]->fileTypeList;
+			$this->isOwnFileTypeList = false;
+		}
 	}
 
 	/**
@@ -240,6 +268,7 @@ class DirInfo extends FileInfo {
 		$this->saveTopList();
 		$this->saveFileSizesList();
 		$this->saveModifiedDatesList();
+		$this->saveFileTypesList();
 		$this->saveSubDirsList();
 	}
 
@@ -400,6 +429,33 @@ class DirInfo extends FileInfo {
 	}
 
 	/**
+	 * Save the file types summary, only if not passing through to a parent directory.
+	 *
+	 * @throws Exception
+	 */
+	protected function saveFileTypesList() {
+		if ($this->isOwnFileTypeList && $this->fileTypeList !== null) {
+			$fileTypesMap = $this->report->fileTypesMap;
+			$fileTypesList = $this->fileTypeList;
+
+			// If it is small enough, store it with the directory entry.
+			if ($fileTypesList->getJSONSize() < 100) {
+				$this->fileTypes = $fileTypesList->toJSON();
+			}
+
+			// Attempt to store it in the map.
+			elseif (($this->fileTypes = $fileTypesMap->add($fileTypesList)) !== false) {
+				$this->fileTypes = json_encode($this->fileTypes);
+			}
+
+			// Otherwise, force it to save.
+			else {
+				$this->fileTypes = json_encode($fileTypesList->save());
+			}
+		}
+	}
+
+	/**
 	 * Save the sub-directory list.
 	 *
 	 * @throws Exception
@@ -506,6 +562,11 @@ class DirInfo extends FileInfo {
 		if ($this->isOwnModifiedDatesList && $dirInfo->isOwnModifiedDatesList) {
 			$this->modifiedDatesList->merge($dirInfo->modifiedDatesList);
 		}
+
+		// Merge in the file types summary, if both this directory and the child have their own lists.
+		if ($this->isOwnFileTypeList && $dirInfo->isOwnFileTypeList) {
+			$this->fileTypeList->merge($dirInfo->fileTypeList);
+		}
 	}
 
 	/**
@@ -535,6 +596,10 @@ class DirInfo extends FileInfo {
 		if ($this->modifiedDatesList !== null) {
 			$this->modifiedDatesList->add($fileInfo);
 		}
+
+		if ($this->fileTypeList !== null) {
+			$this->fileTypeList->add($fileInfo);
+		}
 	}
 
 	/**
@@ -563,6 +628,7 @@ class DirInfo extends FileInfo {
 		. ($this->top === null ? '' : ',"t":' . $this->top)
 		. ($this->fileSizes === null ? '' : ',"u":' . $this->fileSizes)
 		. ($this->modifiedDates === null ? '' : ',"m":' . $this->modifiedDates)
+		. ($this->fileTypes === null ? '' : ',"T":' . $this->fileTypes)
 		. ',"p":' . '[' . implode(',', $parents) . ']'
 		. '}';
 	}

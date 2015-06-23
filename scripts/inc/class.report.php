@@ -201,6 +201,11 @@ class Report implements ICollectionIO, ICollectionListener {
 	public $modifiedDatesMap;
 
 	/**
+	 * @var LargeMap
+	 */
+	public $fileTypesMap;
+
+	/**
 	 * @var int Number of report files written to disk.
 	 */
 	public $outFiles = 0;
@@ -316,6 +321,17 @@ class Report implements ICollectionIO, ICollectionListener {
 			intval(floor($this->options->getMaxFileListMapKB() / 2)) * 1024,
 			array(
 				'prefix' => 'modifieddates',
+				'listener' => $this,
+			)
+		);
+
+		// Storage for file type summaries.
+		$this->fileTypesMap = new LargeMap(
+			$this,
+			$this->options->getMaxFileListMapKB() * 1024,
+			intval(floor($this->options->getMaxFileListMapKB() / 2)) * 1024,
+			array(
+				'prefix' => 'typesmap',
 				'listener' => $this,
 			)
 		);
@@ -459,6 +475,7 @@ class Report implements ICollectionIO, ICollectionListener {
 		$this->topListMap->save();
 		$this->fileSizesMap->save();
 		$this->modifiedDatesMap->save();
+		$this->fileTypesMap->save();
 
 		if (Logger::doLevel(Logger::LEVEL_VERBOSE))
 			Logger::log("Saving lookups and settings...", Logger::LEVEL_VERBOSE);
