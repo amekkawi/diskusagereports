@@ -532,6 +532,10 @@ class Process {
 		}
 		
 		else {
+			if ($split[$this->_col_type] == 'l') {
+				$split[$this->_col_path] = explode(' -> ', $split[$this->_col_path], 2)[0];
+			}
+
 			// Only if all the checks passed.
 			$ret = $split;
 		}
