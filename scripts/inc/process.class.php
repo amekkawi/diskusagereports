@@ -103,7 +103,7 @@ class Process {
 	var $_col_depth;
 	var $_col_path;
 	
-	function Process() {
+	function __construct() {
 		$this->_name = NULL;
 		$this->_fileList = NULL;
 		$this->_reportDir = NULL;
@@ -922,7 +922,7 @@ class Process {
 		);
 	}
 	
-	function _top100Comparator($listitem, $needle) {
+	static function _top100Comparator($listitem, $needle) {
 		return BigVal($listitem['size']) - BigVal($needle);
 	}
 	
