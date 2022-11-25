@@ -283,7 +283,7 @@ while (!is_null($cliarg = $cliargOrig = array_shift($cliargs))) {
 				exit(1);
 			}
 			elseif (is_null($cliarg = array_shift($cliargs))) {
-				continue;
+				break;
 			}
 		default:
 			if (is_null($processor->getReportDir())) {

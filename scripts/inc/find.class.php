@@ -28,7 +28,7 @@ class Find {
 	var $_ds;
 	var $_delim;
 	
-	function Find() {
+	function __construct() {
 		$this->_ds = DIRECTORY_SEPARATOR;
 		$this->_delim = " ";
 	}
